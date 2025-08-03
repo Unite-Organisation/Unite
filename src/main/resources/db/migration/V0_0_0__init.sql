@@ -1,8 +1,23 @@
+CREATE TABLE user_roles
+(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_role VARCHAR(15) NOT NULL
+);
+
+INSERT INTO user_roles(user_role)
+VALUES
+    ('STANDARD'),
+    ('MANAGER'),
+    ('ADMIN');
+
 CREATE TABLE users
 (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(20) NOT NULL,
     last_name  VARCHAR(20) NOT NULL,
+    email VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(50) NOT NULL,
+    user_role UUID REFERENCES user_roles(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
