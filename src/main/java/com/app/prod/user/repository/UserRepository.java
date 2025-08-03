@@ -6,9 +6,11 @@ import org.jooq.sources.tables.Users;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public class UserRepository extends BaseJooqRepository<Users, UsersRecord> {
+public class UserRepository extends BaseJooqRepository<Users, UsersRecord, UUID> {
     protected UserRepository(DSLContext dsl) {
-        super(dsl, Users.USERS);
+        super(dsl, Users.USERS, Users.USERS.ID);
     }
 }

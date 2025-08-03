@@ -10,15 +10,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public class UserRoleRepository extends BaseJooqRepository<UserRoles, UserRolesRecord> {
+public class UserRoleRepository extends BaseJooqRepository<UserRoles, UserRolesRecord, UUID> {
     protected UserRoleRepository(DSLContext dsl) {
-        super(dsl, UserRoles.USER_ROLES);
+        super(dsl, UserRoles.USER_ROLES, UserRoles.USER_ROLES.ID);
     }
 
     public Optional<UserRolesRecord> findById(UUID id){
         return dslContext.selectFrom(table)
                 .where(table.ID.eq(id))
                 .fetchOptional();
-
     }
 }
