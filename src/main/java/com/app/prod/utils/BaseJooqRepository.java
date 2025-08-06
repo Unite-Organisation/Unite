@@ -3,7 +3,6 @@ package com.app.prod.utils;
 import org.jooq.*;
 
 import java.util.List;
-import java.util.UUID;
 
 /* table, record, keyType */
 public abstract class BaseJooqRepository<T extends Table<R>, R extends TableRecord<R>, K> {
@@ -22,7 +21,7 @@ public abstract class BaseJooqRepository<T extends Table<R>, R extends TableReco
         return dslContext.selectFrom(table).fetch();
     }
 
-    public int insert(R record){
+    public int insertOne(R record){
         return dslContext.insertInto(table).set(record).execute();
     }
 

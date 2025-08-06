@@ -37,7 +37,7 @@ public class ConversationService {
     public void createConversation(ConversationRequest request) {
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
-        conversationRepository.insert(ConversationMapper.fromRequestToRecord(request, id, now));
+        conversationRepository.insertOne(ConversationMapper.fromRequestToRecord(request, id, now));
     }
 
     @Transactional
