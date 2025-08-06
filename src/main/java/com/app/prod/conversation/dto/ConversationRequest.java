@@ -4,9 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ConversationRequest(
-        UUID id,
         Boolean isGroup,
-        String name,
-        LocalDateTime createdAt
+        String name
 ) {
 }

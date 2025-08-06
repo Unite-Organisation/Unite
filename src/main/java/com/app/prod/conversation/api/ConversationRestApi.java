@@ -1,17 +1,21 @@
 package com.app.prod.conversation.api;
 
 import com.app.prod.conversation.dto.AddMembersRequest;
+import com.app.prod.conversation.dto.ConversationContentResponse;
 import com.app.prod.conversation.dto.ConversationRequest;
 import com.app.prod.conversation.dto.ConversationResponse;
 import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.service.ConversationService;
+import com.app.prod.messaging.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.ConversationsRecord;
+import org.jooq.sources.tables.records.MessageRecord;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -34,9 +38,15 @@ public class ConversationRestApi {
     }
 
     @PostMapping("/add-members")
-    public ResponseEntity<?> addMemberToConversation(@RequestBody AddMembersRequest request){
+    public ResponseEntity<Void> addMemberToConversation(@RequestBody AddMembersRequest request){
         conversationService.addMembersToConversation(request);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ConversationContentResponse> getConversationContent(@PathVariable UUID id){
+        List<MessageRecord> messages = conversationService.getConversationContent(id);
+        return ResponseEntity.ok().body(ConversationContentResponse.fromListOfMessagesToResponse(messages));
     }
 
 }
