@@ -25,8 +25,4 @@ public class UtilsConfiguration {
         return DSL.using(dataSource, SQLDialect.POSTGRES);
     }
 
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder(){
-        return new BCryptPasswordEncoder(BCRYPT_PASSWORD_ENCODER_STRENGTH);
-    }
 }

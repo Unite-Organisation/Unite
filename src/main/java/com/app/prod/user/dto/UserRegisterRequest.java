@@ -1,9 +1,8 @@
 package com.app.prod.user.dto;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record UserRequest(
+public record UserRegisterRequest(
         String firstName,
         String lastName,
         String username,
