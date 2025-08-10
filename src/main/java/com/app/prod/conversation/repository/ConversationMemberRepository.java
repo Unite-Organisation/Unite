@@ -14,4 +14,13 @@ public class ConversationMemberRepository extends BaseJooqRepository<Conversatio
     protected ConversationMemberRepository(DSLContext dsl) {
         super(dsl, ConversationMember.CONVERSATION_MEMBER, ConversationMember.CONVERSATION_MEMBER.CONVERSATION_ID);
     }
+
+    public boolean userBelongToConversation(UUID userID, UUID conversationId){
+        return dslContext.fetchExists(
+                dslContext.selectOne()
+                        .from(table)
+                        .where(table.USER_ID.eq(userID)
+                                .and(table.CONVERSATION_ID.eq(conversationId)))
+        );
+    }
 }

@@ -6,11 +6,14 @@ import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.messaging.repository.MessageRepository;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
 import org.jooq.sources.tables.records.ConversationsRecord;
+import org.jooq.sources.tables.records.MessageRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +30,9 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final ConversationMemberRepository conversationMemberRepository;
-    private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
     private final Clock clock;
+    private final Validate validate;
 
     public List<ConversationsRecord> getConversations() {
         return conversationRepository.findAll();
@@ -44,17 +48,13 @@ public class ConversationService {
     public void addMembersToConversation(AddMembersRequest request) {
 
         UUID conversationId = request.conversationId();
-        if(!conversationRepository.exists(conversationId)){
-            throw new EntityNotPresentException(String.format("Conversation with id: %s doesn't exist.", conversationId));
-        }
+        validate.conversation(conversationId);
 
         List<ConversationMemberRecord> batch = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now(clock);
 
         for(var memberId : request.ids()){
-            if(!userRepository.exists(memberId)){
-                throw new EntityNotPresentException(String.format("User with id: %s doesn't exist.", memberId));
-            }
+            validate.user(memberId);
 
             UUID id = UUID.randomUUID();
             batch.add(new ConversationMemberRecord(
@@ -67,5 +67,13 @@ public class ConversationService {
 
         log.info("Adding {} users into conversation with id: {}", batch.size(), conversationId);
         conversationMemberRepository.insertMany(batch);
+    }
+
+    public List<MessageRecord> getConversationContent(UUID conversationid) {
+        validate.conversation(conversationid);
+        List<MessageRecord> messages = messageRepository.findByConversationId(conversationid);
+
+        log.info("Fetched {} messages in conversation: {}", messages.size(), conversationid);
+        return messages;
     }
 }

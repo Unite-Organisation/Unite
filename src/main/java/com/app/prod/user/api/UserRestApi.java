@@ -1,6 +1,6 @@
 package com.app.prod.user.api;
 
-import com.app.prod.user.dto.UserRequest;
+import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.dto.UserResponse;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.service.UserService;
@@ -22,12 +22,6 @@ public class UserRestApi {
     public ResponseEntity<List<UserResponse>> getUsers(){
         List<UsersRecord> users = userService.getUsers();
         return ResponseEntity.ok(UserMapper.fromRecordsToResponses(users));
-    }
-
-    @PostMapping()
-    public ResponseEntity<String> createUser(@RequestBody UserRequest request){
-        String responseMessage = userService.createUser(request);
-        return ResponseEntity.ok(responseMessage);
     }
 
 }
