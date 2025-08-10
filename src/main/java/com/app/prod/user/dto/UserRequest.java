@@ -6,6 +6,7 @@ import java.util.UUID;
 public record UserRequest(
         String firstName,
         String lastName,
+        String username,
         String email,
         String password,
         UUID role
