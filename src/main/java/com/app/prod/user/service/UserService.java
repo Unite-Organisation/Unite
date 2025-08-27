@@ -2,12 +2,13 @@ package com.app.prod.user.service;
 
 import com.app.prod.config.security.jwt.JwtService;
 import com.app.prod.exceptions.exceptions.BadRequestException;
-import com.app.prod.user.dto.UserLoginRequest;
-import com.app.prod.user.dto.UserRegisterRequest;
+import com.app.prod.user.dto.*;
 import com.app.prod.user.enums.UserRole;
+import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
+import com.app.prod.utils.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.UsersRecord;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,6 +67,44 @@ public class UserService {
     public UsersRecord findByUsername(String username){
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException(String.format("User with username: %s does not exist.", username))
+        );
+    }
+
+    public BulkCreationResponse bulkCreation(BulkCreationRequest request) {
+        List<Person> failedCreations = new ArrayList<>();
+
+        for(Person person : request.persons()){
+            int status = userRepository.insertOne(createNewNonActiveUser(person));
+            if(status == 0){
+                log.warn("User {} {} was not created.", person.firstName(), person.lastName());
+                failedCreations.add(person);
+            }
+            else{
+                log.info("User {} {} was has been created.", person.firstName(), person.lastName());
+            }
+        }
+
+        return BulkCreationResponse.builder()
+                .success(failedCreations.isEmpty())
+                .failedCreations(failedCreations)
+                .build();
+    }
+
+    private UsersRecord createNewNonActiveUser(Person person){
+        String temporaryUsername = person.firstName().toLowerCase().charAt(0) + "." + person.lastName();
+        UUID standardRole = userRoleService.getUserRoleId(UserRole.STANDARD);
+        UUID id = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now(clock);
+        return new UsersRecord(
+                id,
+                person.firstName(),
+                person.lastName(),
+                null,
+                PasswordGenerator.generatePassword(),
+                standardRole,
+                now,
+                temporaryUsername,
+                UserStatus.CREATED.name()
         );
     }
 }

@@ -3,9 +3,11 @@ package com.app.prod.area.service;
 import com.app.prod.area.dto.AreaCreateRequest;
 import com.app.prod.area.mappers.AreaMapper;
 import com.app.prod.area.repository.AreaRepository;
+import com.app.prod.area.repository.AreasUsersRepository;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.AreasUsersRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class AreaService {
 
     private final AreaRepository areaRepository;
+    private final AreasUsersRepository areasUsersRepository;
     private final Clock clock;
     private final Validate validate;
 
@@ -34,8 +37,17 @@ public class AreaService {
         validate.area(areaId);
         validate.user(userId);
 
-        //TODO: here logic need to be added
+        LocalDateTime now = LocalDateTime.now(clock);
+        UUID id = UUID.randomUUID();
 
-        return null;
+        areasUsersRepository.insertOne(new AreasUsersRecord(
+                id,
+                areaId,
+                userId,
+                now
+        ));
+
+        log.info("Added user {} to area {}", userId, areaId);
+        return String.format("Added use %s to area %s", userId, areaId);
     }
 }

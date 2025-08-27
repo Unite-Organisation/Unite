@@ -2,6 +2,7 @@ package com.app.prod.user.mappers;
 
 import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.dto.UserResponse;
+import com.app.prod.user.enums.UserStatus;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -43,7 +44,8 @@ public class UserMapper {
                 encoder.encode(request.password()),
                 selectedRole,
                 now,
-                request.username()
+                request.username(),
+                UserStatus.ACTIVE.name()
 
         );
     }

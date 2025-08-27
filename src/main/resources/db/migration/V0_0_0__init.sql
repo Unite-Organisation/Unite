@@ -15,7 +15,7 @@ CREATE TABLE users
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(20) NOT NULL,
     last_name  VARCHAR(20) NOT NULL,
-    email VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(50) UNIQUE,
     password VARCHAR(50) NOT NULL,
     user_role UUID REFERENCES user_roles(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

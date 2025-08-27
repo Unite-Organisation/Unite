@@ -2,3 +2,4 @@
 
 # Run Maven with flyway migration
 ./mvnw flyway:migrate
+read
