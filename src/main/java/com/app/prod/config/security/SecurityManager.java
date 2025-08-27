@@ -1,68 +1,43 @@
 package com.app.prod.config.security;
 
-import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.exceptions.exceptions.FailedFetchingLoggedUserException;
-import com.app.prod.exceptions.exceptions.PermissionDeniedException;
-import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRepository;
-import com.app.prod.user.repository.UserRoleRepository;
+import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.UsersRecord;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class SecurityManager {
 
-    private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final UserService userService;
 
-    private Optional<String> getLoggedUsername(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public boolean currentUserHasRole(String role) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return false;
 
-        if(authentication == null || !authentication.isAuthenticated())
-            return Optional.empty();
+        return auth.getAuthorities().stream()
+                .anyMatch(granted -> granted.getAuthority().equals(role));
+    }
 
-        String username = null;
+    public void checkUserRole(String role) {
+        if (!currentUserHasRole(role)) {
+            throw new AccessDeniedException("User does not have required role: " + role);
+        }
+    }
 
-        Object principal = authentication.getPrincipal();
-        username = ((UserDetails) principal).getUsername();
-
-        if (username == null) {
-            return Optional.empty();
+    public UsersRecord getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
         }
 
-        return Optional.of(username);
-    }
-
-    public Optional<UsersRecord> getLoggedUser(){
-        String username = getLoggedUsername().orElseThrow(
-                () -> new FailedFetchingLoggedUserException("Cannot fetch logged user.")
-        );
-        return userRepository.findByUsername(username);
-    }
-
-    public boolean userIs(UserRole role){
-        var user = getLoggedUser().orElseThrow(
-                () -> new EntityNotPresentException("User doesn't exist.")
-        );
-
-        var userRole = userRoleRepository.findById(user.getUserRole()).orElseThrow(
-                () -> new EntityNotPresentException("Role doesn't exist.")
-        );
-
-        return(UserRole.fromString(userRole.getUserRole()) == role);
-    }
-
-    public void checkUserPermission(UserRole role){
-        if(!userIs(role)){
-            throw new PermissionDeniedException("User is not permitted to use this resource");
-        }
+        String username = auth.getName();
+        return userService.findByUsername(username);
     }
 
 }

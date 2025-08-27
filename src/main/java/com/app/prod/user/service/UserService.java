@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -55,5 +56,11 @@ public class UserService {
         Authentication result = authenticationManager.authenticate(auth);
         UserDetails ud = (UserDetails) result.getPrincipal();
         return jwtService.generateToken((org.springframework.security.core.userdetails.User) ud);
+    }
+
+    public UsersRecord findByUsername(String username){
+        return userRepository.findByUsername(username).orElseThrow(
+                () -> new UsernameNotFoundException(String.format("User with username: %s does not exist.", username))
+        );
     }
 }
