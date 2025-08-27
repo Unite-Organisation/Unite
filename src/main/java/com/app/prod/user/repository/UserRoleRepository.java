@@ -1,5 +1,6 @@
 package com.app.prod.user.repository;
 
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.UserRoles;
@@ -18,6 +19,12 @@ public class UserRoleRepository extends BaseJooqRepository<UserRoles, UserRolesR
     public Optional<UserRolesRecord> findById(UUID id){
         return dslContext.selectFrom(table)
                 .where(table.ID.eq(id))
+                .fetchOptional();
+    }
+
+    public Optional<UserRolesRecord> findByRoleName(UserRole userRole){
+        return dslContext.selectFrom(table)
+                .where(table.USER_ROLE.eq(userRole.name()))
                 .fetchOptional();
     }
 }

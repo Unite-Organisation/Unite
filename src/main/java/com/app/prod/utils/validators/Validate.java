@@ -1,5 +1,6 @@
 package com.app.prod.utils.validators;
 
+import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
@@ -19,6 +20,7 @@ public class Validate {
     private final ConversationMemberRepository conversationMemberRepository;
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
+    private final AreaRepository areaRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -29,6 +31,12 @@ public class Validate {
     public void conversation(UUID id){
         if(!conversationRepository.exists(id)){
             throw new EntityNotPresentException(String.format("Conversation with id: %s doesn't exist.", id));
+        }
+    }
+
+    public void area(UUID id){
+        if(!areaRepository.exists(id)){
+            throw new EntityNotPresentException(String.format("Area with id: %s doesn't exist.", id));
         }
     }
 

@@ -4,8 +4,10 @@ import com.app.prod.config.security.jwt.JwtService;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.user.dto.UserLoginRequest;
 import com.app.prod.user.dto.UserRegisterRequest;
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.UsersRecord;
@@ -32,6 +34,7 @@ public class UserService {
     private final Clock clock;
     private final JwtService jwtService;
     private final BCryptPasswordEncoder encoder;
+    private final UserRoleService userRoleService;
 
     public List<UsersRecord> getUsers(){
          return userRepository.findAll();
@@ -45,7 +48,8 @@ public class UserService {
 
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
-        userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, encoder));
+        UUID selectedRoleId = userRoleService.getUserRoleId(request.role());
+        userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, selectedRoleId, encoder));
 
         log.info("Created user: {}", id);
         return String.format("User with id: %s has been created.", id);

@@ -1,5 +1,7 @@
 package com.app.prod.user.dto;
 
+import com.app.prod.user.enums.UserRole;
+
 import java.util.UUID;
 
 public record UserRegisterRequest(
@@ -8,6 +10,6 @@ public record UserRegisterRequest(
         String username,
         String email,
         String password,
-        UUID role
+        UserRole role
 ) {
 }
