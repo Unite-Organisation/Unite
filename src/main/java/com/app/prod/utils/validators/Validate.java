@@ -46,4 +46,10 @@ public class Validate {
         }
     }
 
+    public void thatUsernameIsFree(String username){
+        if(userRepository.findByUsername(username).isPresent()){
+            throw new BadRequestException("This username is already taken.");
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.app.prod.user.service;
 
+import com.app.prod.authorization.service.ActivationService;
 import com.app.prod.config.security.jwt.JwtService;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.user.dto.*;
@@ -9,6 +10,7 @@ import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
 import com.app.prod.utils.PasswordGenerator;
+import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.UsersRecord;
@@ -19,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -37,16 +40,15 @@ public class UserService {
     private final JwtService jwtService;
     private final BCryptPasswordEncoder encoder;
     private final UserRoleService userRoleService;
+    private final ActivationService activationService;
+    private final Validate validate;
 
     public List<UsersRecord> getUsers(){
          return userRepository.findAll();
     }
 
     public String register(UserRegisterRequest request) {
-
-        if(userRepository.findByUsername(request.username()).isPresent()){
-            throw new BadRequestException("This username is already taken.");
-        }
+        validate.thatUsernameIsFree(request.username());
 
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
@@ -58,7 +60,17 @@ public class UserService {
     }
 
     public String login(UserLoginRequest request){
-        var auth = new UsernamePasswordAuthenticationToken(request.username(), request.password());
+        return generateToken(request.username(), request.password());
+    }
+
+    @Transactional
+    public String activate(UserActivateRequest request){
+        activationService.activate(request);
+        return generateToken(request.username(), request.password());
+    }
+
+    public String generateToken(String username, String password){
+        var auth = new UsernamePasswordAuthenticationToken(username, password);
         Authentication result = authenticationManager.authenticate(auth);
         UserDetails ud = (UserDetails) result.getPrincipal();
         return jwtService.generateToken((org.springframework.security.core.userdetails.User) ud);

@@ -1,14 +1,12 @@
 package com.app.prod.authorization.api;
 
+import com.app.prod.user.dto.UserActivateRequest;
 import com.app.prod.user.dto.UserLoginRequest;
 import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -28,5 +26,11 @@ public class AuthRestApi {
     public ResponseEntity<String> login(@RequestBody UserLoginRequest request) {
         String token = userService.login(request);
         return ResponseEntity.ok(String.format("Token: %s", token));
+    }
+
+    @PutMapping("/activate")
+    public ResponseEntity<String> activate(@RequestBody UserActivateRequest request){
+        String token = userService.activate(request);
+        return ResponseEntity.ok(String.format("User activated. Token: %s", token));
     }
 }
