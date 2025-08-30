@@ -3,6 +3,7 @@ package com.app.prod.user.service;
 import com.app.prod.authorization.service.ActivationService;
 import com.app.prod.config.security.jwt.JwtService;
 import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.dto.*;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
@@ -80,6 +81,16 @@ public class UserService {
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException(String.format("User with username: %s does not exist.", username))
         );
+    }
+
+    public UsersRecord findById(UUID userId){
+        return userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotPresentException(String.format("User with id: %s does not exist.", userId))
+        );
+    }
+
+    public void addBuilding(UUID userId, UUID buildingId){
+        userRepository.addBuilding(userId, buildingId);
     }
 
     public BulkCreationResponse bulkCreation(BulkCreationRequest request) {

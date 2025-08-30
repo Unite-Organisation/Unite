@@ -3,6 +3,7 @@ package com.app.prod.utils;
 import org.jooq.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /* table, record, keyType */
 public abstract class BaseJooqRepository<T extends Table<R>, R extends TableRecord<R>, K> {
@@ -35,6 +36,12 @@ public abstract class BaseJooqRepository<T extends Table<R>, R extends TableReco
                 .where(id.eq(recordId))
                 .fetchOptional()
                 .isPresent();
+    }
+
+    public Optional<R> findById(K recordId){
+        return dslContext.selectFrom(table)
+                .where(id.eq(recordId))
+                .fetchOptional();
     }
 
 }

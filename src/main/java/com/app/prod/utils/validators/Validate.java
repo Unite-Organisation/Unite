@@ -1,11 +1,13 @@
 package com.app.prod.utils.validators;
 
 import com.app.prod.area.repository.AreaRepository;
+import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ public class Validate {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final AreaRepository areaRepository;
+    private final UserService userService;
+    private final BuildingRepository buildingRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -49,6 +53,19 @@ public class Validate {
     public void thatUsernameIsFree(String username){
         if(userRepository.findByUsername(username).isPresent()){
             throw new BadRequestException("This username is already taken.");
+        }
+    }
+
+    public void thatUserIsNotInAnyBuildingYet(UUID userId){
+        var user = userService.findById(userId);
+        if(user.getBuildingId() != null){
+            throw new BadRequestException("User has already been set to building: " + user.getBuildingId());
+        }
+    }
+
+    public void building(UUID id){
+        if(!buildingRepository.exists(id)){
+            throw new EntityNotPresentException(String.format("Building with id: %s doesn't exist.", id));
         }
     }
 

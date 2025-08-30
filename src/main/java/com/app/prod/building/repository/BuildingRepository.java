@@ -2,6 +2,7 @@ package com.app.prod.building.repository;
 
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
+import org.jooq.sources.Public;
 import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.records.BuildingsRecord;
 import org.springframework.stereotype.Repository;

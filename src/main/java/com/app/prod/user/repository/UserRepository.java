@@ -39,4 +39,11 @@ public class UserRepository extends BaseJooqRepository<Users, UsersRecord, UUID>
                 .where(table.USERNAME.eq(temporaryUserName))
                 .execute();
     }
+
+    public void addBuilding(UUID userId, UUID buildingId){
+        dslContext.update(table)
+                .set(table.BUILDING_ID, buildingId)
+                .where(table.ID.eq(userId))
+                .execute();
+    }
 }
