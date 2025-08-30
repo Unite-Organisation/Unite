@@ -4,6 +4,8 @@ import com.app.prod.area.dto.AreaCreateRequest;
 import com.app.prod.area.mappers.AreaMapper;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.area.repository.AreasUsersRepository;
+import com.app.prod.building.mappers.BuildingMapper;
+import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,17 +22,19 @@ import java.util.UUID;
 public class AreaService {
 
     private final AreaRepository areaRepository;
+    private final BuildingRepository buildingRepository;
     private final AreasUsersRepository areasUsersRepository;
     private final Clock clock;
     private final Validate validate;
 
     public String createArea(AreaCreateRequest request){
         LocalDateTime now = LocalDateTime.now(clock);
-        UUID id = UUID.randomUUID();
-        areaRepository.insertOne(AreaMapper.fromRequestToRecord(request, id, now));
+        UUID areaId = UUID.randomUUID();
+        areaRepository.insertOne(AreaMapper.fromRequestToRecord(request, areaId, now));
+        buildingRepository.insertMany(BuildingMapper.fromRequestToList(request.buildings(), areaId));
 
         log.info("Created area: {}", request.name());
-        return String.format("Area with id: %s has been created.", id);
+        return String.format("Area with id: %s has been created.", areaId);
     }
 
     public String addUser(UUID areaId, UUID userId) {
