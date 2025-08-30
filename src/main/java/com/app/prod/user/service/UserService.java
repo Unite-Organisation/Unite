@@ -112,11 +112,13 @@ public class UserService {
                 person.firstName(),
                 person.lastName(),
                 null,
+                temporaryUsername,
                 PasswordGenerator.generatePassword(),
                 standardRole,
+                UserStatus.CREATED.name(),
                 now,
-                temporaryUsername,
-                UserStatus.CREATED.name()
+                null,
+                null
         );
     }
 }

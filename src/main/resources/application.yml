@@ -13,3 +13,7 @@ server:
 jwt:
   secret: nx4bak6442nojjhf83smacno9j31jcch87h=c2ee2ybc2yegce
   expiration-ms: 3600000
+
+springdoc:
+  swagger-ui:
+    enabled: true

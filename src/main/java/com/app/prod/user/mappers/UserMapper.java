@@ -41,11 +41,13 @@ public class UserMapper {
                 request.firstName(),
                 request.lastName(),
                 request.email(),
+                request.username(),
                 encoder.encode(request.password()),
                 selectedRole,
+                UserStatus.ACTIVE.name(),
                 now,
-                request.username(),
-                UserStatus.ACTIVE.name()
+                null,
+                null
 
         );
     }
