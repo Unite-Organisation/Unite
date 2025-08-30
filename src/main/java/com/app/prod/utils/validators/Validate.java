@@ -23,7 +23,6 @@ public class Validate {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final AreaRepository areaRepository;
-    private final UserService userService;
     private final BuildingRepository buildingRepository;
 
     public void user(UUID id){
@@ -57,7 +56,9 @@ public class Validate {
     }
 
     public void thatUserIsNotInAnyBuildingYet(UUID userId){
-        var user = userService.findById(userId);
+        var user = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotPresentException(String.format("User with id: %s does not exist.", userId))
+        );
         if(user.getBuildingId() != null){
             throw new BadRequestException("User has already been set to building: " + user.getBuildingId());
         }
