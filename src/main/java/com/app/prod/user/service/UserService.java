@@ -1,19 +1,20 @@
 package com.app.prod.user.service;
 
+import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.authorization.service.ActivationService;
+import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.config.security.jwt.JwtService;
-import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.dto.*;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
-import com.app.prod.user.repository.UserRoleRepository;
 import com.app.prod.utils.PasswordGenerator;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.BuildingsRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,6 +44,7 @@ public class UserService {
     private final UserRoleService userRoleService;
     private final ActivationService activationService;
     private final Validate validate;
+    private final BuildingRepository buildingRepository;
 
     public List<UsersRecord> getUsers(){
          return userRepository.findAll();
@@ -89,21 +91,21 @@ public class UserService {
         );
     }
 
-    public void addBuilding(UUID userId, UUID buildingId){
-        userRepository.addBuilding(userId, buildingId);
+    public void addUsersBuilding(UUID userId, UUID buildingId, UUID areaId){
+        userRepository.addBuilding(userId, buildingId, areaId);
     }
 
     public BulkCreationResponse bulkCreation(BulkCreationRequest request) {
-        List<Person> failedCreations = new ArrayList<>();
+        List<PersonToBeCreated> failedCreations = new ArrayList<>();
 
-        for(Person person : request.persons()){
-            int status = userRepository.insertOne(createNewNonActiveUser(person));
+        for(PersonToBeCreated personToBeCreated : request.personToBeCreateds()){
+            int status = userRepository.insertOne(createNewNonActiveUser(personToBeCreated));
             if(status == 0){
-                log.warn("User {} {} was not created.", person.firstName(), person.lastName());
-                failedCreations.add(person);
+                log.warn("User {} {} was not created.", personToBeCreated.firstName(), personToBeCreated.lastName());
+                failedCreations.add(personToBeCreated);
             }
             else{
-                log.info("User {} {} was has been created.", person.firstName(), person.lastName());
+                log.info("User {} {} was has been created.", personToBeCreated.firstName(), personToBeCreated.lastName());
             }
         }
 
@@ -113,23 +115,27 @@ public class UserService {
                 .build();
     }
 
-    private UsersRecord createNewNonActiveUser(Person person){
-        String temporaryUsername = person.firstName().toLowerCase().charAt(0) + "." + person.lastName();
-        UUID standardRole = userRoleService.getUserRoleId(UserRole.STANDARD);
-        UUID id = UUID.randomUUID();
+    private UsersRecord createNewNonActiveUser(PersonToBeCreated personToBeCreated){
+        String temporaryUsername = personToBeCreated.firstName().toLowerCase().charAt(0) + "." + personToBeCreated.lastName();
+        var standardRole = userRoleService.getUserRoleId(UserRole.STANDARD);
+        var id = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now(clock);
+
+        //building always has area
+        var areaId = buildingRepository.findById(personToBeCreated.buildingId()).get().getAreaId();
+
         return new UsersRecord(
                 id,
-                person.firstName(),
-                person.lastName(),
+                personToBeCreated.firstName(),
+                personToBeCreated.lastName(),
                 null,
                 temporaryUsername,
                 PasswordGenerator.generatePassword(),
                 standardRole,
                 UserStatus.CREATED.name(),
                 now,
-                null,
-                null
+                personToBeCreated.buildingId(),
+                areaId
         );
     }
 }

@@ -2,6 +2,9 @@ package com.app.prod.config.security;
 
 import com.app.prod.config.security.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -23,12 +26,33 @@ import static com.app.prod.config.Constants.BCRYPT_PASSWORD_ENCODER_STRENGTH;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity(prePostEnabled = true)
+@Slf4j
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
+    @ConditionalOnProperty(
+            name = "security.enabled",
+            havingValue = "false",
+            matchIfMissing = true
+    )
+    public SecurityFilterChain permitAllFilterChain(HttpSecurity http) throws Exception {
+        log.warn("Security is turned OFF");
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+            name = "security.enabled",
+            havingValue = "true",
+            matchIfMissing = true
+    )
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.warn("Security is turned ON");
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(

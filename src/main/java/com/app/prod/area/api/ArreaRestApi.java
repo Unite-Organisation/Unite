@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("arrea")
+@RequestMapping("area")
 public class ArreaRestApi {
 
     private final AreaService areaService;

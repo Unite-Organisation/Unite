@@ -7,6 +7,6 @@ import java.util.List;
 @Builder
 public record BulkCreationResponse(
         boolean success,
-        List<Person> failedCreations
+        List<PersonToBeCreated> failedCreations
 ) {
 }

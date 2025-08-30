@@ -2,7 +2,6 @@ package com.app.prod.user.api;
 
 import com.app.prod.user.dto.BulkCreationRequest;
 import com.app.prod.user.dto.BulkCreationResponse;
-import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.dto.UserResponse;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.service.UserService;
@@ -10,11 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -45,7 +41,7 @@ public class UserRestApi {
             return ResponseEntity.ok(response);
         }
         else{
-            if(request.persons().size() != response.failedCreations().size()){
+            if(request.personToBeCreateds().size() != response.failedCreations().size()){
                 log.warn("{} creations failed", response.failedCreations().size());
                 return new ResponseEntity<>(HttpStatus.MULTI_STATUS);
             }
