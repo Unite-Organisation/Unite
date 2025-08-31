@@ -24,6 +24,7 @@
 		<db.user>postgres</db.user>
 		<db.password>postgres</db.password>
 		<db.url>jdbc:postgresql://localhost:5432/production</db.url>
+        <skipJooq>false</skipJooq>
 	</properties>
 
 	<dependencies>
@@ -179,6 +180,7 @@
 				</dependencies>
 
 				<configuration>
+                    <skip>${skipJooq}</skip>
 					<jdbc>
 						<driver>org.postgresql.Driver</driver>
 						<url>${db.url}</url>
