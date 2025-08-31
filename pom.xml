@@ -137,6 +137,10 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
+                    <compileSourceRoots>
+                        <compileSourceRoot>src/main/java</compileSourceRoot>
+                        <compileSourceRoot>src/main/generated</compileSourceRoot>
+                    </compileSourceRoots>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -188,7 +192,7 @@
 						</database>
 						<target>
 							<packageName>org.jooq.sources</packageName>
-							<directory>target/generated-sources/jooq</directory>
+                            <directory>src/main/generated</directory>
 						</target>
 					</generator>
 				</configuration>
@@ -207,9 +211,9 @@
 							<goal>add-source</goal>
 						</goals>
 						<configuration>
-							<sources>
-								<source>target/generated-sources/jooq</source>
-							</sources>
+                            <sources>
+                                <source>src/main/generated</source>
+                            </sources>
 						</configuration>
 					</execution>
 				</executions>
