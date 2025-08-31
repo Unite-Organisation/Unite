@@ -34,8 +34,7 @@ public class SecurityConfig {
     @Bean
     @ConditionalOnProperty(
             name = "security.enabled",
-            havingValue = "false",
-            matchIfMissing = true
+            havingValue = "false"
     )
     public SecurityFilterChain permitAllFilterChain(HttpSecurity http) throws Exception {
         log.warn("Security is turned OFF");

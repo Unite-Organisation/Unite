@@ -23,10 +23,4 @@ public class ArreaRestApi {
         return ResponseEntity.ok(message);
     }
 
-    @PostMapping("/{areaId}/add-user/{userId}")
-    public ResponseEntity<String> addUser(@PathVariable UUID areaId, @PathVariable UUID userId){
-        String message = areaService.addUser(areaId, userId);
-        return ResponseEntity.ok(message);
-    }
-
 }
