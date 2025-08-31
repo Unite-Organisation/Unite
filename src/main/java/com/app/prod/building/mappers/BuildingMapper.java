@@ -9,8 +9,10 @@ import java.util.UUID;
 public class BuildingMapper {
 
     public static BuildingsRecord fromRequestToRecord(AreaCreateRequest.BuildingRequest request, UUID areaId){
+        var buildingId = UUID.randomUUID();
+
         return new BuildingsRecord(
-                UUID.randomUUID(),
+                buildingId,
                 request.name(),
                 request.country(),
                 request.city(),

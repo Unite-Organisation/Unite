@@ -7,6 +7,7 @@ import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.records.BuildingsRecord;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository

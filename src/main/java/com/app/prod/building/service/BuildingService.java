@@ -1,7 +1,10 @@
 package com.app.prod.building.service;
 
 import com.app.prod.area.service.AreaService;
+import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.repository.BuildingRepository;
+import com.app.prod.building.repository.BuildingsManagersRepository;
+import com.app.prod.config.security.SecurityManager;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.service.UserService;
@@ -11,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.BuildingsRecord;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,14 +24,15 @@ public class BuildingService {
 
     private final UserService userService;
     private final BuildingRepository buildingRepository;
+    private final BuildingsManagersRepository buildingsManagersRepository;
+    private final SecurityManager securityManager;
     private final Validate validate;
 
     public String addUser(UUID userId, UUID buildingId) {
         validate.user(userId);
         validate.building(buildingId);
         validate.thatUserIsNotInAnyBuildingYet(userId);
-        var areaId = findById(buildingId).getAreaId();
-        userService.addUsersBuilding(userId, buildingId, areaId);
+        userService.addUsersBuilding(userId, buildingId);
 
         log.info("Added user {} to building {}", userId, buildingId);
         return String.format("Added user %s to building %s", userId, buildingId);
@@ -37,5 +42,10 @@ public class BuildingService {
         return buildingRepository.findById(buildingId).orElseThrow(
                 () -> new EntityNotPresentException(String.format("Building with id: %s does not exist", buildingId))
         );
+    }
+
+    public List<BuildingResponse> getManagerBuildings() {
+        var user = securityManager.getCurrentUser();
+        return buildingsManagersRepository.getManagersBuildings(user.getId());
     }
 }

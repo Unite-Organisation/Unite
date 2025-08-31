@@ -28,7 +28,7 @@ CREATE TABLE buildings
     city VARCHAR(30),
     street VARCHAR(50),
     number VARCHAR(10),
-    area_id UUID REFERENCES areas(id) ON DELETE CASCADE
+    area_id UUID REFERENCES areas(id) ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE users
@@ -42,16 +42,14 @@ CREATE TABLE users
     user_role  UUID REFERENCES user_roles(id) ON DELETE CASCADE,
     status     VARCHAR(30) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
-    area_id UUID REFERENCES areas(id) ON DELETE CASCADE
+    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE
 );
 
-CREATE TABLE areas_users
+CREATE TABLE buildings_managers
 (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    area_id UUID REFERENCES areas(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE facilities
@@ -111,3 +109,27 @@ CREATE TABLE messages_read
     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(message_id, viewed_by)
 );
+
+
+-- triggers
+CREATE OR REPLACE FUNCTION enforce_user_building_id_rule()
+    RETURNS TRIGGER AS $$
+DECLARE
+    role_name TEXT;
+BEGIN
+    SELECT user_role INTO role_name
+    FROM user_roles
+    WHERE id = NEW.user_role;
+
+    IF role_name IN ('ADMIN', 'MANAGER') AND NEW.building_id IS NOT NULL THEN
+        RAISE EXCEPTION 'Users with role % cannot have building_id set', role_name;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_user_building_id
+    BEFORE INSERT OR UPDATE ON users
+    FOR EACH ROW
+EXECUTE FUNCTION enforce_user_building_id_rule();

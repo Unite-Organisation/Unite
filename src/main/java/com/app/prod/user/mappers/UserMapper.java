@@ -46,9 +46,7 @@ public class UserMapper {
                 selectedRole,
                 UserStatus.ACTIVE.name(),
                 now,
-                null,
                 null
-
         );
     }
 }

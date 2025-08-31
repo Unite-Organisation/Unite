@@ -1,13 +1,13 @@
 package com.app.prod.building.api;
 
+import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.service.BuildingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +24,13 @@ public class BuildingRestApi {
 
         String message = buildingService.addUser(userId, buildingId);
         return ResponseEntity.ok(message);
+    }
+
+    @GetMapping()
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<List<BuildingResponse>> getManagerBuildings(){
+        List<BuildingResponse> buildings = buildingService.getManagerBuildings();
+        return ResponseEntity.ok(buildings);
     }
 
 }

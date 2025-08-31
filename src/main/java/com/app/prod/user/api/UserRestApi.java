@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.HandlerMapping;
 
 import java.util.List;
 
@@ -23,7 +22,6 @@ import java.util.List;
 public class UserRestApi {
 
     private final UserService userService;
-    private final HandlerMapping resourceHandlerMapping;
 
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
@@ -33,7 +31,7 @@ public class UserRestApi {
     }
 
     @PostMapping("/bulk-creation")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<BulkCreationResponse> bulkCreation(@RequestBody BulkCreationRequest request){
         BulkCreationResponse response = userService.bulkCreation(request);
 

@@ -91,8 +91,8 @@ public class UserService {
         );
     }
 
-    public void addUsersBuilding(UUID userId, UUID buildingId, UUID areaId){
-        userRepository.addBuilding(userId, buildingId, areaId);
+    public void addUsersBuilding(UUID userId, UUID buildingId){
+        userRepository.addBuilding(userId, buildingId);
     }
 
     public BulkCreationResponse bulkCreation(BulkCreationRequest request) {
@@ -121,9 +121,6 @@ public class UserService {
         var id = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now(clock);
 
-        //building always has area
-        var areaId = buildingRepository.findById(personToBeCreated.buildingId()).get().getAreaId();
-
         return new UsersRecord(
                 id,
                 personToBeCreated.firstName(),
@@ -134,8 +131,7 @@ public class UserService {
                 standardRole,
                 UserStatus.CREATED.name(),
                 now,
-                personToBeCreated.buildingId(),
-                areaId
+                personToBeCreated.buildingId()
         );
     }
 }

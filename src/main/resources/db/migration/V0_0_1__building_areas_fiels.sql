@@ -1,2 +1,0 @@
-ALTER TABLE buildings
-ALTER COLUMN area_id SET NOT NULL;
