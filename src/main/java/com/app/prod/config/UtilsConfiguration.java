@@ -14,7 +14,6 @@ import static com.app.prod.config.Constants.BCRYPT_PASSWORD_ENCODER_STRENGTH;
 
 @Configuration
 public class UtilsConfiguration {
-
     @Bean
     public Clock clock(){
         return Clock.systemDefaultZone();
