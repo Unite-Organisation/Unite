@@ -64,15 +64,15 @@ CREATE TABLE facilities
 );
 
 CREATE TABLE facilities_reservations (
-                                         reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                                         facility_id UUID NOT NULL REFERENCES facilities(id) ON DELETE CASCADE,
-                                         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                                         start_time TIMESTAMP NOT NULL,
-                                         end_time TIMESTAMP NOT NULL,
-                                         status VARCHAR(50) NOT NULL,
-                                         purpose VARCHAR(255),
-                                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                         UNIQUE (facility_id, start_time, end_time)
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    facility_id UUID NOT NULL REFERENCES facilities(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    purpose VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (facility_id, start_time, end_time)
 );
 
 

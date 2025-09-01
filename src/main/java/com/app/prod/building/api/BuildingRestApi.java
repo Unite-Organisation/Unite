@@ -2,6 +2,9 @@ package com.app.prod.building.api;
 
 import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.service.BuildingService;
+import com.app.prod.facilities.dto.FacilityRequest;
+import com.app.prod.facilities.service.FacilityService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +19,7 @@ import java.util.UUID;
 public class BuildingRestApi {
 
     private final BuildingService buildingService;
+    private final FacilityService facilityService;
 
     @PutMapping("/{buildingId}/user/{userId}")
     public ResponseEntity<String> addUserToBuilding(
@@ -31,6 +35,13 @@ public class BuildingRestApi {
     public ResponseEntity<List<BuildingResponse>> getManagerBuildings(){
         List<BuildingResponse> buildings = buildingService.getManagerBuildings();
         return ResponseEntity.ok(buildings);
+    }
+
+    @PostMapping("/facilities")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<String> addFacilities(@Valid @RequestBody FacilityRequest request){
+        String message = facilityService.addFacilities(request);
+        return ResponseEntity.ok(message);
     }
 
 }

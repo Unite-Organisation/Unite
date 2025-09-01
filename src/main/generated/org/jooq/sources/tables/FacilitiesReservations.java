@@ -59,9 +59,9 @@ public class FacilitiesReservations extends TableImpl<FacilitiesReservationsReco
     }
 
     /**
-     * The column <code>public.facilities_reservations.reservation_id</code>.
+     * The column <code>public.facilities_reservations.id</code>.
      */
-    public final TableField<FacilitiesReservationsRecord, UUID> RESERVATION_ID = createField(DSL.name("reservation_id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)), this, "");
+    public final TableField<FacilitiesReservationsRecord, UUID> ID = createField(DSL.name("id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)), this, "");
 
     /**
      * The column <code>public.facilities_reservations.facility_id</code>.

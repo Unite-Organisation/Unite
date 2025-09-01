@@ -21,16 +21,16 @@ public class FacilitiesReservationsRecord extends UpdatableRecordImpl<Facilities
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>public.facilities_reservations.reservation_id</code>.
+     * Setter for <code>public.facilities_reservations.id</code>.
      */
-    public void setReservationId(UUID value) {
+    public void setId(UUID value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>public.facilities_reservations.reservation_id</code>.
+     * Getter for <code>public.facilities_reservations.id</code>.
      */
-    public UUID getReservationId() {
+    public UUID getId() {
         return (UUID) get(0);
     }
 
@@ -155,10 +155,10 @@ public class FacilitiesReservationsRecord extends UpdatableRecordImpl<Facilities
     /**
      * Create a detached, initialised FacilitiesReservationsRecord
      */
-    public FacilitiesReservationsRecord(UUID reservationId, UUID facilityId, UUID userId, LocalDateTime startTime, LocalDateTime endTime, String status, String purpose, LocalDateTime createdAt) {
+    public FacilitiesReservationsRecord(UUID id, UUID facilityId, UUID userId, LocalDateTime startTime, LocalDateTime endTime, String status, String purpose, LocalDateTime createdAt) {
         super(FacilitiesReservations.FACILITIES_RESERVATIONS);
 
-        setReservationId(reservationId);
+        setId(id);
         setFacilityId(facilityId);
         setUserId(userId);
         setStartTime(startTime);

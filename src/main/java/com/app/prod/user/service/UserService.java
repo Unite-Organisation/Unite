@@ -44,7 +44,6 @@ public class UserService {
     private final UserRoleService userRoleService;
     private final ActivationService activationService;
     private final Validate validate;
-    private final BuildingRepository buildingRepository;
 
     public List<UsersRecord> getUsers(){
          return userRepository.findAll();
