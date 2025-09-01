@@ -6,7 +6,7 @@ import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.mappers.BuildingMapper;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.repository.BuildingsManagersRepository;
-import com.app.prod.config.security.SecurityManager;
+import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class AreaService {
     private final BuildingRepository buildingRepository;
     private final BuildingsManagersRepository buildingsManagersRepository;
     private final Clock clock;
-    private final SecurityManager securityManager;
+    private final TokenSecurityManager tokenSecurityManager;
     private final Validate validate;
 
     @Transactional
@@ -45,7 +45,7 @@ public class AreaService {
     }
 
     private void saveBuildings(List<AreaCreateRequest.BuildingRequest> buildings, UUID areaId){
-        var managerId = securityManager.getCurrentUser().getId();
+        var managerId = tokenSecurityManager.getCurrentUser().getId();
         List<BuildingsRecord> buildingRecords = BuildingMapper.fromRequestToList(buildings, areaId);
         buildingRepository.insertMany(buildingRecords);
 

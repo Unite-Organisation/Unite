@@ -1,6 +1,6 @@
 package com.app.prod.exceptions.handler;
 
-import com.app.prod.config.security.SecurityManager;
+import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,10 +14,10 @@ import java.nio.file.AccessDeniedException;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    private final SecurityManager securityManager;
+    private final TokenSecurityManager tokenSecurityManager;
 
-    public GlobalExceptionHandler(SecurityManager securityManager) {
-        this.securityManager = securityManager;
+    public GlobalExceptionHandler(TokenSecurityManager tokenSecurityManager) {
+        this.tokenSecurityManager = tokenSecurityManager;
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -30,8 +30,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleException(AccessDeniedException e){
         log.error("Access denied: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                e.getMessage() + "User: " + securityManager.getCurrentUser().getUsername() +
-                        "has role: " + securityManager.getCurrentUser().getUserRole()
+                e.getMessage() + "User: " + tokenSecurityManager.getCurrentUser().getUsername() +
+                        "has role: " + tokenSecurityManager.getCurrentUser().getUserRole()
                 );
     }
 

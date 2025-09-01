@@ -1,6 +1,5 @@
 package com.app.prod.config.security;
 
-import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.UsersRecord;
@@ -12,10 +11,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SecurityManager {
+public class TokenSecurityManager implements GlobalSecurityManager {
 
     private final UserService userService;
 
+    @Override
     public boolean currentUserHasRole(String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) return false;
@@ -24,12 +24,14 @@ public class SecurityManager {
                 .anyMatch(granted -> granted.getAuthority().equals(role));
     }
 
+    @Override
     public void checkUserRole(String role) {
         if (!currentUserHasRole(role)) {
             throw new AccessDeniedException("User does not have required role: " + role);
         }
     }
 
+    @Override
     public UsersRecord getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {

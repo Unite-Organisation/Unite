@@ -1,6 +1,6 @@
 package com.app.prod.facilities.service;
 
-import com.app.prod.config.security.SecurityManager;
+import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
@@ -25,7 +25,7 @@ public class ReservationService {
 
     private final FacilityReservationsRepository facilityReservationsRepository;
     private final FacilityRepository facilityRepository;
-    private final SecurityManager securityManager;
+    private final TokenSecurityManager tokenSecurityManager;
     private final Clock clock;
 
     public List<FacilityReservation> getFacilityAvailability(UUID facilityId) {
@@ -54,7 +54,7 @@ public class ReservationService {
         var recordToBeInserted = new FacilitiesReservationsRecord(
                 UUID.randomUUID(),
                 facilityId,
-                securityManager.getCurrentUser().getId(),
+                tokenSecurityManager.getCurrentUser().getId(),
                 startTime,
                 endTime,
                 status.name(),

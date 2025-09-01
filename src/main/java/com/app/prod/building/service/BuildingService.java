@@ -1,12 +1,10 @@
 package com.app.prod.building.service;
 
-import com.app.prod.area.service.AreaService;
 import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.repository.BuildingsManagersRepository;
-import com.app.prod.config.security.SecurityManager;
+import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.service.UserService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,7 @@ public class BuildingService {
     private final UserService userService;
     private final BuildingRepository buildingRepository;
     private final BuildingsManagersRepository buildingsManagersRepository;
-    private final SecurityManager securityManager;
+    private final TokenSecurityManager tokenSecurityManager;
     private final Validate validate;
 
     public String addUser(UUID userId, UUID buildingId) {
@@ -45,7 +43,7 @@ public class BuildingService {
     }
 
     public List<BuildingResponse> getManagerBuildings() {
-        var user = securityManager.getCurrentUser();
+        var user = tokenSecurityManager.getCurrentUser();
         return buildingsManagersRepository.getManagersBuildings(user.getId());
     }
 }
