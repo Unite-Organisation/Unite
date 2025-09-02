@@ -1,6 +1,7 @@
 package com.app.prod.facilities.service;
 
 import com.app.prod.config.security.TokenSecurityManager;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
@@ -10,10 +11,12 @@ import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.meta.derby.sys.Sys;
 import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,8 @@ public class ReservationService {
     private final TokenSecurityManager tokenSecurityManager;
     private final Clock clock;
 
+    public static final long MAX_RESERVATION_HOURS = 12;
+    
     public List<FacilityReservation> getFacilityAvailability(UUID facilityId) {
         return facilityReservationsRepository.getAvailability(facilityId);
     }
@@ -36,6 +41,8 @@ public class ReservationService {
         UUID facilityId = request.facilityId();
         LocalDateTime startTime = request.startTime();
         LocalDateTime endTime = request.endTime();
+
+        validateTimePeriods(startTime, endTime);
 
         List<FacilitiesReservationsRecord> overlappingReservations =
                 facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, startTime, endTime);
@@ -67,6 +74,20 @@ public class ReservationService {
                 true,
                 ReservationMapper.fromRecordToResponse(List.of(recordToBeInserted))
         );
+    }
+
+    private static void validateTimePeriods(LocalDateTime startTime, LocalDateTime endTime) {
+        if(startTime.isAfter(endTime)){
+            log.warn("Start: {} is after endtime: {}", startTime, endTime);
+            throw new BadRequestException(String.format("%s is after %s", startTime, endTime));
+        }
+
+        Duration duration = Duration.between(startTime, endTime);
+        long hours = duration.toHours();
+        if(hours > MAX_RESERVATION_HOURS){
+            log.warn("Period is longer than {} hours", MAX_RESERVATION_HOURS);
+            throw new BadRequestException(String.format("Period is longer than %s hours", MAX_RESERVATION_HOURS));
+        }
     }
 
     private ReservationStatus determineReservationStatusFromFacility(UUID facilityId){

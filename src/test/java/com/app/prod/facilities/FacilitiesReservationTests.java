@@ -1,6 +1,7 @@
 package com.app.prod.facilities;
 
 import com.app.prod.config.security.TokenSecurityManager;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
 import com.app.prod.facilities.enums.ReservationStatus;
@@ -8,12 +9,19 @@ import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import com.app.prod.facilities.service.ReservationService;
 import org.jooq.sources.tables.records.FacilitiesRecord;
+import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
 import org.jooq.sources.tables.records.UsersRecord;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -22,11 +30,15 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import static com.app.prod.facilities.service.ReservationService.MAX_RESERVATION_HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class FacilitiesReservationTests {
 
     @Mock
@@ -41,34 +53,36 @@ public class FacilitiesReservationTests {
     @InjectMocks
     private ReservationService reservationService;
 
-    @Test
-    void shouldReserveSuccessfully(){
-        UUID facilityId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
-        LocalDateTime end = LocalDateTime.of(2025, 9, 1, 12, 0);
+    private UUID facilityId;
+    private UUID userId;
 
+    @BeforeEach()
+    void setup(){
+        facilityId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+    }
+
+    private void stubClock(){
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(Instant.parse("2025-09-01T00:00:00Z"));
+    }
+
+    private ReservationRequest stubFacilities(LocalDateTime start, LocalDateTime end, boolean requiresApproval, int capacity, List<FacilitiesReservationsRecord> overlappingFacilities){
         FacilitiesRecord facilitiesRecord = new FacilitiesRecord(
                 facilityId,
                 "Billard",
                 UUID.randomUUID(),
                 "ENTERTAINMENT",
-                2,
+                capacity,
                 "basement",
-                false
+                requiresApproval
         );
-
-        ReservationRequest request = new ReservationRequest(
-                facilityId,
-                start,
-                end,
-                null
-        );
-
-        when(facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, start, end))
-                .thenReturn(List.of());
         when(facilityRepository.findById(facilityId))
                 .thenReturn(Optional.of(facilitiesRecord));
+
+        when(facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, start, end))
+                .thenReturn(overlappingFacilities);
+
         when(tokenSecurityManager.getCurrentUser())
                 .thenReturn(new UsersRecord(
                         userId,
@@ -82,8 +96,22 @@ public class FacilitiesReservationTests {
                         null,
                         null
                 ));
-        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        when(clock.instant()).thenReturn(Instant.parse("2025-09-01T00:00:00Z"));
+
+        return new ReservationRequest(
+                facilityId,
+                start,
+                end,
+                null
+        );
+    }
+
+    @Test
+    void shouldReserveSuccessfully(){
+        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 9, 1, 12, 0);
+
+        stubClock();
+        ReservationRequest request = stubFacilities(start, end, false, 2, List.of());
 
         ReserveResponse response = reservationService.reserve(request);
         assertThat(response.success()).isTrue();
@@ -93,5 +121,88 @@ public class FacilitiesReservationTests {
         assertThat(response.reservations().getFirst().userId()).isEqualTo(userId);
         assertThat(response.reservations().getFirst().startTime()).isEqualTo(start);
         assertThat(response.reservations().getFirst().endTime()).isEqualTo(end);
+    }
+
+    @Test
+    void shouldFailBecauseStartIsAfterEnd(){
+        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 12, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 9, 1, 10, 0);
+
+        ReservationRequest request = new ReservationRequest(
+                facilityId,
+                start,
+                end,
+                null
+        );
+
+        assertThrows(BadRequestException.class,
+                () -> reservationService.reserve(request)
+        );
+    }
+
+    @Test
+    void shouldFailBecauseOfReservationTimeLimit(){
+        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
+        LocalDateTime end = start.plusHours(MAX_RESERVATION_HOURS + 1);
+
+        ReservationRequest request = new ReservationRequest(
+                facilityId,
+                start,
+                end,
+                null
+        );
+
+        assertThrows(BadRequestException.class,
+                () -> reservationService.reserve(request)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("overlappingDatesProvider")
+    void shouldFailBecauseOfOverlappingDates(LocalDateTime start, LocalDateTime end,
+                                             LocalDateTime existingStart, LocalDateTime existingEnd) {
+
+        stubClock();
+        var userThatReservedBeforeMe = UUID.randomUUID();
+        List<FacilitiesReservationsRecord> overlapping = List.of(
+                new FacilitiesReservationsRecord(
+                    UUID.randomUUID(),
+                    facilityId,
+                    userThatReservedBeforeMe,
+                    existingStart,
+                    existingEnd,
+                    ReservationStatus.RESERVED.name(),
+                    null,
+                    LocalDateTime.now(clock).minusDays(1)
+                )
+        );
+
+        ReservationRequest request = stubFacilities(start, end, false, 2, overlapping);
+        ReserveResponse response = reservationService.reserve(request);
+        assertThat(response.success()).isFalse();
+        assertThat(response.reservations()).isNotNull();
+        assertThat(response.reservations()).isNotEmpty();
+        assertThat(response.reservations().getFirst().facilityId()).isEqualTo(facilityId);
+        assertThat(response.reservations().getFirst().userId()).isEqualTo(userThatReservedBeforeMe);
+        assertThat(response.reservations().getFirst().startTime()).isEqualTo(existingStart);
+        assertThat(response.reservations().getFirst().endTime()).isEqualTo(existingEnd);
+    }
+
+    public static Stream<Arguments> overlappingDatesProvider(){
+        return Stream.of(
+                Arguments.of(
+                        LocalDateTime.of(2025, 9, 1, 10, 0),
+                        LocalDateTime.of(2025, 9, 1, 14, 0),
+                        LocalDateTime.of(2025, 9, 1, 12, 0),
+                        LocalDateTime.of(2025, 9, 1, 16, 0)
+                ),
+                Arguments.of(
+                        LocalDateTime.of(2025, 9, 1, 11, 0),
+                        LocalDateTime.of(2025, 9, 1, 12, 0),
+                        LocalDateTime.of(2025, 9, 2, 11, 0),
+                        LocalDateTime.of(2025, 9, 2, 12, 0)
+                )
+        );
+
     }
 }
