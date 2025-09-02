@@ -1,6 +1,7 @@
 package com.app.prod.facilities.service;
 
 import com.app.prod.config.security.TokenSecurityManager;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
@@ -10,6 +11,7 @@ import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.meta.derby.sys.Sys;
 import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,14 @@ public class ReservationService {
         UUID facilityId = request.facilityId();
         LocalDateTime startTime = request.startTime();
         LocalDateTime endTime = request.endTime();
+
+        System.out.println("HELLO");
+
+        if(startTime.isAfter(endTime)){
+            log.debug("Start: {} is after endtime: {}", startTime, endTime);
+            System.out.println("HERE");
+            throw new BadRequestException(String.format("%s is after %s", startTime, endTime));
+        }
 
         List<FacilitiesReservationsRecord> overlappingReservations =
                 facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, startTime, endTime);
