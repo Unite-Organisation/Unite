@@ -46,6 +46,35 @@ With Unite, residents can:
 
 ---
 
-## Technologies
+## Local running (macOS)
 
-Built as a web application with plans for a mobile version.
+### Prerequisite
+- Homebrew
+
+Follow the steps below to set up **Java JDK 21** and **Maven** on macOS.
+
+
+### Java JDK
+```bash
+brew install openjdk@21
+brew link --force --overwrite openjdk@21
+
+export PATH="/usr/local/opt/openjdk@21/bin:$PATH"
+source ~/.zshrc
+
+#check version
+java -version
+```
+
+### Maven
+```bash
+brew install maven
+
+#check version
+./mvnw -version
+```
+
+## Run Spring Boot app
+```bash
+./run_app.sh
+```
