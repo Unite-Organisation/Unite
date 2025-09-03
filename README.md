@@ -78,3 +78,11 @@ brew install maven
 ```bash
 ./run_app.sh
 ```
+
+---
+# Swagger open API
+
+Available at: 
+```bash 
+https://localhost:8080/v1/api/swagger-ui/index.html
+```
