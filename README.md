@@ -50,6 +50,7 @@ With Unite, residents can:
 
 ### Prerequisite
 - Homebrew
+- Docker
 
 Follow the steps below to set up **Java JDK 21** and **Maven** on macOS.
 
