@@ -86,6 +86,7 @@ public class UserPersistanceFactory {
             instance.setUserRole(UUID.fromString("a3f5c9d2-4b8e-4d61-9a67-12c4e9b7f8a1"));
             instance.setStatus(UserStatus.ACTIVE.name());
             instance.setCreatedAt(LocalDateTime.now(clock));
+            instance.setEmail(UUID.randomUUID().toString().substring(0, 16) + "@gmail.com");
             return this;
         }
 
@@ -99,7 +100,6 @@ public class UserPersistanceFactory {
             return record;
         }
     }
-
 
 }
 
