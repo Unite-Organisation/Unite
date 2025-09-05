@@ -83,20 +83,6 @@ public class FacilitiesReservationTests {
         when(facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, start, end))
                 .thenReturn(overlappingFacilities);
 
-        when(tokenSecurityManager.getCurrentUser())
-                .thenReturn(new UsersRecord(
-                        userId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ));
-
         return new ReservationRequest(
                 facilityId,
                 start,
@@ -113,7 +99,7 @@ public class FacilitiesReservationTests {
         stubClock();
         ReservationRequest request = stubFacilities(start, end, false, 2, List.of());
 
-        ReserveResponse response = reservationService.reserve(request);
+        ReserveResponse response = reservationService.reserve(request, userId);
         assertThat(response.success()).isTrue();
         assertThat(response.reservations()).isNotNull();
         assertThat(response.reservations()).hasSize(1);
@@ -136,7 +122,7 @@ public class FacilitiesReservationTests {
         );
 
         assertThrows(BadRequestException.class,
-                () -> reservationService.reserve(request)
+                () -> reservationService.reserve(request, userId)
         );
     }
 
@@ -153,7 +139,7 @@ public class FacilitiesReservationTests {
         );
 
         assertThrows(BadRequestException.class,
-                () -> reservationService.reserve(request)
+                () -> reservationService.reserve(request, userId)
         );
     }
 
@@ -178,7 +164,7 @@ public class FacilitiesReservationTests {
         );
 
         ReservationRequest request = stubFacilities(start, end, false, 2, overlapping);
-        ReserveResponse response = reservationService.reserve(request);
+        ReserveResponse response = reservationService.reserve(request, userId);
         assertThat(response.success()).isFalse();
         assertThat(response.reservations()).isNotNull();
         assertThat(response.reservations()).isNotEmpty();

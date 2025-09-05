@@ -4,6 +4,7 @@
 package org.jooq.sources;
 
 
+import org.jooq.sources.tables.Announcements;
 import org.jooq.sources.tables.Areas;
 import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.BuildingsManagers;
@@ -23,6 +24,11 @@ import org.jooq.sources.tables.Users;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.announcements</code>.
+     */
+    public static final Announcements ANNOUNCEMENTS = Announcements.ANNOUNCEMENTS;
 
     /**
      * The table <code>public.areas</code>.

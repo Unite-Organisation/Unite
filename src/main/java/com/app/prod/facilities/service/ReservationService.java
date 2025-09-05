@@ -37,7 +37,7 @@ public class ReservationService {
         return facilityReservationsRepository.getAvailability(facilityId);
     }
 
-    public ReserveResponse reserve(ReservationRequest request) {
+    public ReserveResponse reserve(ReservationRequest request, UUID userId) {
         UUID facilityId = request.facilityId();
         LocalDateTime startTime = request.startTime();
         LocalDateTime endTime = request.endTime();
@@ -61,7 +61,7 @@ public class ReservationService {
         var recordToBeInserted = new FacilitiesReservationsRecord(
                 UUID.randomUUID(),
                 facilityId,
-                tokenSecurityManager.getCurrentUser().getId(),
+                userId,
                 startTime,
                 endTime,
                 status.name(),

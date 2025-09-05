@@ -75,8 +75,19 @@ CREATE TABLE facilities_reservations (
     UNIQUE (facility_id, start_time, end_time)
 );
 
+CREATE TABLE announcements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(256) NOT NULL,
+    area_id UUID NOT NULL REFERENCES areas(id) ON DELETE CASCADE,
+    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    content TEXT NOT NULL,
+    image_reference VARCHAR(2048),
+    related_date TIMESTAMP
+);
 
-
+ --messaging section
 CREATE TABLE conversations
 (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

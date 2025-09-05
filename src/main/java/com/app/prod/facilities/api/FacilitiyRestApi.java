@@ -1,5 +1,6 @@
 package com.app.prod.facilities.api;
 
+import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class FacilitiyRestApi {
 
     private final ReservationService reservationService;
+    private final GlobalSecurityManager globalSecurityManager;
 
     @GetMapping("/{facilityId}")
     public ResponseEntity<List<FacilityReservation>> getAvailability(@PathVariable UUID facilityId){
@@ -28,7 +30,8 @@ public class FacilitiyRestApi {
 
     @PostMapping("/reserve")
     public ResponseEntity<ReserveResponse> reserveFacility(ReservationRequest request){
-        ReserveResponse response = reservationService.reserve(request);
+        var userId = globalSecurityManager.getCurrentUser().getId();
+        ReserveResponse response = reservationService.reserve(request, userId);
 
         if(response.success()){
             return ResponseEntity.ok(response);

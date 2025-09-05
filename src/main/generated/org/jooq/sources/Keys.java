@@ -9,6 +9,7 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
+import org.jooq.sources.tables.Announcements;
 import org.jooq.sources.tables.Areas;
 import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.BuildingsManagers;
@@ -21,6 +22,7 @@ import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
+import org.jooq.sources.tables.records.AnnouncementsRecord;
 import org.jooq.sources.tables.records.AreasRecord;
 import org.jooq.sources.tables.records.BuildingsManagersRecord;
 import org.jooq.sources.tables.records.BuildingsRecord;
@@ -46,6 +48,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<AnnouncementsRecord> ANNOUNCEMENTS_PKEY = Internal.createUniqueKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_pkey"), new TableField[] { Announcements.ANNOUNCEMENTS.ID }, true);
     public static final UniqueKey<AreasRecord> AREAS_PKEY = Internal.createUniqueKey(Areas.AREAS, DSL.name("areas_pkey"), new TableField[] { Areas.AREAS.ID }, true);
     public static final UniqueKey<BuildingsRecord> BUILDINGS_PKEY = Internal.createUniqueKey(Buildings.BUILDINGS, DSL.name("buildings_pkey"), new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final UniqueKey<BuildingsManagersRecord> BUILDINGS_MANAGERS_PKEY = Internal.createUniqueKey(BuildingsManagers.BUILDINGS_MANAGERS, DSL.name("buildings_managers_pkey"), new TableField[] { BuildingsManagers.BUILDINGS_MANAGERS.ID }, true);
@@ -66,6 +69,9 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<AnnouncementsRecord, AreasRecord> ANNOUNCEMENTS__ANNOUNCEMENTS_AREA_ID_FKEY = Internal.createForeignKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_area_id_fkey"), new TableField[] { Announcements.ANNOUNCEMENTS.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
+    public static final ForeignKey<AnnouncementsRecord, BuildingsRecord> ANNOUNCEMENTS__ANNOUNCEMENTS_BUILDING_ID_FKEY = Internal.createForeignKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_building_id_fkey"), new TableField[] { Announcements.ANNOUNCEMENTS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
+    public static final ForeignKey<AnnouncementsRecord, UsersRecord> ANNOUNCEMENTS__ANNOUNCEMENTS_CREATED_BY_FKEY = Internal.createForeignKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_created_by_fkey"), new TableField[] { Announcements.ANNOUNCEMENTS.CREATED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<BuildingsRecord, AreasRecord> BUILDINGS__BUILDINGS_AREA_ID_FKEY = Internal.createForeignKey(Buildings.BUILDINGS, DSL.name("buildings_area_id_fkey"), new TableField[] { Buildings.BUILDINGS.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
     public static final ForeignKey<BuildingsManagersRecord, BuildingsRecord> BUILDINGS_MANAGERS__BUILDINGS_MANAGERS_BUILDING_ID_FKEY = Internal.createForeignKey(BuildingsManagers.BUILDINGS_MANAGERS, DSL.name("buildings_managers_building_id_fkey"), new TableField[] { BuildingsManagers.BUILDINGS_MANAGERS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final ForeignKey<BuildingsManagersRecord, UsersRecord> BUILDINGS_MANAGERS__BUILDINGS_MANAGERS_USER_ID_FKEY = Internal.createForeignKey(BuildingsManagers.BUILDINGS_MANAGERS, DSL.name("buildings_managers_user_id_fkey"), new TableField[] { BuildingsManagers.BUILDINGS_MANAGERS.USER_ID }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
