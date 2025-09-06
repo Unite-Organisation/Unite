@@ -78,7 +78,7 @@ CREATE TABLE facilities_reservations (
 CREATE TABLE announcements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
-    area_id UUID NOT NULL REFERENCES areas(id) ON DELETE CASCADE,
+    area_id UUID REFERENCES areas(id) ON DELETE CASCADE,
     building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
     created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -86,6 +86,14 @@ CREATE TABLE announcements (
     image_reference VARCHAR(2048),
     related_date TIMESTAMP
 );
+
+ALTER TABLE announcements
+    ADD CONSTRAINT area_or_building_not_both_null_or_not_null
+        CHECK (
+            (area_id IS NULL AND building_id IS NOT NULL)
+                OR
+            (area_id IS NOT NULL AND building_id IS NULL)
+            );
 
  --messaging section
 CREATE TABLE conversations

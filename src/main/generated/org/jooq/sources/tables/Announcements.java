@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -28,6 +29,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
@@ -72,7 +74,7 @@ public class Announcements extends TableImpl<AnnouncementsRecord> {
     /**
      * The column <code>public.announcements.area_id</code>.
      */
-    public final TableField<AnnouncementsRecord, UUID> AREA_ID = createField(DSL.name("area_id"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<AnnouncementsRecord, UUID> AREA_ID = createField(DSL.name("area_id"), SQLDataType.UUID, this, "");
 
     /**
      * The column <code>public.announcements.building_id</code>.
@@ -215,6 +217,13 @@ public class Announcements extends TableImpl<AnnouncementsRecord> {
             _users = new UsersPath(this, Keys.ANNOUNCEMENTS__ANNOUNCEMENTS_CREATED_BY_FKEY, null);
 
         return _users;
+    }
+
+    @Override
+    public List<Check<AnnouncementsRecord>> getChecks() {
+        return Arrays.asList(
+            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true)
+        );
     }
 
     @Override

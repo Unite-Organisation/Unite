@@ -33,7 +33,6 @@ public class AnnouncementsRepository extends BaseJooqRepository<Announcements, A
                 .from(USERS)
                 .join(BUILDINGS).on(BUILDINGS.ID.eq(USERS.BUILDING_ID))
                 .join(AREAS).on(AREAS.ID.eq(BUILDINGS.AREA_ID))
-                .join(ANNOUNCEMENTS).on(ANNOUNCEMENTS.AREA_ID.eq(AREAS.ID))
                 .join(ANNOUNCEMENTS).on(
                         ANNOUNCEMENTS.BUILDING_ID.eq(BUILDINGS.ID)
                                 .or(ANNOUNCEMENTS.AREA_ID.eq(AREAS.ID))
