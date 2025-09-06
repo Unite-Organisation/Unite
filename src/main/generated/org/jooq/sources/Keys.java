@@ -20,6 +20,9 @@ import org.jooq.sources.tables.FacilitiesReservations;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
+import org.jooq.sources.tables.PollOptions;
+import org.jooq.sources.tables.PollVotes;
+import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
 import org.jooq.sources.tables.records.AnnouncementsRecord;
@@ -33,6 +36,9 @@ import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
 import org.jooq.sources.tables.records.FlywaySchemaHistoryRecord;
 import org.jooq.sources.tables.records.MessageRecord;
 import org.jooq.sources.tables.records.MessagesReadRecord;
+import org.jooq.sources.tables.records.PollOptionsRecord;
+import org.jooq.sources.tables.records.PollVotesRecord;
+import org.jooq.sources.tables.records.PollsRecord;
 import org.jooq.sources.tables.records.UserRolesRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 
@@ -60,6 +66,11 @@ public class Keys {
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, DSL.name("flyway_schema_history_pk"), new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
     public static final UniqueKey<MessageRecord> MESSAGE_PKEY = Internal.createUniqueKey(Message.MESSAGE, DSL.name("message_pkey"), new TableField[] { Message.MESSAGE.ID }, true);
     public static final UniqueKey<MessagesReadRecord> MESSAGES_READ_PKEY = Internal.createUniqueKey(MessagesRead.MESSAGES_READ, DSL.name("messages_read_pkey"), new TableField[] { MessagesRead.MESSAGES_READ.MESSAGE_ID, MessagesRead.MESSAGES_READ.VIEWED_BY }, true);
+    public static final UniqueKey<PollOptionsRecord> POLL_OPTIONS_PKEY = Internal.createUniqueKey(PollOptions.POLL_OPTIONS, DSL.name("poll_options_pkey"), new TableField[] { PollOptions.POLL_OPTIONS.ID }, true);
+    public static final UniqueKey<PollOptionsRecord> POLL_OPTIONS_POLL_ID_OPTION_TEXT_KEY = Internal.createUniqueKey(PollOptions.POLL_OPTIONS, DSL.name("poll_options_poll_id_option_text_key"), new TableField[] { PollOptions.POLL_OPTIONS.POLL_ID, PollOptions.POLL_OPTIONS.OPTION_TEXT }, true);
+    public static final UniqueKey<PollVotesRecord> POLL_VOTES_PKEY = Internal.createUniqueKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_pkey"), new TableField[] { PollVotes.POLL_VOTES.ID }, true);
+    public static final UniqueKey<PollVotesRecord> POLL_VOTES_POLL_ID_USER_ID_KEY = Internal.createUniqueKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_poll_id_user_id_key"), new TableField[] { PollVotes.POLL_VOTES.POLL_ID, PollVotes.POLL_VOTES.USER_ID }, true);
+    public static final UniqueKey<PollsRecord> POLLS_PKEY = Internal.createUniqueKey(Polls.POLLS, DSL.name("polls_pkey"), new TableField[] { Polls.POLLS.ID }, true);
     public static final UniqueKey<UserRolesRecord> USER_ROLES_PKEY = Internal.createUniqueKey(UserRoles.USER_ROLES, DSL.name("user_roles_pkey"), new TableField[] { UserRoles.USER_ROLES.ID }, true);
     public static final UniqueKey<UsersRecord> USERS_EMAIL_KEY = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), new TableField[] { Users.USERS.EMAIL }, true);
     public static final UniqueKey<UsersRecord> USERS_PKEY = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), new TableField[] { Users.USERS.ID }, true);
@@ -84,6 +95,13 @@ public class Keys {
     public static final ForeignKey<MessageRecord, UsersRecord> MESSAGE__MESSAGE_SENDER_ID_FKEY = Internal.createForeignKey(Message.MESSAGE, DSL.name("message_sender_id_fkey"), new TableField[] { Message.MESSAGE.SENDER_ID }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<MessagesReadRecord, MessageRecord> MESSAGES_READ__MESSAGES_READ_MESSAGE_ID_FKEY = Internal.createForeignKey(MessagesRead.MESSAGES_READ, DSL.name("messages_read_message_id_fkey"), new TableField[] { MessagesRead.MESSAGES_READ.MESSAGE_ID }, Keys.MESSAGE_PKEY, new TableField[] { Message.MESSAGE.ID }, true);
     public static final ForeignKey<MessagesReadRecord, UsersRecord> MESSAGES_READ__MESSAGES_READ_VIEWED_BY_FKEY = Internal.createForeignKey(MessagesRead.MESSAGES_READ, DSL.name("messages_read_viewed_by_fkey"), new TableField[] { MessagesRead.MESSAGES_READ.VIEWED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
+    public static final ForeignKey<PollOptionsRecord, PollsRecord> POLL_OPTIONS__POLL_OPTIONS_POLL_ID_FKEY = Internal.createForeignKey(PollOptions.POLL_OPTIONS, DSL.name("poll_options_poll_id_fkey"), new TableField[] { PollOptions.POLL_OPTIONS.POLL_ID }, Keys.POLLS_PKEY, new TableField[] { Polls.POLLS.ID }, true);
+    public static final ForeignKey<PollVotesRecord, PollOptionsRecord> POLL_VOTES__POLL_VOTES_OPTION_ID_FKEY = Internal.createForeignKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_option_id_fkey"), new TableField[] { PollVotes.POLL_VOTES.OPTION_ID }, Keys.POLL_OPTIONS_PKEY, new TableField[] { PollOptions.POLL_OPTIONS.ID }, true);
+    public static final ForeignKey<PollVotesRecord, PollsRecord> POLL_VOTES__POLL_VOTES_POLL_ID_FKEY = Internal.createForeignKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_poll_id_fkey"), new TableField[] { PollVotes.POLL_VOTES.POLL_ID }, Keys.POLLS_PKEY, new TableField[] { Polls.POLLS.ID }, true);
+    public static final ForeignKey<PollVotesRecord, UsersRecord> POLL_VOTES__POLL_VOTES_USER_ID_FKEY = Internal.createForeignKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_user_id_fkey"), new TableField[] { PollVotes.POLL_VOTES.USER_ID }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
+    public static final ForeignKey<PollsRecord, AreasRecord> POLLS__POLLS_AREA_ID_FKEY = Internal.createForeignKey(Polls.POLLS, DSL.name("polls_area_id_fkey"), new TableField[] { Polls.POLLS.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
+    public static final ForeignKey<PollsRecord, BuildingsRecord> POLLS__POLLS_BUILDING_ID_FKEY = Internal.createForeignKey(Polls.POLLS, DSL.name("polls_building_id_fkey"), new TableField[] { Polls.POLLS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
+    public static final ForeignKey<PollsRecord, UsersRecord> POLLS__POLLS_CREATED_BY_FKEY = Internal.createForeignKey(Polls.POLLS, DSL.name("polls_created_by_fkey"), new TableField[] { Polls.POLLS.CREATED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<UsersRecord, BuildingsRecord> USERS__USERS_BUILDING_ID_FKEY = Internal.createForeignKey(Users.USERS, DSL.name("users_building_id_fkey"), new TableField[] { Users.USERS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final ForeignKey<UsersRecord, UserRolesRecord> USERS__USERS_USER_ROLE_FKEY = Internal.createForeignKey(Users.USERS, DSL.name("users_user_role_fkey"), new TableField[] { Users.USERS.USER_ROLE }, Keys.USER_ROLES_PKEY, new TableField[] { UserRoles.USER_ROLES.ID }, true);
 }

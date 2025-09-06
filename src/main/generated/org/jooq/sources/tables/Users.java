@@ -39,6 +39,8 @@ import org.jooq.sources.tables.ConversationMember.ConversationMemberPath;
 import org.jooq.sources.tables.FacilitiesReservations.FacilitiesReservationsPath;
 import org.jooq.sources.tables.Message.MessagePath;
 import org.jooq.sources.tables.MessagesRead.MessagesReadPath;
+import org.jooq.sources.tables.PollVotes.PollVotesPath;
+import org.jooq.sources.tables.Polls.PollsPath;
 import org.jooq.sources.tables.UserRoles.UserRolesPath;
 import org.jooq.sources.tables.records.UsersRecord;
 
@@ -296,6 +298,31 @@ public class Users extends TableImpl<UsersRecord> {
             _messagesRead = new MessagesReadPath(this, null, Keys.MESSAGES_READ__MESSAGES_READ_VIEWED_BY_FKEY.getInverseKey());
 
         return _messagesRead;
+    }
+
+    private transient PollVotesPath _pollVotes;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.poll_votes</code>
+     * table
+     */
+    public PollVotesPath pollVotes() {
+        if (_pollVotes == null)
+            _pollVotes = new PollVotesPath(this, null, Keys.POLL_VOTES__POLL_VOTES_USER_ID_FKEY.getInverseKey());
+
+        return _pollVotes;
+    }
+
+    private transient PollsPath _polls;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.polls</code> table
+     */
+    public PollsPath polls() {
+        if (_polls == null)
+            _polls = new PollsPath(this, null, Keys.POLLS__POLLS_CREATED_BY_FKEY.getInverseKey());
+
+        return _polls;
     }
 
     @Override

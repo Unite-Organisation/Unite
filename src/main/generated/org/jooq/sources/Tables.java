@@ -15,6 +15,9 @@ import org.jooq.sources.tables.FacilitiesReservations;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
+import org.jooq.sources.tables.PollOptions;
+import org.jooq.sources.tables.PollVotes;
+import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
 
@@ -79,6 +82,21 @@ public class Tables {
      * The table <code>public.messages_read</code>.
      */
     public static final MessagesRead MESSAGES_READ = MessagesRead.MESSAGES_READ;
+
+    /**
+     * The table <code>public.poll_options</code>.
+     */
+    public static final PollOptions POLL_OPTIONS = PollOptions.POLL_OPTIONS;
+
+    /**
+     * The table <code>public.poll_votes</code>.
+     */
+    public static final PollVotes POLL_VOTES = PollVotes.POLL_VOTES;
+
+    /**
+     * The table <code>public.polls</code>.
+     */
+    public static final Polls POLLS = Polls.POLLS;
 
     /**
      * The table <code>public.user_roles</code>.

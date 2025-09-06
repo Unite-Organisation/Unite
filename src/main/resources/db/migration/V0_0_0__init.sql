@@ -88,12 +88,48 @@ CREATE TABLE announcements (
 );
 
 ALTER TABLE announcements
-    ADD CONSTRAINT area_or_building_not_both_null_or_not_null
+    ADD CONSTRAINT area_or_building_not_both_null_or_not_null_ann
         CHECK (
             (area_id IS NULL AND building_id IS NOT NULL)
                 OR
             (area_id IS NOT NULL AND building_id IS NULL)
             );
+
+
+CREATE TABLE polls (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    area_id UUID REFERENCES areas(id) ON DELETE CASCADE,
+    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    anonymous BOOLEAN NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE polls
+    ADD CONSTRAINT area_or_building_not_both_null_or_not_null_polls
+        CHECK (
+            (area_id IS NULL AND building_id IS NOT NULL)
+                OR
+            (area_id IS NOT NULL AND building_id IS NULL)
+            );
+
+CREATE TABLE poll_options (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+    option_text VARCHAR(255) NOT NULL,
+    UNIQUE(poll_id, option_text)
+);
+
+CREATE TABLE poll_votes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+    option_id UUID NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(poll_id, user_id)
+);
 
  --messaging section
 CREATE TABLE conversations

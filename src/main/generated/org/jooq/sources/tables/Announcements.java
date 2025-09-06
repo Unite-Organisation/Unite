@@ -222,7 +222,7 @@ public class Announcements extends TableImpl<AnnouncementsRecord> {
     @Override
     public List<Check<AnnouncementsRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true)
+            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null_ann"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true)
         );
     }
 

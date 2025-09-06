@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 @SpringBootTest
 public class AnnouncementsRepositoryIT extends IntegrationTest {
 
@@ -61,7 +63,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
     }
 
     @Test
-    void shouldNotReturnAnyMatch() {
+    void shouldReturnOnlyAnnouncementsForRelatedUser() {
         var myArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
         var differentArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
         var areaFromAnotherCountry = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
@@ -132,6 +134,33 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
         var resultForUserFromAnotherCountry = announcementsRepository.findForUser(userFromAnotherCountry.getId(), pagination);
         assertThat(resultForUserFromAnotherCountry).isNotNull();
         assertThat(resultForUserFromAnotherCountry).isEmpty();
+    }
+
+    @Test
+    void shouldReturnPaginatedResults(){
+        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
+        var user = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
+        var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
+
+        createManyAnnouncements(building.getId(), manager.getId(), 10);
+        Pagination pagination = Pagination.builder().page(2).pageSize(3).build();
+
+        var result = announcementsRepository.findForUser(user.getId(), pagination);
+
+        //TODO: assertions
+    }
+
+    private void createManyAnnouncements(UUID buildingId, UUID createdBy, int number){
+        for(int i = 0; i < number; i++){
+            announcementPersistenceFactory.getNewAnnouncement()
+                    .withRandomValues()
+                    .name("Event" + (i + 1))
+                    .buildingId(buildingId)
+                    .createdBy(createdBy)
+                    .buildAndSave();
+
+        }
     }
 
 }
