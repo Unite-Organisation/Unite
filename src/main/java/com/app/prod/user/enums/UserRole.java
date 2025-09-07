@@ -1,7 +1,7 @@
 package com.app.prod.user.enums;
 
 public enum UserRole {
-    STANDARD,
+    RESIDENT,
     MANAGER,
     ADMIN;
 

@@ -5,7 +5,7 @@ CREATE TABLE user_roles
 );
 
 INSERT INTO user_roles (id, user_role) VALUES
-    ('a3f5c9d2-4b8e-4d61-9a67-12c4e9b7f8a1', 'STANDARD'),
+    ('a3f5c9d2-4b8e-4d61-9a67-12c4e9b7f8a1', 'RESIDENT'),
     ('b9e2a7f4-6c1d-47d2-8e93-45ab2c1d3f27', 'MANAGER'),
     ('c4d8e1a9-9f2b-4c6f-82d5-67d8a1c2e5b3', 'ADMIN');
 
@@ -103,6 +103,8 @@ CREATE TABLE polls (
     area_id UUID REFERENCES areas(id) ON DELETE CASCADE,
     building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
     created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     anonymous BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -1,8 +1,6 @@
 package com.app.prod.user.service;
 
-import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.authorization.service.ActivationService;
-import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.config.security.jwt.JwtService;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.dto.*;
@@ -14,7 +12,6 @@ import com.app.prod.utils.PasswordGenerator;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.BuildingsRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -116,7 +113,7 @@ public class UserService {
 
     private UsersRecord createNewNonActiveUser(PersonToBeCreated personToBeCreated){
         String temporaryUsername = personToBeCreated.firstName().toLowerCase().charAt(0) + "." + personToBeCreated.lastName();
-        var standardRole = userRoleService.getUserRoleId(UserRole.STANDARD);
+        var standardRole = userRoleService.getUserRoleId(UserRole.RESIDENT);
         var id = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now(clock);
 

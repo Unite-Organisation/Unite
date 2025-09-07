@@ -105,31 +105,59 @@ public class PollsRecord extends UpdatableRecordImpl<PollsRecord> {
     }
 
     /**
+     * Setter for <code>public.polls.start_time</code>.
+     */
+    public void setStartTime(LocalDateTime value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>public.polls.start_time</code>.
+     */
+    public LocalDateTime getStartTime() {
+        return (LocalDateTime) get(6);
+    }
+
+    /**
+     * Setter for <code>public.polls.end_time</code>.
+     */
+    public void setEndTime(LocalDateTime value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>public.polls.end_time</code>.
+     */
+    public LocalDateTime getEndTime() {
+        return (LocalDateTime) get(7);
+    }
+
+    /**
      * Setter for <code>public.polls.anonymous</code>.
      */
     public void setAnonymous(Boolean value) {
-        set(6, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>public.polls.anonymous</code>.
      */
     public Boolean getAnonymous() {
-        return (Boolean) get(6);
+        return (Boolean) get(8);
     }
 
     /**
      * Setter for <code>public.polls.created_at</code>.
      */
     public void setCreatedAt(LocalDateTime value) {
-        set(7, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>public.polls.created_at</code>.
      */
     public LocalDateTime getCreatedAt() {
-        return (LocalDateTime) get(7);
+        return (LocalDateTime) get(9);
     }
 
     // -------------------------------------------------------------------------
@@ -155,7 +183,7 @@ public class PollsRecord extends UpdatableRecordImpl<PollsRecord> {
     /**
      * Create a detached, initialised PollsRecord
      */
-    public PollsRecord(UUID id, String title, String description, UUID areaId, UUID buildingId, UUID createdBy, Boolean anonymous, LocalDateTime createdAt) {
+    public PollsRecord(UUID id, String title, String description, UUID areaId, UUID buildingId, UUID createdBy, LocalDateTime startTime, LocalDateTime endTime, Boolean anonymous, LocalDateTime createdAt) {
         super(Polls.POLLS);
 
         setId(id);
@@ -164,6 +192,8 @@ public class PollsRecord extends UpdatableRecordImpl<PollsRecord> {
         setAreaId(areaId);
         setBuildingId(buildingId);
         setCreatedBy(createdBy);
+        setStartTime(startTime);
+        setEndTime(endTime);
         setAnonymous(anonymous);
         setCreatedAt(createdAt);
         resetChangedOnNotNull();

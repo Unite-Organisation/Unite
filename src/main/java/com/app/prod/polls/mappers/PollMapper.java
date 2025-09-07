@@ -8,14 +8,16 @@ import java.util.UUID;
 
 public class PollMapper {
 
-    public static PollsRecord fromRequestToRecord(PollRequest request, UUID userId, LocalDateTime now){
+    public static PollsRecord fromRequestToRecord(PollRequest request, UUID userId, LocalDateTime now, UUID pollId){
         return new PollsRecord(
-                UUID.randomUUID(),
+                pollId,
                 request.title(),
                 request.description(),
                 request.areaId(),
                 request.buildingId(),
                 userId,
+                request.startTime(),
+                request.endTime(),
                 request.anonymous(),
                 now
         );

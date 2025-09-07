@@ -2,13 +2,15 @@ package com.app.prod.polls.api;
 
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.polls.dto.PollRequest;
+import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.service.PollService;
+import com.app.prod.utils.Pagination;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("poll")
@@ -16,13 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class PollRestApi {
 
     private final GlobalSecurityManager globalSecurityManager;
-    private PollService pollService;
+    private final PollService pollService;
 
     @PostMapping()
     @PreAuthorize("hasRole('MANAGER')")
-    public void createPoll(@RequestBody PollRequest request){
+    public void createPoll(@Valid @RequestBody PollRequest request){
         var userId = globalSecurityManager.getCurrentUser().getId();
         pollService.createPoll(request, userId);
+    }
+
+    @GetMapping()
+    @PreAuthorize("hasRole('RESIDENT')")
+    public List<PollResponse> getPolls(@Valid @ModelAttribute Pagination pagination){
+        var userId = globalSecurityManager.getCurrentUser().getId();
+        return pollService.getPolls(userId, pagination);
     }
 
 }

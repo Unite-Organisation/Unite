@@ -94,6 +94,16 @@ public class Polls extends TableImpl<PollsRecord> {
     public final TableField<PollsRecord, UUID> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
+     * The column <code>public.polls.start_time</code>.
+     */
+    public final TableField<PollsRecord, LocalDateTime> START_TIME = createField(DSL.name("start_time"), SQLDataType.LOCALDATETIME(6).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
+
+    /**
+     * The column <code>public.polls.end_time</code>.
+     */
+    public final TableField<PollsRecord, LocalDateTime> END_TIME = createField(DSL.name("end_time"), SQLDataType.LOCALDATETIME(6).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
+
+    /**
      * The column <code>public.polls.anonymous</code>.
      */
     public final TableField<PollsRecord, Boolean> ANONYMOUS = createField(DSL.name("anonymous"), SQLDataType.BOOLEAN.nullable(false), this, "");
