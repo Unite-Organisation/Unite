@@ -70,4 +70,7 @@ public class Validate {
         }
     }
 
+    public void thatUserCanVote(UUID userId, UUID poll) {
+        //TODO: add logic
+    }
 }

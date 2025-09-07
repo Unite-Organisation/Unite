@@ -1,5 +1,6 @@
 package com.app.prod.polls.repository;
 
+import com.app.prod.polls.dto.PollOptionResponse;
 import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.enums.PollTarget;
 import com.app.prod.utils.BaseJooqRepository;
@@ -45,11 +46,16 @@ public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID>
             POLLS.START_TIME,
             POLLS.END_TIME,
             multiset(
-                    select(POLL_OPTIONS.OPTION_TEXT)
-                            .from(POLL_OPTIONS)
-                            .where(POLL_OPTIONS.POLL_ID.eq(POLLS.ID))
-                ).as("options").convertFrom(r -> r.map(Record1::value1))
-            )
+                select(POLL_OPTIONS.ID, POLL_OPTIONS.OPTION_TEXT)
+                      .from(POLL_OPTIONS)
+                      .where(POLL_OPTIONS.POLL_ID.eq(POLLS.ID))
+                ).as("options")
+                        .convertFrom(r -> r.map(rec ->
+                                new PollOptionResponse(
+                                        rec.get(POLL_OPTIONS.ID),
+                                        rec.get(POLL_OPTIONS.OPTION_TEXT)
+                                )
+                        )))
                 .from(POLLS)
                 .join(USERS).on(USERS.ID.eq(POLLS.CREATED_BY))
                 .join(USER_ROLES).on(USERS.USER_ROLE.eq(USER_ROLES.ID))

@@ -5,10 +5,13 @@ import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.mappers.PollMapper;
 import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
+import com.app.prod.polls.repository.PollVotesRepository;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.PollOptionsRecord;
+import org.jooq.sources.tables.records.PollVotesRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,8 @@ public class PollService {
     private final Clock clock;
     private final PollRepository pollRepository;
     private final PollOptionRepository pollOptionRepository;
+    private final PollVotesRepository pollVotesRepository;
+    private final Validate validate;
 
     @Transactional
     public void createPoll(PollRequest request, UUID userId) {
@@ -48,5 +53,21 @@ public class PollService {
 
     public List<PollResponse> getPolls(UUID userId, Pagination pagination) {
         return pollRepository.getPolls(userId, pagination);
+    }
+
+    public void vote(UUID userId, UUID pollId, UUID vote) {
+        validate.thatUserCanVote(userId, pollId);
+
+        var now = LocalDateTime.now(clock);
+
+        pollVotesRepository.insertOne(new PollVotesRecord(
+                UUID.randomUUID(),
+                pollId,
+                vote,
+                userId,
+                now
+        ));
+
+        log.info("User {} voted for {} at {}", userId, vote, now);
     }
 }

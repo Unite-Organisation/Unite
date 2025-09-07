@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("poll")
@@ -32,6 +33,16 @@ public class PollRestApi {
     public List<PollResponse> getPolls(@Valid @ModelAttribute Pagination pagination){
         var userId = globalSecurityManager.getCurrentUser().getId();
         return pollService.getPolls(userId, pagination);
+    }
+
+    @PutMapping
+    @PreAuthorize("hasRole('RESIDENT')")
+    public void vote(
+            @RequestParam UUID poll,
+            @RequestParam UUID vote
+    ){
+        var userId = globalSecurityManager.getCurrentUser().getId();
+        pollService.vote(userId, poll, vote);
     }
 
 }
