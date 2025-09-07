@@ -37,6 +37,7 @@ import org.jooq.sources.Public;
 import org.jooq.sources.tables.Areas.AreasPath;
 import org.jooq.sources.tables.Buildings.BuildingsPath;
 import org.jooq.sources.tables.PollOptions.PollOptionsPath;
+import org.jooq.sources.tables.PollResult.PollResultPath;
 import org.jooq.sources.tables.PollVotes.PollVotesPath;
 import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.PollsRecord;
@@ -107,6 +108,11 @@ public class Polls extends TableImpl<PollsRecord> {
      * The column <code>public.polls.anonymous</code>.
      */
     public final TableField<PollsRecord, Boolean> ANONYMOUS = createField(DSL.name("anonymous"), SQLDataType.BOOLEAN.nullable(false), this, "");
+
+    /**
+     * The column <code>public.polls.finished</code>.
+     */
+    public final TableField<PollsRecord, Boolean> FINISHED = createField(DSL.name("finished"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column <code>public.polls.created_at</code>.
@@ -237,6 +243,19 @@ public class Polls extends TableImpl<PollsRecord> {
             _pollOptions = new PollOptionsPath(this, null, Keys.POLL_OPTIONS__POLL_OPTIONS_POLL_ID_FKEY.getInverseKey());
 
         return _pollOptions;
+    }
+
+    private transient PollResultPath _pollResult;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.poll_result</code>
+     * table
+     */
+    public PollResultPath pollResult() {
+        if (_pollResult == null)
+            _pollResult = new PollResultPath(this, null, Keys.POLL_RESULT__POLL_RESULT_POLL_ID_FKEY.getInverseKey());
+
+        return _pollResult;
     }
 
     private transient PollVotesPath _pollVotes;

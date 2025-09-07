@@ -16,6 +16,7 @@ import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.PollOptions;
+import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
 import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.UserRoles;
@@ -87,6 +88,11 @@ public class Tables {
      * The table <code>public.poll_options</code>.
      */
     public static final PollOptions POLL_OPTIONS = PollOptions.POLL_OPTIONS;
+
+    /**
+     * The table <code>public.poll_result</code>.
+     */
+    public static final PollResult POLL_RESULT = PollResult.POLL_RESULT;
 
     /**
      * The table <code>public.poll_votes</code>.

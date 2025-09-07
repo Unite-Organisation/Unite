@@ -147,17 +147,31 @@ public class PollsRecord extends UpdatableRecordImpl<PollsRecord> {
     }
 
     /**
+     * Setter for <code>public.polls.finished</code>.
+     */
+    public void setFinished(Boolean value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for <code>public.polls.finished</code>.
+     */
+    public Boolean getFinished() {
+        return (Boolean) get(9);
+    }
+
+    /**
      * Setter for <code>public.polls.created_at</code>.
      */
     public void setCreatedAt(LocalDateTime value) {
-        set(9, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>public.polls.created_at</code>.
      */
     public LocalDateTime getCreatedAt() {
-        return (LocalDateTime) get(9);
+        return (LocalDateTime) get(10);
     }
 
     // -------------------------------------------------------------------------
@@ -183,7 +197,7 @@ public class PollsRecord extends UpdatableRecordImpl<PollsRecord> {
     /**
      * Create a detached, initialised PollsRecord
      */
-    public PollsRecord(UUID id, String title, String description, UUID areaId, UUID buildingId, UUID createdBy, LocalDateTime startTime, LocalDateTime endTime, Boolean anonymous, LocalDateTime createdAt) {
+    public PollsRecord(UUID id, String title, String description, UUID areaId, UUID buildingId, UUID createdBy, LocalDateTime startTime, LocalDateTime endTime, Boolean anonymous, Boolean finished, LocalDateTime createdAt) {
         super(Polls.POLLS);
 
         setId(id);
@@ -195,6 +209,7 @@ public class PollsRecord extends UpdatableRecordImpl<PollsRecord> {
         setStartTime(startTime);
         setEndTime(endTime);
         setAnonymous(anonymous);
+        setFinished(finished);
         setCreatedAt(createdAt);
         resetChangedOnNotNull();
     }

@@ -106,6 +106,7 @@ CREATE TABLE polls (
     start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     end_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     anonymous BOOLEAN NOT NULL,
+    finished BOOLEAN,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -132,6 +133,15 @@ CREATE TABLE poll_votes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(poll_id, user_id)
 );
+
+CREATE TABLE poll_result (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+    chosen_option UUID REFERENCES poll_options(id) ON DELETE CASCADE,
+    voters_count INT,
+    voting_ended BOOLEAN NOT NULL
+);
+
 
  --messaging section
 CREATE TABLE conversations

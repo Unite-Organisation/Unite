@@ -11,6 +11,7 @@ import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.records.PollsRecord;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -87,5 +88,14 @@ public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID>
                         }
                 );
 
+    }
+
+    public List<PollsRecord> getUnfinishedPollsAndFinishThem(LocalDateTime now){
+        return dslContext.update(POLLS)
+                .set(POLLS.FINISHED, true)
+                .where(POLLS.FINISHED.eq(false))
+                .and(POLLS.END_TIME.lt(now))
+                .returning()
+                .fetch();
     }
 }

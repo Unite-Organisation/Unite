@@ -19,6 +19,7 @@ public class PollMapper {
                 request.startTime(),
                 request.endTime(),
                 request.anonymous(),
+                false,
                 now
         );
     }
