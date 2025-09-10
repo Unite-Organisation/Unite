@@ -35,6 +35,12 @@ public class PollScheduler {
         log.info("Started scheduler for finishing polls at: {}", now);
 
         var polls = pollRepository.getUnfinishedPollsAndFinishThem(now);
+
+        if(polls.isEmpty()){
+            log.info("No polls to finish, finishing job.");
+            return;
+        }
+
         for(var poll : polls){
             log.info("Finishing poll {}", poll.getTitle());
             handlePoll(poll);

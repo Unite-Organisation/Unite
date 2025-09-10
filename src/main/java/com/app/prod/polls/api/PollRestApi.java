@@ -5,6 +5,7 @@ import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.dto.PollResult;
 import com.app.prod.polls.service.PollService;
+import com.app.prod.services.schedulers.PollScheduler;
 import com.app.prod.utils.Pagination;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class PollRestApi {
 
     private final GlobalSecurityManager globalSecurityManager;
     private final PollService pollService;
+    private final PollScheduler scheduler;
 
     @PostMapping()
     @PreAuthorize("hasRole('MANAGER')")
@@ -49,6 +51,11 @@ public class PollRestApi {
     @GetMapping("/result")
     public PollResult getPollResult(@RequestParam UUID pollId){
         return pollService.getPollResult(pollId);
+    }
+
+    @PutMapping("/finish-all")
+    public void internalFinishPoll(){
+        scheduler.finishPoll();
     }
 
 }

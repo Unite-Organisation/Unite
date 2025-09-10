@@ -28,6 +28,7 @@ public class PollResultService {
         List<PollOptionPercentageShare> sortedOptionsPercentage = getPercentageList(sortedVotes, numberOfVotes);
         int numberOfPeopleEligibleToVote = getEligiblePeopleCount(pollId);
 
+        log.info("Poll results = {} \n {} \n {} \n {}", sortedVotes, sortedOptionsPercentage, numberOfVotes, numberOfPeopleEligibleToVote);
         return createPollResultResponse(sortedVotes, sortedOptionsPercentage, numberOfVotes, numberOfPeopleEligibleToVote);
     }
 
