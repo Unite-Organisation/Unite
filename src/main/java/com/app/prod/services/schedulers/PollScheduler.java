@@ -1,11 +1,14 @@
 package com.app.prod.services.schedulers;
 
+import com.app.prod.polls.dto.PollOptionResponse;
+import com.app.prod.polls.dto.PollOptionVoteCount;
 import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollResultRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.PollResultRecord;
 import org.jooq.sources.tables.records.PollsRecord;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,7 +25,6 @@ import java.util.UUID;
 public class PollScheduler {
 
     private final PollResultRepository pollResultRepository;
-    private final PollOptionRepository pollOptionRepository;
     private final PollVotesRepository pollVotesRepository;
     private final PollRepository pollRepository;
     private final Clock clock;
@@ -40,13 +43,18 @@ public class PollScheduler {
     }
 
     private void handlePoll(PollsRecord poll){
-        var pollVotes = pollVotesRepository.getAllVotesForPoll(poll.getId());
-        HashMap<UUID, Integer> result = new HashMap<>();
+        List<PollOptionVoteCount> countedVotes = pollVotesRepository.countVotes(poll.getId());
+        var winnerOption = countedVotes.getFirst().optionId();
+        var allVotes = countedVotes.stream().mapToInt(PollOptionVoteCount::count).sum();
 
-        pollVotes.stream()
-                .forEach(vote -> {
-                    result.merge(vote.getOptionId(), 1, Integer::sum);
-                });
+        pollResultRepository.insertOne(new PollResultRecord(
+                UUID.randomUUID(),
+                poll.getId(),
+                winnerOption,
+                allVotes,
+                true
+        ));
+
     }
 
 }

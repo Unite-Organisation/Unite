@@ -6,6 +6,7 @@ import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class Validate {
     private final UserRepository userRepository;
     private final AreaRepository areaRepository;
     private final BuildingRepository buildingRepository;
+    private final PollRepository pollRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -72,5 +74,18 @@ public class Validate {
 
     public void thatUserCanVote(UUID userId, UUID poll) {
         //TODO: add logic
+    }
+
+    public void poll(UUID pollId) {
+        pollRepository.findById(pollId).ifPresentOrElse(poll -> {
+            if(!poll.getFinished()){
+                throw new BadRequestException(String.format("Poll %s is not finished yet. Voting ends at %s",
+                        poll.getTitle(),
+                        poll.getEndTime()
+                ));
+            }
+        },
+        () -> new EntityNotPresentException(String.format("Poll with id %d not found", pollId))
+        );
     }
 }

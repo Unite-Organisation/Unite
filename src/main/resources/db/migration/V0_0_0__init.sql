@@ -122,6 +122,7 @@ CREATE TABLE poll_options (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
     option_text VARCHAR(255) NOT NULL,
+    option_votes INT NOT NULL DEFAULT 0,
     UNIQUE(poll_id, option_text)
 );
 

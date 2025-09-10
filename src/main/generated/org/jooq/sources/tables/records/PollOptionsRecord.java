@@ -61,6 +61,20 @@ public class PollOptionsRecord extends UpdatableRecordImpl<PollOptionsRecord> {
         return (String) get(2);
     }
 
+    /**
+     * Setter for <code>public.poll_options.option_votes</code>.
+     */
+    public void setOptionVotes(Integer value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.poll_options.option_votes</code>.
+     */
+    public Integer getOptionVotes() {
+        return (Integer) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -84,12 +98,13 @@ public class PollOptionsRecord extends UpdatableRecordImpl<PollOptionsRecord> {
     /**
      * Create a detached, initialised PollOptionsRecord
      */
-    public PollOptionsRecord(UUID id, UUID pollId, String optionText) {
+    public PollOptionsRecord(UUID id, UUID pollId, String optionText, Integer optionVotes) {
         super(PollOptions.POLL_OPTIONS);
 
         setId(id);
         setPollId(pollId);
         setOptionText(optionText);
+        setOptionVotes(optionVotes);
         resetChangedOnNotNull();
     }
 }

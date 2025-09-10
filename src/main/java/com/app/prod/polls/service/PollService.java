@@ -2,6 +2,7 @@ package com.app.prod.polls.service;
 
 import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResponse;
+import com.app.prod.polls.dto.PollResult;
 import com.app.prod.polls.mappers.PollMapper;
 import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
@@ -11,7 +12,6 @@ import com.app.prod.utils.Pagination;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.records.PollOptionsRecord;
 import org.jooq.sources.tables.records.PollResultRecord;
 import org.jooq.sources.tables.records.PollVotesRecord;
@@ -34,6 +34,7 @@ public class PollService {
     private final PollVotesRepository pollVotesRepository;
     private final Validate validate;
     private final PollResultRepository pollResultRepository;
+    private final PollResultService pollResultService;
 
     @Transactional
     public void createPoll(PollRequest request, UUID userId) {
@@ -51,7 +52,8 @@ public class PollService {
                 .map(option -> new PollOptionsRecord(
                         UUID.randomUUID(),
                         pollId,
-                        option
+                        option,
+                        0
                 )
         ).toList();
 
@@ -70,6 +72,7 @@ public class PollService {
         return pollRepository.getPolls(userId, pagination);
     }
 
+    @Transactional
     public void vote(UUID userId, UUID pollId, UUID vote) {
         validate.thatUserCanVote(userId, pollId);
 
@@ -83,6 +86,14 @@ public class PollService {
                 now
         ));
 
+        pollOptionRepository.addVoteForOption(vote);
+
         log.info("User {} voted for {} at {}", userId, vote, now);
+    }
+
+    public PollResult getPollResult(UUID pollId) {
+        validate.poll(pollId);
+        log.info("Starting processing poll {} result", pollId);
+        return pollResultService.calculatePollResult(pollId);
     }
 }

@@ -8,9 +8,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
+import static org.jooq.sources.Tables.POLL_OPTIONS;
+
 @Repository
 public class PollOptionRepository extends BaseJooqRepository<PollOptions, PollOptionsRecord, UUID> {
     protected PollOptionRepository(DSLContext dsl) {
         super(dsl, PollOptions.POLL_OPTIONS, PollOptions.POLL_OPTIONS.ID);
+    }
+
+    public void addVoteForOption(UUID optionId){
+        dslContext.update(POLL_OPTIONS)
+                .set(POLL_OPTIONS.OPTION_VOTES, POLL_OPTIONS.OPTION_VOTES.plus(1))
+                .where(POLL_OPTIONS.ID.eq(optionId))
+                .execute();
     }
 }

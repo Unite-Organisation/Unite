@@ -3,6 +3,7 @@ package com.app.prod.polls.api;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResponse;
+import com.app.prod.polls.dto.PollResult;
 import com.app.prod.polls.service.PollService;
 import com.app.prod.utils.Pagination;
 import jakarta.validation.Valid;
@@ -43,6 +44,11 @@ public class PollRestApi {
     ){
         var userId = globalSecurityManager.getCurrentUser().getId();
         pollService.vote(userId, poll, vote);
+    }
+
+    @GetMapping("/result")
+    public PollResult getPollResult(@RequestParam UUID pollId){
+        return pollService.getPollResult(pollId);
     }
 
 }

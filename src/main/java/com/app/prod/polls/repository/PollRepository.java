@@ -7,12 +7,14 @@ import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
+import org.jooq.impl.DSL;
 import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.records.PollsRecord;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.jooq.impl.DSL.multiset;
@@ -97,5 +99,28 @@ public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID>
                 .and(POLLS.END_TIME.lt(now))
                 .returning()
                 .fetch();
+    }
+
+    public int getNumberOfPeopleEligibleToVoteBuildingStrategy(UUID pollId) {
+        return Optional.ofNullable(
+                dslContext.selectCount()
+                        .from(POLLS)
+                        .join(BUILDINGS).on(BUILDINGS.ID.eq(POLLS.BUILDING_ID))
+                        .join(USERS).on(USERS.BUILDING_ID.eq(BUILDINGS.ID))
+                        .where(POLLS.ID.eq(pollId))
+                        .fetchOneInto(Integer.class)
+        ).orElse(0);
+    }
+
+    public int getNumberOfPeopleEligibleToVoteAreaStrategy(UUID pollId) {
+        return Optional.ofNullable(
+                dslContext.selectCount()
+                        .from(POLLS)
+                        .join(AREAS).on(AREAS.ID.eq(POLLS.AREA_ID))
+                        .join(BUILDINGS).on(BUILDINGS.AREA_ID.eq(AREAS.ID))
+                        .join(USERS).on(USERS.BUILDING_ID.eq(BUILDINGS.ID))
+                        .where(POLLS.ID.eq(pollId))
+                        .fetchOneInto(Integer.class)
+        ).orElse(0);
     }
 }

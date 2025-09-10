@@ -1,7 +1,9 @@
 package com.app.prod.polls.repository;
 
+import com.app.prod.polls.dto.PollOptionVoteCount;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.jooq.sources.tables.PollVotes;
 import org.jooq.sources.tables.records.PollVotesRecord;
 import org.springframework.stereotype.Repository;
@@ -17,9 +19,15 @@ public class PollVotesRepository extends BaseJooqRepository<PollVotes, PollVotes
         super(dsl, PollVotes.POLL_VOTES, PollVotes.POLL_VOTES.ID);
     }
 
-    public List<PollVotesRecord> getAllVotesForPoll(UUID pollId){
-        return dslContext.selectFrom(POLL_VOTES)
+    public List<PollOptionVoteCount> countVotes(UUID pollId) {
+        return dslContext.select(
+                    POLL_VOTES.OPTION_ID,
+                    DSL.count().as("count")
+                )
+                .from(POLL_VOTES)
                 .where(POLL_VOTES.POLL_ID.eq(pollId))
-                .fetch();
+                .groupBy(POLL_VOTES.OPTION_ID)
+                .orderBy(DSL.field("count").desc())
+                .fetchInto(PollOptionVoteCount.class);
     }
 }

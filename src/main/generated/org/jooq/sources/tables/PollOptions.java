@@ -73,6 +73,11 @@ public class PollOptions extends TableImpl<PollOptionsRecord> {
      */
     public final TableField<PollOptionsRecord, String> OPTION_TEXT = createField(DSL.name("option_text"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
+    /**
+     * The column <code>public.poll_options.option_votes</code>.
+     */
+    public final TableField<PollOptionsRecord, Integer> OPTION_VOTES = createField(DSL.name("option_votes"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
     private PollOptions(Name alias, Table<PollOptionsRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
