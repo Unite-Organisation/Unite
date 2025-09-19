@@ -2,6 +2,7 @@ package com.app.prod.building.api;
 
 import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.service.BuildingService;
+import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.service.FacilityService;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ public class BuildingRestApi {
 
     private final BuildingService buildingService;
     private final FacilityService facilityService;
+    private final GlobalSecurityManager globalSecurityManager;
 
     @PutMapping("/{buildingId}/user/{userId}")
     public ResponseEntity<String> addUserToBuilding(
@@ -40,7 +42,8 @@ public class BuildingRestApi {
     @PostMapping("/facilities")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<String> addFacilities(@Valid @RequestBody FacilityRequest request){
-        String message = facilityService.addFacilities(request);
+        var userId = globalSecurityManager.getCurrentUser().getId();
+        String message = facilityService.addFacilities(request, userId);
         return ResponseEntity.ok(message);
     }
 

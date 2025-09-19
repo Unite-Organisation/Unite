@@ -23,6 +23,7 @@ public class AnnouncementsService {
     private final Clock clock;;
 
     public void createAnnouncement(AnnouncementRequest request, UUID userId) {
+        //TODO: check if manager can post announcements for builidng or area
         var now = LocalDateTime.now(clock);
         announcementsRepository.insertOne(AnnouncementMapper.fromRequestToRecord(request, userId, now));
 

@@ -1,5 +1,7 @@
 package com.app.prod.facilities.service;
 
+import com.app.prod.building.repository.BuildingsManagersRepository;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.utils.validators.Validate;
@@ -18,10 +20,15 @@ public class FacilityService {
 
     private final FacilityRepository facilityRepository;
     private final Validate validate;
+    private final BuildingsManagersRepository buildingsManagersRepository;
 
-    public String addFacilities(FacilityRequest request) {
+    public String addFacilities(FacilityRequest request, UUID userId) {
         var buildingId = request.buildingId();
         validate.building(buildingId);
+
+        if(!buildingsManagersRepository.managerManagesBuilding(buildingId, userId)){
+            throw new BadRequestException(String.format("User %s has not access to building %s", userId, buildingId));
+        }
 
         List<FacilitiesRecord> records = request.facilities().stream()
                 .map(record -> new FacilitiesRecord(

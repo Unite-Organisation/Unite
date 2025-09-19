@@ -38,7 +38,7 @@ public class PollRestApi {
         return pollService.getPolls(userId, pagination);
     }
 
-    @PutMapping
+    @PutMapping("/vote")
     @PreAuthorize("hasRole('RESIDENT')")
     public void vote(
             @RequestParam UUID poll,

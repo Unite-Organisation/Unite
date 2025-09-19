@@ -3,10 +3,13 @@ package com.app.prod.polls.service;
 import com.app.prod.polls.dto.PollOptionPercentageShare;
 import com.app.prod.polls.dto.PollOptionVoteCount;
 import com.app.prod.polls.dto.PollResult;
+import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.PollOptions;
+import org.jooq.sources.tables.records.PollOptionsRecord;
 import org.jooq.sources.tables.records.PollsRecord;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +24,45 @@ public class PollResultService {
 
     private final PollVotesRepository pollVotesRepository;
     private final PollRepository pollRepository;
+    private final PollOptionRepository pollOptionRepository;
 
     public PollResult calculatePollResult(UUID pollId) {
+        List<PollOptionsRecord> allPollOptions = pollOptionRepository.getAllOptionsForPoll(pollId);
         List<PollOptionVoteCount> sortedVotes = pollVotesRepository.countVotes(pollId);
+
+        includeOptionsWithNoVotes(allPollOptions, sortedVotes);
+
         int numberOfVotes = sortedVotes.stream().mapToInt(PollOptionVoteCount::count).sum();
         List<PollOptionPercentageShare> sortedOptionsPercentage = getPercentageList(sortedVotes, numberOfVotes);
         int numberOfPeopleEligibleToVote = getEligiblePeopleCount(pollId);
 
         log.info("Poll results = {} \n {} \n {} \n {}", sortedVotes, sortedOptionsPercentage, numberOfVotes, numberOfPeopleEligibleToVote);
         return createPollResultResponse(sortedVotes, sortedOptionsPercentage, numberOfVotes, numberOfPeopleEligibleToVote);
+    }
+
+    private void includeOptionsWithNoVotes(List<PollOptionsRecord> allPollOptions, List<PollOptionVoteCount> sortedVotes){
+        if(allPollOptions.size() == sortedVotes.size()){
+            log.info("There are no poll options with zero votes");
+            return;
+        }
+
+        for(var pollOption : allPollOptions){
+            if(!pollOptionIsIncluded(pollOption, sortedVotes)){
+                sortedVotes.add(new PollOptionVoteCount(
+                        pollOption.getId(),
+                        0 // - zero votes for this option
+                ));
+            }
+        }
+    }
+
+    private boolean pollOptionIsIncluded(PollOptionsRecord pollOption, List<PollOptionVoteCount> sortedVotes){
+        for(var vote : sortedVotes){
+            if(pollOption.getId() == vote.optionId()){
+                return true;
+            }
+        }
+        return false;
     }
 
     private int getEligiblePeopleCount(UUID pollId) {

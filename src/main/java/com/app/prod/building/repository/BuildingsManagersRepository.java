@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 
+import static org.jooq.sources.Tables.BUILDINGS_MANAGERS;
 import static org.jooq.sources.tables.Buildings.BUILDINGS;
 
 @Repository
@@ -33,5 +34,13 @@ public class BuildingsManagersRepository extends BaseJooqRepository<BuildingsMan
                         record.get(BUILDINGS.NUMBER),
                         record.get(BUILDINGS.AREA_ID)
                 ));
+    }
+
+    public boolean managerManagesBuilding(UUID buildingId, UUID managerId){
+        return dslContext.fetchExists(
+                dslContext.selectFrom(BUILDINGS_MANAGERS)
+                        .where(BUILDINGS_MANAGERS.USER_ID.eq(managerId))
+                        .and(BUILDINGS_MANAGERS.BUILDING_ID.eq(buildingId))
+        );
     }
 }

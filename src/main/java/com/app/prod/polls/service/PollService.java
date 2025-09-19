@@ -38,6 +38,8 @@ public class PollService {
 
     @Transactional
     public void createPoll(PollRequest request, UUID userId) {
+        //TODO: check if manager can create polls for this building or area
+
         var now = LocalDateTime.now(clock);
         var pollId = UUID.randomUUID();
 
