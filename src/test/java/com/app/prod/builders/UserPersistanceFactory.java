@@ -1,7 +1,9 @@
 package com.app.prod.builders;
 
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.user.service.UserRoleService;
 import com.app.prod.utils.TestData;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.UsersRecord;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -17,6 +20,7 @@ public class UserPersistanceFactory {
 
     private final Clock clock;
     private final UserRepository userRepository;
+    private final UserRoleService userRoleService;
 
     public Builder getNewUser(){ return new Builder(); }
 
@@ -53,8 +57,8 @@ public class UserPersistanceFactory {
             return this;
         }
 
-        public Builder userRole(UUID userRole) {
-            instance.setUserRole(userRole);
+        public Builder userRole(UserRole userRole) {
+            instance.setUserRole(userRoleService.getUserRoleId(userRole));
             return this;
         }
 
@@ -100,6 +104,10 @@ public class UserPersistanceFactory {
             userRepository.insertOne(record);
             return record;
         }
+    }
+
+    public void batchBuildAndSave(List<UsersRecord> users){
+        userRepository.insertMany(users);
     }
 
 }

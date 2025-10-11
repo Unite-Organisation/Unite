@@ -20,7 +20,7 @@ import java.util.UUID;
 public class AnnouncementsService {
 
     private final AnnouncementsRepository announcementsRepository;
-    private final Clock clock;;
+    private final Clock clock;
 
     public void createAnnouncement(AnnouncementRequest request, UUID userId) {
         //TODO: check if manager can post announcements for builidng or area
