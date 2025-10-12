@@ -226,7 +226,6 @@ public class RealPollIT extends IntegrationTest {
         assertThat(result.sortedPercentageShareOfVotes().get(1).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0));
     }
 
-    //TODO: test - tie in poll
 
     private void createPoll(List<String> pollOptions, String pollName){
         PollRequest request = createPollRequest(building.getId(), pollOptions, pollName);

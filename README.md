@@ -26,23 +26,27 @@ With Unite, residents can:
 
 ## Features
 
+- 🟥 not implemented
+- 🟦 implemented but should be tested more
+- 🟩 implemented and should work :)
+
 ### Admin (Developer / Manager)
-- Create accounts and add residents.
-- Manage user accounts.
-- Assign residents to groups.
-- Post announcements on a shared board.
-- Create polls and voting (e.g., for repairs or decisions).
+- Create accounts and add residents. 🟩
+- Manage user accounts. 🟥
+- Assign residents to groups. 🟩
+- Post announcements on a shared board. 🟩
+- Create polls and voting (e.g., for repairs or decisions). 🟩
 
 ### User (Resident)
-- Chat with other residents.
-- Create private chats and neighbor groups.
-- Book shared spaces.
-- Report issues or request repair services.
-- Vote in polls.
-- Post personal announcements (e.g., services offered).
-- Request items to borrow.
-- Pay rent and other fees.
-- Organize community events.
+- Chat with other residents. 🟥
+- Create private chats and neighbor groups. 🟥
+- Book shared spaces. 🟦
+- Report issues or request repair services. 🟥
+- Vote in polls. 🟩
+- Post personal announcements (e.g., services offered). 🟥
+- Request items to borrow. 🟥
+- Pay rent and other fees. 🟥
+- Organize community events. 🟥
 
 ---
 
