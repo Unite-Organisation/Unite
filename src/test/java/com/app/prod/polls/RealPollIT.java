@@ -2,34 +2,41 @@ package com.app.prod.polls;
 
 import com.app.prod.builders.*;
 import com.app.prod.config.IntegrationTest;
+import com.app.prod.config.MutableClock;
 import com.app.prod.exceptions.TestDataException;
 import com.app.prod.polls.dto.PollRequest;
+import com.app.prod.polls.dto.PollResult;
 import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.service.PollService;
+import com.app.prod.services.schedulers.PollScheduler;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.service.UserRoleService;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.AreasRecord;
+import org.jooq.sources.tables.records.BuildingsRecord;
 import org.jooq.sources.tables.records.PollOptionsRecord;
 import org.jooq.sources.tables.records.UsersRecord;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @Slf4j
 @SpringBootTest
+@ActiveProfiles("test")
 public class RealPollIT extends IntegrationTest {
 
     @Autowired
@@ -47,34 +54,190 @@ public class RealPollIT extends IntegrationTest {
     @Autowired
     private PollOptionRepository pollOptionRepository;
     @Autowired
-    private Clock clock;
+    private MutableClock clock;
+    @Autowired
+    private PollScheduler pollScheduler;
+
+    private AreasRecord area;
+    private BuildingsRecord building;
+    private UsersRecord manager;
+
+    // IMPORTANT: poll options should only be characters 'A' 'B' and so on. They will be sorted.
+
+    @BeforeEach
+    void setUp(){
+        area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+        building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
+        manager = userPersistanceFactory.getNewUser().withRandomValues().userRole(UserRole.MANAGER).buildAndSave();
+    }
 
     @Test
-    @Disabled("Needs work with clock and time passage")
-    void pollScenario(){
-        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
-        var mananger = userPersistanceFactory.getNewUser().withRandomValues().userRole(UserRole.MANAGER).buildAndSave();
+    void pollScenarioTwoOptions(){
         var voters = createVoters(100, building.getId());
-
         var pollOptions = List.of("A", "B");
         var frequencies   = List.of(50, 45);
-        PollRequest request = createPollRequest(building.getId(), pollOptions);
 
-        pollService.createPoll(request, mananger.getId());
+        createPoll(pollOptions);
+
+        var pollOptionsRecords = fetchSortedPollOptions();
         var pollId = pollRepository.findAll().getFirst().getId();
 
-        var pollOptionsRecords = pollOptionRepository.findAll().stream().sorted(Comparator.comparing(PollOptionsRecord::getOptionText)).toList();
-        Map<UUID, Integer> pollVotesFrequencyMap = IntStream.range(0, pollOptionsRecords.size())
-                .boxed()
-                .collect(Collectors.toMap(
-                        i -> pollOptionsRecords.get(i).getId(),
-                        i -> frequencies.get(i)
-                ));
+        vote(95, pollId, voters, pollOptionsRecords, frequencies);
 
-        vote(95, pollId, voters, pollVotesFrequencyMap);
+        clock.advance(Duration.ofDays(3));
+        pollScheduler.finishPoll();
+        PollResult result = pollService.getPollResult(pollId);
 
-        pollService.getPollResult(pollId);
+        assertThat(result.winnerOption()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.numberOfVotes()).isEqualTo(95);
+        assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(100);
+        assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(0.95));
+
+        assertThat(result.sortedVotes().getFirst().optionId()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.sortedVotes().getFirst().count()).isEqualTo(50);
+        assertThat(result.sortedVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedVotes().get(1).count()).isEqualTo(45);
+
+        assertThat(result.sortedPercentageShareOfVotes().getFirst().optionId()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.sortedPercentageShareOfVotes().getFirst().percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.53));
+        assertThat(result.sortedPercentageShareOfVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(1).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.47));
+    }
+
+    @Test
+    void pollScenarioFiveOptions(){
+        var voters = createVoters(43, building.getId());
+        var pollOptions = List.of("A", "B", "C", "D", "E");
+        var frequencies   = List.of(33, 7, 2, 1, 0);
+
+        createPoll(pollOptions);
+
+        var pollOptionsRecords = fetchSortedPollOptions();
+        var pollId = pollRepository.findAll().getFirst().getId();
+
+        vote(43, pollId, voters, pollOptionsRecords, frequencies);
+
+        clock.advance(Duration.ofDays(3));
+        pollScheduler.finishPoll();
+        PollResult result = pollService.getPollResult(pollId);
+
+        assertThat(result.winnerOption()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.numberOfVotes()).isEqualTo(43);
+        assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(43);
+        assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(1));
+
+        assertThat(result.sortedVotes()).hasSize(5);
+        assertThat(result.sortedPercentageShareOfVotes()).hasSize(5);
+
+
+        assertThat(result.sortedVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        assertThat(result.sortedVotes().get(0).count()).isEqualTo(33);
+        assertThat(result.sortedVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedVotes().get(1).count()).isEqualTo(7);
+        assertThat(result.sortedVotes().get(2).optionId()).isEqualTo(pollOptionsRecords.get(2).getId());
+        assertThat(result.sortedVotes().get(2).count()).isEqualTo(2);
+        assertThat(result.sortedVotes().get(3).optionId()).isEqualTo(pollOptionsRecords.get(3).getId());
+        assertThat(result.sortedVotes().get(3).count()).isEqualTo(1);
+        assertThat(result.sortedVotes().get(4).optionId()).isEqualTo(pollOptionsRecords.get(4).getId());
+        assertThat(result.sortedVotes().get(4).count()).isEqualTo(0);
+
+        assertThat(result.sortedPercentageShareOfVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(0).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.77));
+        assertThat(result.sortedPercentageShareOfVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(1).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.16));
+        assertThat(result.sortedPercentageShareOfVotes().get(2).optionId()).isEqualTo(pollOptionsRecords.get(2).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(2).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.05));
+        assertThat(result.sortedPercentageShareOfVotes().get(3).optionId()).isEqualTo(pollOptionsRecords.get(3).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(3).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.02));
+        assertThat(result.sortedPercentageShareOfVotes().get(4).optionId()).isEqualTo(pollOptionsRecords.get(4).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(4).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.0));
+    }
+
+    @Test
+    void pollScenarioManyPeopleDidntVote(){
+        var voters = createVoters(14, building.getId());
+        var pollOptions = List.of("A", "B", "C");
+        var frequencies   = List.of(6, 0, 0);
+
+        createPoll(pollOptions);
+
+        var pollOptionsRecords = fetchSortedPollOptions();
+        var pollId = pollRepository.findAll().getFirst().getId();
+
+        vote(6, pollId, voters, pollOptionsRecords, frequencies);
+
+        clock.advance(Duration.ofDays(3));
+        pollScheduler.finishPoll();
+        PollResult result = pollService.getPollResult(pollId);
+
+        assertThat(result.winnerOption()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.numberOfVotes()).isEqualTo(6);
+        assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(14);
+        assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(0.43));
+
+        assertThat(result.sortedVotes()).hasSize(3);
+        assertThat(result.sortedPercentageShareOfVotes()).hasSize(3);
+
+        assertThat(result.sortedVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        assertThat(result.sortedVotes().get(0).count()).isEqualTo(6);
+        assertThat(result.sortedVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedVotes().get(1).count()).isEqualTo(0);
+        assertThat(result.sortedVotes().get(2).optionId()).isEqualTo(pollOptionsRecords.get(2).getId());
+        assertThat(result.sortedVotes().get(2).count()).isEqualTo(0);
+
+        assertThat(result.sortedPercentageShareOfVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(0).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(1));
+        assertThat(result.sortedPercentageShareOfVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(1).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0));
+        assertThat(result.sortedPercentageShareOfVotes().get(2).optionId()).isEqualTo(pollOptionsRecords.get(2).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(2).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0));
+    }
+
+    @Test
+    void pollScenarioNoOneVoted(){
+        var voters = createVoters(20, building.getId());
+        var pollOptions = List.of("A", "B");
+
+        createPoll(pollOptions);
+
+        var pollOptionsRecords = fetchSortedPollOptions();
+        var pollId = pollRepository.findAll().getFirst().getId();
+
+        clock.advance(Duration.ofDays(3));
+        pollScheduler.finishPoll();
+        PollResult result = pollService.getPollResult(pollId);
+
+
+        //TODO: assert winner option
+        assertThat(result.numberOfVotes()).isEqualTo(0);
+        assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(20);
+        assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(0));
+
+        assertThat(result.sortedVotes()).hasSize(2);
+        assertThat(result.sortedPercentageShareOfVotes()).hasSize(2);
+
+        assertThat(result.sortedVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        assertThat(result.sortedVotes().get(0).count()).isEqualTo(0);
+        assertThat(result.sortedVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedVotes().get(1).count()).isEqualTo(0);
+
+        assertThat(result.sortedPercentageShareOfVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(0).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0));
+        assertThat(result.sortedPercentageShareOfVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
+        assertThat(result.sortedPercentageShareOfVotes().get(1).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0));
+    }
+
+    //TODO: test - tie in poll
+
+    private void createPoll(List<String> pollOptions){
+        PollRequest request = createPollRequest(building.getId(), pollOptions);
+        pollService.createPoll(request, manager.getId());
+    }
+
+    private List<PollOptionsRecord> fetchSortedPollOptions(){
+        return pollOptionRepository.findAll().stream()
+                .sorted(Comparator.comparing(PollOptionsRecord::getOptionText))
+                .toList();
     }
 
     private List<UsersRecord> createVoters(int count, UUID buildingId){
@@ -87,8 +250,15 @@ public class RealPollIT extends IntegrationTest {
         return users;
     }
 
+    private void vote(int howMany, UUID pollId, List<UsersRecord> voters, List<PollOptionsRecord> pollOptionsRecords, List<Integer> frequencies){
 
-    private void vote(int howMany, UUID pollId, List<UsersRecord> voters, Map<UUID, Integer> results){
+        Map<UUID, Integer> results = IntStream.range(0, pollOptionsRecords.size())
+                .boxed()
+                .collect(Collectors.toMap(
+                        i -> pollOptionsRecords.get(i).getId(),
+                        i -> frequencies.get(i)
+                ));
+
         int voterIndex = 0;
         for(var entry : results.entrySet()){
             for(int i = 0; i < entry.getValue(); i++){

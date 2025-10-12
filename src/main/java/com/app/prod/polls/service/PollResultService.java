@@ -14,6 +14,7 @@ import org.jooq.sources.tables.records.PollsRecord;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ public class PollResultService {
     private final PollOptionRepository pollOptionRepository;
 
     public PollResult calculatePollResult(UUID pollId) {
+        //TODO: who is the winner if there is a tie?
+
         List<PollOptionsRecord> allPollOptions = pollOptionRepository.getAllOptionsForPoll(pollId);
         List<PollOptionVoteCount> sortedVotes = pollVotesRepository.countVotes(pollId);
 
@@ -58,7 +61,7 @@ public class PollResultService {
 
     private boolean pollOptionIsIncluded(PollOptionsRecord pollOption, List<PollOptionVoteCount> sortedVotes){
         for(var vote : sortedVotes){
-            if(pollOption.getId() == vote.optionId()){
+            if(pollOption.getId().equals(vote.optionId())){
                 return true;
             }
         }
@@ -77,10 +80,25 @@ public class PollResultService {
 
 
     private List<PollOptionPercentageShare> getPercentageList(List<PollOptionVoteCount> sortedVotes, int numberOfVotes){
+        return numberOfVotes != 0 ?
+                getVotesPercentageList(sortedVotes, numberOfVotes) :
+                zeroVotesPercentageList(sortedVotes);
+    }
+
+    private List<PollOptionPercentageShare> getVotesPercentageList(List<PollOptionVoteCount> sortedVotes, int numberOfVotes) {
         return sortedVotes.stream()
                 .map(r -> new PollOptionPercentageShare(
                                 r.optionId(),
-                                BigDecimal.valueOf(r.count()).divide(BigDecimal.valueOf(numberOfVotes))
+                                BigDecimal.valueOf(r.count()).divide(BigDecimal.valueOf(numberOfVotes), 2, RoundingMode.HALF_UP)
+                        )
+                ).toList();
+    }
+
+    private List<PollOptionPercentageShare> zeroVotesPercentageList(List<PollOptionVoteCount> sortedVotes) {
+        return sortedVotes.stream()
+                .map(r -> new PollOptionPercentageShare(
+                                r.optionId(),
+                                BigDecimal.ZERO
                         )
                 ).toList();
     }
@@ -97,7 +115,7 @@ public class PollResultService {
             sortedOptionsPercentage,
             numberOfVotes,
             numberOfPeopleEligibleToVote,
-            BigDecimal.valueOf(numberOfVotes).divide(BigDecimal.valueOf(numberOfPeopleEligibleToVote))
+            BigDecimal.valueOf(numberOfVotes).divide(BigDecimal.valueOf(numberOfPeopleEligibleToVote), 2, RoundingMode.HALF_UP)
         );
     }
 

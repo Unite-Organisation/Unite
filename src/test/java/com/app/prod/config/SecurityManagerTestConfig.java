@@ -4,6 +4,11 @@ import com.app.prod.config.security.GlobalSecurityManager;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import static com.app.prod.utils.TestUtils.LOGGED_USER_ID;
 

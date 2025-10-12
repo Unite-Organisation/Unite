@@ -50,8 +50,17 @@ public class PollScheduler {
 
     private void handlePoll(PollsRecord poll){
         List<PollOptionVoteCount> countedVotes = pollVotesRepository.countVotes(poll.getId());
-        var winnerOption = countedVotes.getFirst().optionId();
-        var allVotes = countedVotes.stream().mapToInt(PollOptionVoteCount::count).sum();
+
+        UUID winnerOption = null;
+        int allVotes = 0;
+
+        if(!countedVotes.isEmpty()){
+            winnerOption = countedVotes.getFirst().optionId();
+            allVotes += countedVotes.stream().mapToInt(PollOptionVoteCount::count).sum();
+        }
+        else{
+            log.warn("No one voted in poll: {} {}", poll.getTitle(), poll.getId());
+        }
 
         pollResultRepository.insertOne(new PollResultRecord(
                 UUID.randomUUID(),
