@@ -77,10 +77,10 @@ public class RealPollIT extends IntegrationTest {
         var pollOptions = List.of("A", "B");
         var frequencies   = List.of(50, 45);
 
-        createPoll(pollOptions);
+        createPoll(pollOptions, "Poll-1");
 
-        var pollOptionsRecords = fetchSortedPollOptions();
-        var pollId = pollRepository.findAll().getFirst().getId();
+        var pollId = pollRepository.findAll().stream().filter(r -> r.getTitle().equals("Poll-1")).toList().getFirst().getId();
+        var pollOptionsRecords = fetchSortedPollOptions(pollId);
 
         vote(95, pollId, voters, pollOptionsRecords, frequencies);
 
@@ -110,10 +110,10 @@ public class RealPollIT extends IntegrationTest {
         var pollOptions = List.of("A", "B", "C", "D", "E");
         var frequencies   = List.of(33, 7, 2, 1, 0);
 
-        createPoll(pollOptions);
+        createPoll(pollOptions, "Poll-2");
 
-        var pollOptionsRecords = fetchSortedPollOptions();
-        var pollId = pollRepository.findAll().getFirst().getId();
+        var pollId = pollRepository.findAll().stream().filter(r -> r.getTitle().equals("Poll-2")).toList().getFirst().getId();
+        var pollOptionsRecords = fetchSortedPollOptions(pollId);
 
         vote(43, pollId, voters, pollOptionsRecords, frequencies);
 
@@ -159,10 +159,10 @@ public class RealPollIT extends IntegrationTest {
         var pollOptions = List.of("A", "B", "C");
         var frequencies   = List.of(6, 0, 0);
 
-        createPoll(pollOptions);
+        createPoll(pollOptions, "Poll-3");
 
-        var pollOptionsRecords = fetchSortedPollOptions();
-        var pollId = pollRepository.findAll().getFirst().getId();
+        var pollId = pollRepository.findAll().stream().filter(r -> r.getTitle().equals("Poll-3")).toList().getFirst().getId();
+        var pollOptionsRecords = fetchSortedPollOptions(pollId);
 
         vote(6, pollId, voters, pollOptionsRecords, frequencies);
 
@@ -198,10 +198,10 @@ public class RealPollIT extends IntegrationTest {
         var voters = createVoters(20, building.getId());
         var pollOptions = List.of("A", "B");
 
-        createPoll(pollOptions);
+        createPoll(pollOptions, "Poll-4");
 
-        var pollOptionsRecords = fetchSortedPollOptions();
-        var pollId = pollRepository.findAll().getFirst().getId();
+        var pollId = pollRepository.findAll().stream().filter(r -> r.getTitle().equals("Poll-4")).toList().getFirst().getId();
+        var pollOptionsRecords = fetchSortedPollOptions(pollId);
 
         clock.advance(Duration.ofDays(3));
         pollScheduler.finishPoll();
@@ -228,13 +228,14 @@ public class RealPollIT extends IntegrationTest {
 
     //TODO: test - tie in poll
 
-    private void createPoll(List<String> pollOptions){
-        PollRequest request = createPollRequest(building.getId(), pollOptions);
+    private void createPoll(List<String> pollOptions, String pollName){
+        PollRequest request = createPollRequest(building.getId(), pollOptions, pollName);
         pollService.createPoll(request, manager.getId());
     }
 
-    private List<PollOptionsRecord> fetchSortedPollOptions(){
+    private List<PollOptionsRecord> fetchSortedPollOptions(UUID pollId){
         return pollOptionRepository.findAll().stream()
+                .filter(r -> r.getPollId().equals(pollId))
                 .sorted(Comparator.comparing(PollOptionsRecord::getOptionText))
                 .toList();
     }
@@ -276,12 +277,12 @@ public class RealPollIT extends IntegrationTest {
         }
     }
 
-    private PollRequest createPollRequest(UUID buildingId, List<String> pollOptions){
+    private PollRequest createPollRequest(UUID buildingId, List<String> pollOptions, String pollName){
         var startPoll = LocalDateTime.now(clock);
         var endPoll = startPoll.plusDays(1);
 
         return new PollRequest(
-                "Poll1",
+                pollName,
                 "description",
                 null,
                 buildingId,
