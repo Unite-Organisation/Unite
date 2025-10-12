@@ -65,7 +65,6 @@ public class PollService {
             UUID.randomUUID(),
                 pollId,
             null,
-            null,
             false
         ));
     }

@@ -37,11 +37,6 @@ public class PollResultPersistenceFactory {
             return this;
         }
 
-        public Builder chosenOption(UUID chosenOption) {
-            instance.setChosenOption(chosenOption);
-            return this;
-        }
-
         public Builder votersCount(Integer votersCount) {
             instance.setVotersCount(votersCount);
             return this;

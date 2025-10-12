@@ -18,6 +18,7 @@ import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
+import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
@@ -98,6 +99,11 @@ public class Tables {
      * The table <code>public.poll_votes</code>.
      */
     public static final PollVotes POLL_VOTES = PollVotes.POLL_VOTES;
+
+    /**
+     * The table <code>public.poll_winner</code>.
+     */
+    public static final PollWinner POLL_WINNER = PollWinner.POLL_WINNER;
 
     /**
      * The table <code>public.polls</code>.

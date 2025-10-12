@@ -39,6 +39,7 @@ import org.jooq.sources.tables.Buildings.BuildingsPath;
 import org.jooq.sources.tables.PollOptions.PollOptionsPath;
 import org.jooq.sources.tables.PollResult.PollResultPath;
 import org.jooq.sources.tables.PollVotes.PollVotesPath;
+import org.jooq.sources.tables.PollWinner.PollWinnerPath;
 import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.PollsRecord;
 
@@ -269,6 +270,19 @@ public class Polls extends TableImpl<PollsRecord> {
             _pollVotes = new PollVotesPath(this, null, Keys.POLL_VOTES__POLL_VOTES_POLL_ID_FKEY.getInverseKey());
 
         return _pollVotes;
+    }
+
+    private transient PollWinnerPath _pollWinner;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.poll_winner</code>
+     * table
+     */
+    public PollWinnerPath pollWinner() {
+        if (_pollWinner == null)
+            _pollWinner = new PollWinnerPath(this, null, Keys.POLL_WINNER__POLL_WINNER_POLL_ID_FKEY.getInverseKey());
+
+        return _pollWinner;
     }
 
     @Override

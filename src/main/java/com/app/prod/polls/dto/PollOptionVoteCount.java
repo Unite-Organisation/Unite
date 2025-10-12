@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record PollOptionVoteCount (
         UUID optionId,
-        Integer count
+        Integer count,
+        String content
 ){
 }

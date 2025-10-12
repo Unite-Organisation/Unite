@@ -138,9 +138,14 @@ CREATE TABLE poll_votes (
 CREATE TABLE poll_result (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
-    chosen_option UUID REFERENCES poll_options(id) ON DELETE CASCADE,
     voters_count INT,
     voting_ended BOOLEAN NOT NULL
+);
+
+CREATE TABLE poll_winner (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+    option_id UUID NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE
 );
 
 

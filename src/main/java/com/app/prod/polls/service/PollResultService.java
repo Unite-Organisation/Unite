@@ -8,7 +8,6 @@ import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.records.PollOptionsRecord;
 import org.jooq.sources.tables.records.PollsRecord;
 import org.springframework.stereotype.Service;
@@ -26,21 +25,33 @@ public class PollResultService {
     private final PollVotesRepository pollVotesRepository;
     private final PollRepository pollRepository;
     private final PollOptionRepository pollOptionRepository;
+    private final PollProcessingService pollProcessingService;
 
     public PollResult calculatePollResult(UUID pollId) {
-        //TODO: who is the winner if there is a tie?
-
         List<PollOptionsRecord> allPollOptions = pollOptionRepository.getAllOptionsForPoll(pollId);
         List<PollOptionVoteCount> sortedVotes = pollVotesRepository.countVotes(pollId);
 
         includeOptionsWithNoVotes(allPollOptions, sortedVotes);
 
-        int numberOfVotes = sortedVotes.stream().mapToInt(PollOptionVoteCount::count).sum();
+        List<PollOptionVoteCount> winners = pollProcessingService.chooseWinners(pollId, sortedVotes);
+
+        int numberOfVotes = pollProcessingService.getAllVotesCount(sortedVotes);
         List<PollOptionPercentageShare> sortedOptionsPercentage = getPercentageList(sortedVotes, numberOfVotes);
         int numberOfPeopleEligibleToVote = getEligiblePeopleCount(pollId);
 
-        log.info("Poll results = {} \n {} \n {} \n {}", sortedVotes, sortedOptionsPercentage, numberOfVotes, numberOfPeopleEligibleToVote);
-        return createPollResultResponse(sortedVotes, sortedOptionsPercentage, numberOfVotes, numberOfPeopleEligibleToVote);
+        log.info("Poll results = {} \n {} \n {} \n {}",
+                sortedVotes,
+                sortedOptionsPercentage,
+                numberOfVotes,
+                numberOfPeopleEligibleToVote);
+
+        return createPollResultResponse(
+                winners,
+                sortedVotes,
+                sortedOptionsPercentage,
+                numberOfVotes,
+                numberOfPeopleEligibleToVote
+        );
     }
 
     private void includeOptionsWithNoVotes(List<PollOptionsRecord> allPollOptions, List<PollOptionVoteCount> sortedVotes){
@@ -53,7 +64,8 @@ public class PollResultService {
             if(!pollOptionIsIncluded(pollOption, sortedVotes)){
                 sortedVotes.add(new PollOptionVoteCount(
                         pollOption.getId(),
-                        0 // - zero votes for this option
+                        0, // - zero votes for this option
+                        pollOption.getOptionText()
                 ));
             }
         }
@@ -104,13 +116,14 @@ public class PollResultService {
     }
 
     private PollResult createPollResultResponse(
+            List<PollOptionVoteCount> winners,
             List<PollOptionVoteCount> sortedVotes,
             List<PollOptionPercentageShare> sortedOptionsPercentage,
             int numberOfVotes,
             int numberOfPeopleEligibleToVote) {
 
         return new PollResult(
-            sortedVotes.getFirst().optionId(),
+            winners,
             sortedVotes,
             sortedOptionsPercentage,
             numberOfVotes,

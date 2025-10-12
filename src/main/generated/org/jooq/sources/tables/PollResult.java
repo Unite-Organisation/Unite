@@ -31,7 +31,6 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.PollOptions.PollOptionsPath;
 import org.jooq.sources.tables.Polls.PollsPath;
 import org.jooq.sources.tables.records.PollResultRecord;
 
@@ -66,11 +65,6 @@ public class PollResult extends TableImpl<PollResultRecord> {
      * The column <code>public.poll_result.poll_id</code>.
      */
     public final TableField<PollResultRecord, UUID> POLL_ID = createField(DSL.name("poll_id"), SQLDataType.UUID.nullable(false), this, "");
-
-    /**
-     * The column <code>public.poll_result.chosen_option</code>.
-     */
-    public final TableField<PollResultRecord, UUID> CHOSEN_OPTION = createField(DSL.name("chosen_option"), SQLDataType.UUID, this, "");
 
     /**
      * The column <code>public.poll_result.voters_count</code>.
@@ -156,19 +150,7 @@ public class PollResult extends TableImpl<PollResultRecord> {
 
     @Override
     public List<ForeignKey<PollResultRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.POLL_RESULT__POLL_RESULT_CHOSEN_OPTION_FKEY, Keys.POLL_RESULT__POLL_RESULT_POLL_ID_FKEY);
-    }
-
-    private transient PollOptionsPath _pollOptions;
-
-    /**
-     * Get the implicit join path to the <code>public.poll_options</code> table.
-     */
-    public PollOptionsPath pollOptions() {
-        if (_pollOptions == null)
-            _pollOptions = new PollOptionsPath(this, Keys.POLL_RESULT__POLL_RESULT_CHOSEN_OPTION_FKEY, null);
-
-        return _pollOptions;
+        return Arrays.asList(Keys.POLL_RESULT__POLL_RESULT_POLL_ID_FKEY);
     }
 
     private transient PollsPath _polls;

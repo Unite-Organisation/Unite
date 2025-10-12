@@ -24,6 +24,7 @@ import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
+import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
@@ -113,6 +114,11 @@ public class Public extends SchemaImpl {
     public final PollVotes POLL_VOTES = PollVotes.POLL_VOTES;
 
     /**
+     * The table <code>public.poll_winner</code>.
+     */
+    public final PollWinner POLL_WINNER = PollWinner.POLL_WINNER;
+
+    /**
      * The table <code>public.polls</code>.
      */
     public final Polls POLLS = Polls.POLLS;
@@ -157,6 +163,7 @@ public class Public extends SchemaImpl {
             PollOptions.POLL_OPTIONS,
             PollResult.POLL_RESULT,
             PollVotes.POLL_VOTES,
+            PollWinner.POLL_WINNER,
             Polls.POLLS,
             UserRoles.USER_ROLES,
             Users.USERS

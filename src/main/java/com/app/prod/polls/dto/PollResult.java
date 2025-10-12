@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record PollResult (
-        UUID winnerOption,
+        List<PollOptionVoteCount> winners,
         List<PollOptionVoteCount> sortedVotes,
         List<PollOptionPercentageShare> sortedPercentageShareOfVotes,
         int numberOfVotes,

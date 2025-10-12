@@ -88,7 +88,7 @@ public class RealPollIT extends IntegrationTest {
         pollScheduler.finishPoll();
         PollResult result = pollService.getPollResult(pollId);
 
-        assertThat(result.winnerOption()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.winners().getFirst().optionId()).isEqualTo(pollOptionsRecords.getFirst().getId());
         assertThat(result.numberOfVotes()).isEqualTo(95);
         assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(100);
         assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(0.95));
@@ -121,7 +121,7 @@ public class RealPollIT extends IntegrationTest {
         pollScheduler.finishPoll();
         PollResult result = pollService.getPollResult(pollId);
 
-        assertThat(result.winnerOption()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.winners().getFirst().optionId()).isEqualTo(pollOptionsRecords.getFirst().getId());
         assertThat(result.numberOfVotes()).isEqualTo(43);
         assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(43);
         assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(1));
@@ -170,7 +170,7 @@ public class RealPollIT extends IntegrationTest {
         pollScheduler.finishPoll();
         PollResult result = pollService.getPollResult(pollId);
 
-        assertThat(result.winnerOption()).isEqualTo(pollOptionsRecords.getFirst().getId());
+        assertThat(result.winners().getFirst().optionId()).isEqualTo(pollOptionsRecords.getFirst().getId());
         assertThat(result.numberOfVotes()).isEqualTo(6);
         assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(14);
         assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(0.43));
@@ -207,8 +207,7 @@ public class RealPollIT extends IntegrationTest {
         pollScheduler.finishPoll();
         PollResult result = pollService.getPollResult(pollId);
 
-
-        //TODO: assert winner option
+        assertThat(result.winners()).isEmpty();
         assertThat(result.numberOfVotes()).isEqualTo(0);
         assertThat(result.numberOfPeopleEligibleToVote()).isEqualTo(20);
         assertThat(result.votersPercentage()).isEqualByComparingTo(BigDecimal.valueOf(0));

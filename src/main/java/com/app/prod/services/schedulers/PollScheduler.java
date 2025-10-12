@@ -6,6 +6,7 @@ import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollResultRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
+import com.app.prod.polls.service.PollProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.PollResultRecord;
@@ -27,6 +28,7 @@ public class PollScheduler {
     private final PollResultRepository pollResultRepository;
     private final PollVotesRepository pollVotesRepository;
     private final PollRepository pollRepository;
+    private final PollProcessingService pollProcessingService;
     private final Clock clock;
 
     @Scheduled(cron = "0 0 * * * *")
@@ -43,32 +45,8 @@ public class PollScheduler {
 
         for(var poll : polls){
             log.info("Finishing poll {}", poll.getTitle());
-            handlePoll(poll);
+            pollProcessingService.finalizePoll(poll.getId());
         }
-
-    }
-
-    private void handlePoll(PollsRecord poll){
-        List<PollOptionVoteCount> countedVotes = pollVotesRepository.countVotes(poll.getId());
-
-        UUID winnerOption = null;
-        int allVotes = 0;
-
-        if(!countedVotes.isEmpty()){
-            winnerOption = countedVotes.getFirst().optionId();
-            allVotes += countedVotes.stream().mapToInt(PollOptionVoteCount::count).sum();
-        }
-        else{
-            log.warn("No one voted in poll: {} {}", poll.getTitle(), poll.getId());
-        }
-
-        pollResultRepository.insertOne(new PollResultRecord(
-                UUID.randomUUID(),
-                poll.getId(),
-                winnerOption,
-                allVotes,
-                true
-        ));
 
     }
 
