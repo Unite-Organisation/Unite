@@ -2,6 +2,8 @@ package com.app.prod.exceptions.handler;
 
 import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,18 @@ public class GlobalExceptionHandler {
                 e.getMessage() + "User: " + tokenSecurityManager.getCurrentUser().getUsername() +
                         "has role: " + tokenSecurityManager.getCurrentUser().getUserRole()
                 );
+    }
+
+    @ExceptionHandler(EntityNotPresentException.class)
+    public ResponseEntity<String> handleException(EntityNotPresentException e){
+        log.error("Entity was not present {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedDataAccessException.class)
+    public ResponseEntity<String> handleException(UnauthorizedDataAccessException e){
+        log.error("Unauthorized access to resource. {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

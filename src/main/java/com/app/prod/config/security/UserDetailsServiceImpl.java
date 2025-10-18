@@ -4,6 +4,7 @@ import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -38,7 +39,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private String getUserRole(UsersRecord user){
         return userRoleRepository.findById(user.getUserRole()).orElseThrow(
-                () -> new EntityNotPresentException(String.format("User role with id %s not found.", user.getUserRole()))
+                () -> new EntityNotPresentException(
+                        String.format("User role with id %s not found.", user.getUserRole()),
+                        UserRoles.class.getSimpleName()
+                )
         ).getUserRole();
 
     }

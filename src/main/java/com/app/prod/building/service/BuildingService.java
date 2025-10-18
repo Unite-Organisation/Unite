@@ -9,6 +9,7 @@ import com.app.prod.user.service.UserService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.records.BuildingsRecord;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,10 @@ public class BuildingService {
 
     public BuildingsRecord findById(UUID buildingId){
         return buildingRepository.findById(buildingId).orElseThrow(
-                () -> new EntityNotPresentException(String.format("Building with id: %s does not exist", buildingId))
+                () -> new EntityNotPresentException(
+                        String.format("Building with id: %s does not exist", buildingId),
+                        Buildings.class.getSimpleName()
+                )
         );
     }
 

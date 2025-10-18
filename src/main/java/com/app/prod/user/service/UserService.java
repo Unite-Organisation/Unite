@@ -12,6 +12,7 @@ import com.app.prod.utils.PasswordGenerator;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.Users;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -83,7 +84,10 @@ public class UserService {
 
     public UsersRecord findById(UUID userId){
         return userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotPresentException(String.format("User with id: %s does not exist.", userId))
+                () -> new EntityNotPresentException(
+                        String.format("User with id: %s does not exist.", userId),
+                        Users.class.getSimpleName()
+                )
         );
     }
 

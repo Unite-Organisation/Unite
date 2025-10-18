@@ -13,6 +13,7 @@ import com.app.prod.utils.Pagination;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.records.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,7 +101,10 @@ public class PollService {
 
     public PollsRecord findById(UUID pollId){
         return pollRepository.findById(pollId).orElseThrow(
-                () -> new EntityNotPresentException(String.format("Poll with id: %s does not exist", pollId))
+                () -> new EntityNotPresentException(
+                        String.format("Poll with id: %s does not exist", pollId),
+                        Polls.class.getSimpleName()
+                )
         );
     }
 }

@@ -12,10 +12,11 @@ import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.Users;
+import org.jooq.sources.tables.*;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Component;
 
+import java.awt.geom.Area;
 import java.util.UUID;
 
 @Component
@@ -33,25 +34,37 @@ public class Validate {
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
-            throw new EntityNotPresentException(String.format("User with id: %s doesn't exist.", id));
+            throw new EntityNotPresentException(
+                    String.format("User with id: %s doesn't exist.", id),
+                    Users.class.getSimpleName()
+            );
         }
     }
 
     public void conversation(UUID id){
         if(!conversationRepository.exists(id)){
-            throw new EntityNotPresentException(String.format("Conversation with id: %s doesn't exist.", id));
+            throw new EntityNotPresentException(
+                    String.format("Conversation with id: %s doesn't exist.", id),
+                    Conversations.class.getSimpleName()
+            );
         }
     }
 
     public void area(UUID id){
         if(!areaRepository.exists(id)){
-            throw new EntityNotPresentException(String.format("Area with id: %s doesn't exist.", id));
+            throw new EntityNotPresentException(
+                    String.format("Area with id: %s doesn't exist.", id),
+                    Areas.class.getSimpleName()
+            );
         }
     }
 
     public void facility(UUID id){
         if(!facilityRepository.exists(id)){
-            throw new EntityNotPresentException(String.format("Facility with id: %s doesn't exist.", id));
+            throw new EntityNotPresentException(
+                    String.format("Facility with id: %s doesn't exist.", id),
+                    Facilities.class.getSimpleName()
+            );
         }
     }
 
@@ -75,7 +88,10 @@ public class Validate {
 
     public void thatUserIsNotInAnyBuildingYet(UUID userId){
         var user = userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotPresentException(String.format("User with id: %s does not exist.", userId))
+                () -> new EntityNotPresentException(
+                        String.format("User with id: %s does not exist.", userId),
+                        Users.class.getSimpleName()
+                )
         );
         if(user.getBuildingId() != null){
             throw new BadRequestException("User has already been set to building: " + user.getBuildingId());
@@ -84,7 +100,10 @@ public class Validate {
 
     public void building(UUID id){
         if(!buildingRepository.exists(id)){
-            throw new EntityNotPresentException(String.format("Building with id: %s doesn't exist.", id));
+            throw new EntityNotPresentException(
+                    String.format("Building with id: %s doesn't exist.", id),
+                    Buildings.class.getSimpleName()
+            );
         }
     }
 
@@ -101,14 +120,17 @@ public class Validate {
                 ));
             }
         },
-        () -> new EntityNotPresentException(String.format("Poll with id %d not found", pollId))
+        () -> new EntityNotPresentException(
+                String.format("Poll with id %d not found", pollId),
+                Polls.class.getSimpleName()
+        )
         );
     }
 
     public void thatUserBelongsToBuilding(UsersRecord user, UUID buildingId){
         var userBuilding = user.getBuildingId();
 
-        if(userBuilding == null || user.getBuildingId() != buildingId){
+        if(userBuilding == null || !userBuilding.equals(buildingId)){
             throw new UnauthorizedDataAccessException(String.format("User %s does not have access to building %s", user.getId(), buildingId));
         }
     }
