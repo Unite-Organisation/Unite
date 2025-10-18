@@ -35,6 +35,7 @@ import org.jooq.sources.tables.Announcements.AnnouncementsPath;
 import org.jooq.sources.tables.Areas.AreasPath;
 import org.jooq.sources.tables.BuildingsManagers.BuildingsManagersPath;
 import org.jooq.sources.tables.Facilities.FacilitiesPath;
+import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Polls.PollsPath;
 import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.BuildingsRecord;
@@ -222,6 +223,18 @@ public class Buildings extends TableImpl<BuildingsRecord> {
             _facilities = new FacilitiesPath(this, null, Keys.FACILITIES__FACILITIES_BUILDING_ID_FKEY.getInverseKey());
 
         return _facilities;
+    }
+
+    private transient IssuePath _issue;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.issue</code> table
+     */
+    public IssuePath issue() {
+        if (_issue == null)
+            _issue = new IssuePath(this, null, Keys.ISSUE__ISSUE_BUILDING_ID_FKEY.getInverseKey());
+
+        return _issue;
     }
 
     private transient PollsPath _polls;

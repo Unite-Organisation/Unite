@@ -33,6 +33,7 @@ import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
 import org.jooq.sources.tables.Buildings.BuildingsPath;
 import org.jooq.sources.tables.FacilitiesReservations.FacilitiesReservationsPath;
+import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.records.FacilitiesRecord;
 
 
@@ -192,6 +193,18 @@ public class Facilities extends TableImpl<FacilitiesRecord> {
             _facilitiesReservations = new FacilitiesReservationsPath(this, null, Keys.FACILITIES_RESERVATIONS__FACILITIES_RESERVATIONS_FACILITY_ID_FKEY.getInverseKey());
 
         return _facilitiesReservations;
+    }
+
+    private transient IssuePath _issue;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.issue</code> table
+     */
+    public IssuePath issue() {
+        if (_issue == null)
+            _issue = new IssuePath(this, null, Keys.ISSUE__ISSUE_FACILITY_ID_FKEY.getInverseKey());
+
+        return _issue;
     }
 
     @Override

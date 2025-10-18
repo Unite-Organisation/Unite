@@ -89,5 +89,5 @@ brew install maven
 
 Available at: 
 ```bash 
-https://localhost:8080/v1/api/swagger-ui/index.html
+http://localhost:8080/v1/api/swagger-ui/index.html
 ```

@@ -5,6 +5,7 @@ import com.app.prod.user.dto.BulkCreationResponse;
 import com.app.prod.user.dto.UserResponse;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.UsersRecord;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequestMapping("user")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Users")
 public class UserRestApi {
 
     private final UserService userService;

@@ -7,6 +7,7 @@ import com.app.prod.conversation.dto.ConversationResponse;
 import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.service.ConversationService;
 import com.app.prod.messaging.service.MessageService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.ConversationsRecord;
 import org.jooq.sources.tables.records.MessageRecord;
@@ -21,6 +22,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("conversation")
 @RequiredArgsConstructor
+@Deprecated
+@Tag(name = "Conversations")
 public class ConversationRestApi {
 
     private final ConversationService conversationService;

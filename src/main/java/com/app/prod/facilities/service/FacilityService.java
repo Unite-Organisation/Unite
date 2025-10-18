@@ -2,12 +2,15 @@ package com.app.prod.facilities.service;
 
 import com.app.prod.building.repository.BuildingsManagersRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.facilities.dto.BuildingFacilitiesResponse;
 import com.app.prod.facilities.dto.FacilityRequest;
+import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.FacilitiesRecord;
+import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,5 +47,10 @@ public class FacilityService {
 
         facilityRepository.insertMany(records);
         return String.format("Added %s facilities.", records.size());
+    }
+
+    public BuildingFacilitiesResponse getFacilitiesForBuilding(UUID buildingId, UsersRecord user) {
+        validate.thatUserBelongsToBuilding(user, buildingId);
+        return new BuildingFacilitiesResponse(facilityRepository.getFacilitiesForBuilding(buildingId));
     }
 }

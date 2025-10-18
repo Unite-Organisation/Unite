@@ -7,6 +7,7 @@ import com.app.prod.polls.dto.PollResult;
 import com.app.prod.polls.service.PollService;
 import com.app.prod.services.schedulers.PollScheduler;
 import com.app.prod.utils.Pagination;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("poll")
 @RequiredArgsConstructor
+@Tag(name = "Polls")
 public class PollRestApi {
 
     private final GlobalSecurityManager globalSecurityManager;

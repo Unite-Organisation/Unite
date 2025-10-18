@@ -4,6 +4,7 @@ import com.app.prod.user.dto.UserActivateRequest;
 import com.app.prod.user.dto.UserLoginRequest;
 import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
+@Tag(name = "App authorization")
 public class AuthRestApi {
 
     private final UserService userService;

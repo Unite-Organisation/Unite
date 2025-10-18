@@ -6,11 +6,14 @@ import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
+import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.user.repository.UserRepository;
-import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.Users;
+import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -26,6 +29,7 @@ public class Validate {
     private final AreaRepository areaRepository;
     private final BuildingRepository buildingRepository;
     private final PollRepository pollRepository;
+    private final FacilityRepository facilityRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -42,6 +46,18 @@ public class Validate {
     public void area(UUID id){
         if(!areaRepository.exists(id)){
             throw new EntityNotPresentException(String.format("Area with id: %s doesn't exist.", id));
+        }
+    }
+
+    public void facility(UUID id){
+        if(!facilityRepository.exists(id)){
+            throw new EntityNotPresentException(String.format("Facility with id: %s doesn't exist.", id));
+        }
+    }
+
+    public void thatUserHasBuilding(UsersRecord user){
+        if(user.getBuildingId() == null){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to any building", user.getId()));
         }
     }
 
@@ -87,5 +103,31 @@ public class Validate {
         },
         () -> new EntityNotPresentException(String.format("Poll with id %d not found", pollId))
         );
+    }
+
+    public void thatUserBelongsToBuilding(UsersRecord user, UUID buildingId){
+        var userBuilding = user.getBuildingId();
+
+        if(userBuilding == null || user.getBuildingId() != buildingId){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to building %s", user.getId(), buildingId));
+        }
+    }
+
+    public void thatUserBelongsToArea(UUID areaId, UsersRecord user) {
+        thatUserHasBuilding(user);
+        var building = buildingRepository.findById(user.getBuildingId()).orElseThrow();
+
+        if(building.getAreaId() != areaId){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to area %s", user.getId(), areaId));
+        }
+    }
+
+    public void thatUserCanUseFacility(UsersRecord user, UUID facilityId){
+        thatUserHasBuilding(user);
+        var facility = facilityRepository.findById(facilityId).orElseThrow();
+
+        if(facility.getBuildingId() != user.getBuildingId()){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to facility %s", user.getId(), facilityId));
+        }
     }
 }

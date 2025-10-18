@@ -5,6 +5,7 @@ import com.app.prod.announcements.dto.AnnouncementResponse;
 import com.app.prod.announcements.service.AnnouncementsService;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.Pagination;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("announcements")
 @RequiredArgsConstructor
+@Tag(name = "Announcements")
 public class AnnouncementsRestApi {
 
     private final AnnouncementsService announcementsService;

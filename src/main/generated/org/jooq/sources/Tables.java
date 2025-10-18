@@ -13,6 +13,7 @@ import org.jooq.sources.tables.Conversations;
 import org.jooq.sources.tables.Facilities;
 import org.jooq.sources.tables.FacilitiesReservations;
 import org.jooq.sources.tables.FlywaySchemaHistory;
+import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.PollOptions;
@@ -74,6 +75,11 @@ public class Tables {
      * The table <code>public.flyway_schema_history</code>.
      */
     public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+
+    /**
+     * The table <code>public.issue</code>.
+     */
+    public static final Issue ISSUE = Issue.ISSUE;
 
     /**
      * The table <code>public.message</code>.

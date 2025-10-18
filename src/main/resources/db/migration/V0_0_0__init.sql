@@ -148,6 +148,23 @@ CREATE TABLE poll_winner (
     option_id UUID NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE
 );
 
+CREATE TABLE issue (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(256) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(30),
+    priority VARCHAR(30) NOT NULL,
+
+    area_id UUID REFERENCES areas(id) ON DELETE CASCADE,
+    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+    facility_id UUID REFERENCES facilities(id) ON DELETE CASCADE,
+    poll_id UUID REFERENCES polls(id) ON DELETE CASCADE,
+
+    notify_everyone BOOLEAN NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 
  --messaging section
 CREATE TABLE conversations

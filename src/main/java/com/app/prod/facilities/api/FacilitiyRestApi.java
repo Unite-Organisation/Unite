@@ -5,6 +5,7 @@ import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
 import com.app.prod.facilities.service.ReservationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/facility")
 @RequiredArgsConstructor
+@Tag(name = "Facilities")
 public class FacilitiyRestApi {
 
     private final ReservationService reservationService;
