@@ -15,7 +15,6 @@ public class BuildingIssue implements IssueNotifyingStrategy{
 
     private final Validate validate;
     private final NotificationService notificationService;
-    private final IssueService issueService;
 
     @Override
     public void validateAbilityToReportIssue(UsersRecord user, IssueRequest request) {
