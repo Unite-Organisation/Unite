@@ -16,6 +16,7 @@ import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
+import org.jooq.sources.tables.Notification;
 import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
@@ -90,6 +91,11 @@ public class Tables {
      * The table <code>public.messages_read</code>.
      */
     public static final MessagesRead MESSAGES_READ = MessagesRead.MESSAGES_READ;
+
+    /**
+     * The table <code>public.notification</code>.
+     */
+    public static final Notification NOTIFICATION = Notification.NOTIFICATION;
 
     /**
      * The table <code>public.poll_options</code>.

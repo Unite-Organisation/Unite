@@ -43,4 +43,11 @@ public class BuildingsManagersRepository extends BaseJooqRepository<BuildingsMan
                         .and(BUILDINGS_MANAGERS.BUILDING_ID.eq(buildingId))
         );
     }
+
+    public UUID fetchManagerIdForBuilding(UUID buildingId){
+        return dslContext.select(BUILDINGS_MANAGERS.USER_ID)
+                .from(BUILDINGS_MANAGERS)
+                .where(BUILDINGS_MANAGERS.BUILDING_ID.eq(buildingId))
+                .fetchOne(BUILDINGS_MANAGERS.USER_ID);
+    }
 }

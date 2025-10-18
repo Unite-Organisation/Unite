@@ -1,5 +1,6 @@
 package com.app.prod.polls.service;
 
+import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.dto.PollResult;
@@ -12,9 +13,7 @@ import com.app.prod.utils.Pagination;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.PollOptionsRecord;
-import org.jooq.sources.tables.records.PollResultRecord;
-import org.jooq.sources.tables.records.PollVotesRecord;
+import org.jooq.sources.tables.records.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,5 +95,12 @@ public class PollService {
         validate.poll(pollId);
         log.info("Starting processing poll {} result", pollId);
         return pollResultService.calculatePollResult(pollId);
+    }
+
+
+    public PollsRecord findById(UUID pollId){
+        return pollRepository.findById(pollId).orElseThrow(
+                () -> new EntityNotPresentException(String.format("Poll with id: %s does not exist", pollId))
+        );
     }
 }

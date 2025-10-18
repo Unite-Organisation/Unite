@@ -22,6 +22,7 @@ import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
+import org.jooq.sources.tables.Notification;
 import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
@@ -105,6 +106,11 @@ public class Public extends SchemaImpl {
     public final MessagesRead MESSAGES_READ = MessagesRead.MESSAGES_READ;
 
     /**
+     * The table <code>public.notification</code>.
+     */
+    public final Notification NOTIFICATION = Notification.NOTIFICATION;
+
+    /**
      * The table <code>public.poll_options</code>.
      */
     public final PollOptions POLL_OPTIONS = PollOptions.POLL_OPTIONS;
@@ -167,6 +173,7 @@ public class Public extends SchemaImpl {
             Issue.ISSUE,
             Message.MESSAGE,
             MessagesRead.MESSAGES_READ,
+            Notification.NOTIFICATION,
             PollOptions.POLL_OPTIONS,
             PollResult.POLL_RESULT,
             PollVotes.POLL_VOTES,

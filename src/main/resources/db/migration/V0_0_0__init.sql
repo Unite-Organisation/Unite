@@ -165,6 +165,13 @@ CREATE TABLE issue (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE notification (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    issue_id UUID REFERENCES issue(id) ON DELETE CASCADE,
+    recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(30),
+    seen_at TIMESTAMP
+);
 
  --messaging section
 CREATE TABLE conversations
