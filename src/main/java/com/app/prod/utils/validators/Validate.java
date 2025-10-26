@@ -135,6 +135,7 @@ public class Validate {
         }
     }
 
+    //TODO: fix bug when user want to see issues in area but he cannot
     public void thatUserBelongsToArea(UUID areaId, UsersRecord user) {
         thatUserHasBuilding(user);
         var building = buildingRepository.findById(user.getBuildingId()).orElseThrow();

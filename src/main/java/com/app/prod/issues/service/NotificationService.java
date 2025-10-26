@@ -65,7 +65,6 @@ public class NotificationService {
                 UUID.randomUUID(),
                 issue.getId(),
                 managerId,
-                IssueProcessingStatus.SUBMITTED.name(),
                 null
         );
     }

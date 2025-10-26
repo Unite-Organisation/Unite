@@ -41,7 +41,7 @@ With Unite, residents can:
 - Chat with other residents. 🟥
 - Create private chats and neighbor groups. 🟥
 - Book shared spaces. 🟦
-- Report issues or request repair services. 🟥
+- Report issues or request repair services. 🟦
 - Vote in polls. 🟩
 - Post personal announcements (e.g., services offered). 🟥
 - Request items to borrow. 🟥

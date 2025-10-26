@@ -63,31 +63,17 @@ public class NotificationRecord extends UpdatableRecordImpl<NotificationRecord> 
     }
 
     /**
-     * Setter for <code>public.notification.status</code>.
-     */
-    public void setStatus(String value) {
-        set(3, value);
-    }
-
-    /**
-     * Getter for <code>public.notification.status</code>.
-     */
-    public String getStatus() {
-        return (String) get(3);
-    }
-
-    /**
      * Setter for <code>public.notification.seen_at</code>.
      */
     public void setSeenAt(LocalDateTime value) {
-        set(4, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.notification.seen_at</code>.
      */
     public LocalDateTime getSeenAt() {
-        return (LocalDateTime) get(4);
+        return (LocalDateTime) get(3);
     }
 
     // -------------------------------------------------------------------------
@@ -113,13 +99,12 @@ public class NotificationRecord extends UpdatableRecordImpl<NotificationRecord> 
     /**
      * Create a detached, initialised NotificationRecord
      */
-    public NotificationRecord(UUID id, UUID issueId, UUID recipientId, String status, LocalDateTime seenAt) {
+    public NotificationRecord(UUID id, UUID issueId, UUID recipientId, LocalDateTime seenAt) {
         super(Notification.NOTIFICATION);
 
         setId(id);
         setIssueId(issueId);
         setRecipientId(recipientId);
-        setStatus(status);
         setSeenAt(seenAt);
         resetChangedOnNotNull();
     }

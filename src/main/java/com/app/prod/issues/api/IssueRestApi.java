@@ -28,25 +28,25 @@ public class IssueRestApi {
         issueService.createIssue(request, user);
     }
 
-    @GetMapping()
+    @GetMapping("/building")
     public List<IssueResponse> getBuildingIssues(@RequestParam UUID buildingId){
         var user = globalSecurityManager.getCurrentUser();
         return issueFetchingService.getBuildingIssues(buildingId, user);
     }
 
-    @GetMapping()
+    @GetMapping("/area")
     public List<IssueResponse> getAreaIssues(@RequestParam UUID areaId){
         var user = globalSecurityManager.getCurrentUser();
         return issueFetchingService.getAreaIssues(areaId, user);
     }
 
-    @GetMapping()
+    @GetMapping("/facility")
     public List<IssueResponse> getFacilityIssues(@RequestParam UUID facilityId){
         var user = globalSecurityManager.getCurrentUser();
         return issueFetchingService.getFacilityIssues(facilityId, user);
     }
 
-    @GetMapping()
+    @GetMapping("/poll")
     public List<IssueResponse> getPollIssues(@RequestParam UUID pollId){
         var user = globalSecurityManager.getCurrentUser();
         return issueFetchingService.getPollIssues(pollId, user);

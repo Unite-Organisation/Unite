@@ -74,11 +74,6 @@ public class Notification extends TableImpl<NotificationRecord> {
     public final TableField<NotificationRecord, UUID> RECIPIENT_ID = createField(DSL.name("recipient_id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
-     * The column <code>public.notification.status</code>.
-     */
-    public final TableField<NotificationRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(30), this, "");
-
-    /**
      * The column <code>public.notification.seen_at</code>.
      */
     public final TableField<NotificationRecord, LocalDateTime> SEEN_AT = createField(DSL.name("seen_at"), SQLDataType.LOCALDATETIME(6), this, "");
