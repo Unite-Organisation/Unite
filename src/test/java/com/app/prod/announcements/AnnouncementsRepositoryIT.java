@@ -1,5 +1,6 @@
 package com.app.prod.announcements;
 
+import com.app.prod.announcements.dto.AnnouncementDto;
 import com.app.prod.announcements.dto.AnnouncementResponse;
 import com.app.prod.announcements.repository.AnnouncementsRepository;
 import com.app.prod.builders.AnnouncementPersistenceFactory;
@@ -59,7 +60,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
         var result = announcementsRepository.findForUser(user.getId(), pagination);
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.stream().map(AnnouncementResponse::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
+        assertThat(result.stream().map(AnnouncementDto::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
     }
 
     @Test
@@ -124,12 +125,12 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
         var resultForMyUser = announcementsRepository.findForUser(myUser.getId(), pagination);
         assertThat(resultForMyUser).isNotNull();
         assertThat(resultForMyUser).hasSize(2);
-        assertThat(resultForMyUser.stream().map(AnnouncementResponse::name).toList()).containsExactlyInAnyOrder("Event4", "Event5");
+        assertThat(resultForMyUser.stream().map(AnnouncementDto::name).toList()).containsExactlyInAnyOrder("Event4", "Event5");
 
         var resultForDifferentUser = announcementsRepository.findForUser(differentUserFromFar.getId(), pagination);
         assertThat(resultForDifferentUser).isNotNull();
         assertThat(resultForDifferentUser).hasSize(2);
-        assertThat(resultForDifferentUser.stream().map(AnnouncementResponse::name).toList()).containsExactlyInAnyOrder("Event2", "Event3");
+        assertThat(resultForDifferentUser.stream().map(AnnouncementDto::name).toList()).containsExactlyInAnyOrder("Event2", "Event3");
 
         var resultForUserFromAnotherCountry = announcementsRepository.findForUser(userFromAnotherCountry.getId(), pagination);
         assertThat(resultForUserFromAnotherCountry).isNotNull();

@@ -8,7 +8,7 @@ if ! ./mvnw clean install -DskipJooq=true -DskipTests; then
 fi
 
 echo "Running docker containers"
-if ! docker-compose up --build; then
+if ! docker compose up --build; then
   echo "❌ Docker containers failed to start. Check docker-compose logs above."
   exit 1
 fi

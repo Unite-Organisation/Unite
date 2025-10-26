@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public class AnnouncementMapper {
 
-    public static AnnouncementsRecord fromRequestToRecord(AnnouncementRequest request, UUID userId, LocalDateTime now){
+    public static AnnouncementsRecord fromRequestToRecord(AnnouncementRequest request, UUID userId, LocalDateTime now, String photoPath){
         return new AnnouncementsRecord(
                 UUID.randomUUID(),
                 request.name(),
@@ -17,7 +17,7 @@ public class AnnouncementMapper {
                 userId,
                 now,
                 request.content(),
-                request.url(),
+                photoPath,
                 request.relatedDate()
         );
     }

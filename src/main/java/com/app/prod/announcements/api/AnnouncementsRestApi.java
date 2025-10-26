@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,9 +25,12 @@ public class AnnouncementsRestApi {
 
     @PostMapping()
     @PreAuthorize("hasRole('MANAGER')")
-    public void createAnnouncement(@RequestBody AnnouncementRequest request){
+    public void createAnnouncement(
+            @RequestBody AnnouncementRequest request,
+            @RequestParam("file") MultipartFile photo
+    ){
         var userId = globalSecurityManager.getCurrentUser().getId();
-        announcementsService.createAnnouncement(request, userId);
+        announcementsService.createAnnouncement(request, photo, userId);
     }
 
     @GetMapping()
