@@ -1,5 +1,6 @@
 package com.app.prod.utils;
 
+import com.app.prod.utils.filters.PredicateFilter;
 import org.jooq.*;
 
 import java.util.List;
@@ -42,6 +43,18 @@ public abstract class BaseJooqRepository<T extends Table<R>, R extends TableReco
         return dslContext.selectFrom(table)
                 .where(id.eq(recordId))
                 .fetchOptional();
+    }
+
+    public List<R> findFilteredOr(PredicateFilter filter){
+        return dslContext.selectFrom(table)
+                .where(filter.parseFilterOr())
+                .fetch();
+    }
+
+    public List<R> findFilteredAnd(PredicateFilter filter){
+        return dslContext.selectFrom(table)
+                .where(filter.parseFilterAnd())
+                .fetch();
     }
 
 }
