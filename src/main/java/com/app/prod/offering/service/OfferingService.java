@@ -30,7 +30,7 @@ public class OfferingService {
         var now = LocalDateTime.now(clock);
 
         log.info("Saving offering from {} at {}", usersRecord.getId(), now);
-        offeringRepository.insertOne(OfferingMapper.fromRequestToRecord(request, usersRecord.getId(), now, areaId);)
+        offeringRepository.insertOne(OfferingMapper.fromRequestToRecord(request, usersRecord.getId(), now, areaId));
     }
 
 }
