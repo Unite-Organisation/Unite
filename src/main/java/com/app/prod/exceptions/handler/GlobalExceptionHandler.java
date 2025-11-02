@@ -58,6 +58,13 @@ public class GlobalExceptionHandler {
         log.error("File with path saved in database does not exist. Exception content: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
+
+    @ExceptionHandler(InvalidFileExtensionException.class)
+    public ResponseEntity<String> handleException(InvalidFileExtensionException e){
+        log.error("Invalid file extension. Exception content: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e) {
         log.error("Unhandled exception, returning status code 500. Exception content: {}", e.getMessage());

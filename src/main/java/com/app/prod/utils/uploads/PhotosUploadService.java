@@ -2,6 +2,7 @@ package com.app.prod.utils.uploads;
 
 import com.app.prod.exceptions.exceptions.EmptyFileException;
 import com.app.prod.exceptions.exceptions.FileNotFoundException;
+import com.app.prod.exceptions.exceptions.InvalidFileExtensionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+import static com.app.prod.utils.uploads.UploadsManager.ALLOWED_EXTENSIONS;
 import static com.app.prod.utils.uploads.UploadsManager.UPLOADS_PATH;
 
 @RequiredArgsConstructor
@@ -27,8 +29,8 @@ public class PhotosUploadService {
 
     public String uploadFile(Path folder, MultipartFile file){
         checkIfFileIsNotEmpty(file);
+        validateExtension(file);
 
-        //TODO: check user input and handle extensions - accept only few
         Path fileName = getFileNameWithFileExtension(file);
         Path folderPath = uploadsPath.resolvePaths(UPLOADS_PATH, folder);
         Path filePath = uploadsPath.resolvePaths(folderPath, fileName);
@@ -86,6 +88,18 @@ public class PhotosUploadService {
     private Path getFileNameWithFileExtension(MultipartFile file){
         String fileName = UUID.randomUUID() + file.getOriginalFilename();
         return Path.of(fileName);
+    }
+
+    private void validateExtension(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            throw new InvalidFileExtensionException("File must have an extension");
+        }
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new InvalidFileExtensionException("Unsupported file type: " + extension);
+        }
     }
 
 }
