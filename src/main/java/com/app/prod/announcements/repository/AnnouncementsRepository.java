@@ -54,6 +54,12 @@ public class AnnouncementsRepository extends BaseJooqRepository<Announcements, A
                         record.get(ANNOUNCEMENTS.CREATED_AT),
                         record.get(ANNOUNCEMENTS.IMAGE_REFERENCE)
                 ));
+    }
 
+    public void updatePhotoPath(UUID id, String path){
+        dslContext.update(ANNOUNCEMENTS)
+                .set(ANNOUNCEMENTS.IMAGE_REFERENCE, path)
+                .where(ANNOUNCEMENTS.ID.eq(id))
+                .execute();
     }
 }

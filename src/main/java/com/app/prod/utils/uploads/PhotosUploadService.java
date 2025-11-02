@@ -28,7 +28,8 @@ public class PhotosUploadService {
     public String uploadFile(Path folder, MultipartFile file){
         checkIfFileIsNotEmpty(file);
 
-        Path fileName = Path.of(UUID.randomUUID() + file.getName());
+        //TODO: check user input and handle extensions - accept only few
+        Path fileName = getFileNameWithFileExtension(file);
         Path folderPath = uploadsPath.resolvePaths(UPLOADS_PATH, folder);
         Path filePath = uploadsPath.resolvePaths(folderPath, fileName);
 
@@ -80,6 +81,11 @@ public class PhotosUploadService {
         if (!Files.exists(filePath)) {
             throw new FileNotFoundException(String.format("File with path %s was not found", filePath));
         }
+    }
+
+    private Path getFileNameWithFileExtension(MultipartFile file){
+        String fileName = UUID.randomUUID() + file.getOriginalFilename();
+        return Path.of(fileName);
     }
 
 }
