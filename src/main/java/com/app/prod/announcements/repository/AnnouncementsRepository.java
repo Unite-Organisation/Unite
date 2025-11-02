@@ -1,5 +1,6 @@
 package com.app.prod.announcements.repository;
 
+import com.app.prod.announcements.dto.AnnouncementDto;
 import com.app.prod.announcements.dto.AnnouncementResponse;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
@@ -19,7 +20,7 @@ public class AnnouncementsRepository extends BaseJooqRepository<Announcements, A
         super(dsl, Announcements.ANNOUNCEMENTS, Announcements.ANNOUNCEMENTS.ID);
     }
 
-    public List<AnnouncementResponse> findForUser(UUID userId, Pagination pagination) {
+    public List<AnnouncementDto> findForUser(UUID userId, Pagination pagination) {
         return dslContext.selectDistinct(
                     ANNOUNCEMENTS.ID,
                     ANNOUNCEMENTS.NAME,
@@ -28,7 +29,8 @@ public class AnnouncementsRepository extends BaseJooqRepository<Announcements, A
                     ANNOUNCEMENTS.CREATED_BY,
                     ANNOUNCEMENTS.CONTENT,
                     ANNOUNCEMENTS.RELATED_DATE,
-                    ANNOUNCEMENTS.CREATED_AT
+                    ANNOUNCEMENTS.CREATED_AT,
+                    ANNOUNCEMENTS.IMAGE_REFERENCE
                 )
                 .from(USERS)
                 .join(BUILDINGS).on(BUILDINGS.ID.eq(USERS.BUILDING_ID))
@@ -41,7 +43,7 @@ public class AnnouncementsRepository extends BaseJooqRepository<Announcements, A
                 .orderBy(ANNOUNCEMENTS.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetch(record -> new AnnouncementResponse(
+                .fetch(record -> new AnnouncementDto(
                         record.get(ANNOUNCEMENTS.ID),
                         record.get(ANNOUNCEMENTS.NAME),
                         record.get(ANNOUNCEMENTS.AREA_ID),
@@ -49,8 +51,15 @@ public class AnnouncementsRepository extends BaseJooqRepository<Announcements, A
                         record.get(ANNOUNCEMENTS.CREATED_BY),
                         record.get(ANNOUNCEMENTS.CONTENT),
                         record.get(ANNOUNCEMENTS.RELATED_DATE),
-                        record.get(ANNOUNCEMENTS.CREATED_AT)
+                        record.get(ANNOUNCEMENTS.CREATED_AT),
+                        record.get(ANNOUNCEMENTS.IMAGE_REFERENCE)
                 ));
+    }
 
+    public void updatePhotoPath(UUID id, String path){
+        dslContext.update(ANNOUNCEMENTS)
+                .set(ANNOUNCEMENTS.IMAGE_REFERENCE, path)
+                .where(ANNOUNCEMENTS.ID.eq(id))
+                .execute();
     }
 }

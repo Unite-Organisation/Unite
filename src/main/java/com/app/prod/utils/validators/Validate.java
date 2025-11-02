@@ -1,5 +1,6 @@
 package com.app.prod.utils.validators;
 
+import com.app.prod.announcements.repository.AnnouncementsRepository;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
@@ -31,6 +32,7 @@ public class Validate {
     private final BuildingRepository buildingRepository;
     private final PollRepository pollRepository;
     private final FacilityRepository facilityRepository;
+    private final AnnouncementsRepository announcementsRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -46,6 +48,15 @@ public class Validate {
             throw new EntityNotPresentException(
                     String.format("Conversation with id: %s doesn't exist.", id),
                     Conversations.class.getSimpleName()
+            );
+        }
+    }
+
+    public void announcement(UUID id){
+        if(!announcementsRepository.exists(id)){
+            throw new EntityNotPresentException(
+                    String.format("Announcement with id: %s doesn't exist.", id),
+                    Announcements.class.getSimpleName()
             );
         }
     }

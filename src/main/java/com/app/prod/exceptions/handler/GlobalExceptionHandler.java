@@ -1,9 +1,7 @@
 package com.app.prod.exceptions.handler;
 
 import com.app.prod.config.security.TokenSecurityManager;
-import com.app.prod.exceptions.exceptions.BadRequestException;
-import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
+import com.app.prod.exceptions.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,8 +47,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
+    @ExceptionHandler(EmptyFileException.class)
+    public ResponseEntity<String> handleException(EmptyFileException e){
+        log.error("Bad request - file empty. Exception content: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
+    @ExceptionHandler(FileNotFoundException.class)
+    public ResponseEntity<String> handleException(FileNotFoundException e){
+        log.error("File with path saved in database does not exist. Exception content: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    }
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception e){
+    public ResponseEntity<String> handleException(Exception e) {
         log.error("Unhandled exception, returning status code 500. Exception content: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }

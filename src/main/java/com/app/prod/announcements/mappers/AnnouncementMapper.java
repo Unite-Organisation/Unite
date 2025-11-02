@@ -8,16 +8,16 @@ import java.util.UUID;
 
 public class AnnouncementMapper {
 
-    public static AnnouncementsRecord fromRequestToRecord(AnnouncementRequest request, UUID userId, LocalDateTime now){
+    public static AnnouncementsRecord fromRequestToRecord(AnnouncementRequest request, UUID userId, LocalDateTime now, UUID id){
         return new AnnouncementsRecord(
-                UUID.randomUUID(),
+                id,
                 request.name(),
                 request.areaId(),
                 request.buildingId(),
                 userId,
                 now,
                 request.content(),
-                request.url(),
+                null,
                 request.relatedDate()
         );
     }
