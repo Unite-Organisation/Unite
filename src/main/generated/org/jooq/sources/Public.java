@@ -23,6 +23,7 @@ import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.Notification;
+import org.jooq.sources.tables.Offering;
 import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
@@ -111,6 +112,11 @@ public class Public extends SchemaImpl {
     public final Notification NOTIFICATION = Notification.NOTIFICATION;
 
     /**
+     * The table <code>public.offering</code>.
+     */
+    public final Offering OFFERING = Offering.OFFERING;
+
+    /**
      * The table <code>public.poll_options</code>.
      */
     public final PollOptions POLL_OPTIONS = PollOptions.POLL_OPTIONS;
@@ -174,6 +180,7 @@ public class Public extends SchemaImpl {
             Message.MESSAGE,
             MessagesRead.MESSAGES_READ,
             Notification.NOTIFICATION,
+            Offering.OFFERING,
             PollOptions.POLL_OPTIONS,
             PollResult.POLL_RESULT,
             PollVotes.POLL_VOTES,

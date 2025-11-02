@@ -17,6 +17,7 @@ import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.Notification;
+import org.jooq.sources.tables.Offering;
 import org.jooq.sources.tables.PollOptions;
 import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
@@ -96,6 +97,11 @@ public class Tables {
      * The table <code>public.notification</code>.
      */
     public static final Notification NOTIFICATION = Notification.NOTIFICATION;
+
+    /**
+     * The table <code>public.offering</code>.
+     */
+    public static final Offering OFFERING = Offering.OFFERING;
 
     /**
      * The table <code>public.poll_options</code>.

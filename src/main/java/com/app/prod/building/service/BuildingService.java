@@ -50,4 +50,8 @@ public class BuildingService {
         var user = tokenSecurityManager.getCurrentUser();
         return buildingsManagersRepository.getManagersBuildings(user.getId());
     }
+
+    public UUID getAreaId(UUID buildingId){
+        return findById(buildingId).getAreaId();
+    }
 }

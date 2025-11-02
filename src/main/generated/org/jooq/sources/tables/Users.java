@@ -41,6 +41,7 @@ import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Message.MessagePath;
 import org.jooq.sources.tables.MessagesRead.MessagesReadPath;
 import org.jooq.sources.tables.Notification.NotificationPath;
+import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.PollVotes.PollVotesPath;
 import org.jooq.sources.tables.Polls.PollsPath;
 import org.jooq.sources.tables.UserRoles.UserRolesPath;
@@ -325,6 +326,19 @@ public class Users extends TableImpl<UsersRecord> {
             _notification = new NotificationPath(this, null, Keys.NOTIFICATION__NOTIFICATION_RECIPIENT_ID_FKEY.getInverseKey());
 
         return _notification;
+    }
+
+    private transient OfferingPath _offering;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.offering</code>
+     * table
+     */
+    public OfferingPath offering() {
+        if (_offering == null)
+            _offering = new OfferingPath(this, null, Keys.OFFERING__OFFERINGS_USER_PROVIDER_FKEY.getInverseKey());
+
+        return _offering;
     }
 
     private transient PollVotesPath _pollVotes;

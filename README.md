@@ -45,7 +45,6 @@ With Unite, residents can:
 - Vote in polls. 🟩
 - Post personal announcements (e.g., services offered). 🟥
 - Request items to borrow. 🟥
-- Pay rent and other fees. 🟥
 - Organize community events. 🟥
 
 ---

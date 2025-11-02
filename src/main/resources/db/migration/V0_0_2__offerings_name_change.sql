@@ -1,0 +1,1 @@
+ALTER TABLE offerings RENAME TO offering;
