@@ -3,16 +3,21 @@ package com.app.prod.offering.service;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.service.BuildingService;
 import com.app.prod.offering.dto.OfferingRequest;
+import com.app.prod.offering.dto.OfferingResponse;
+import com.app.prod.offering.enums.OfferingCategory;
 import com.app.prod.offering.mappers.OfferingMapper;
 import com.app.prod.offering.repository.OfferingRepository;
+import com.app.prod.utils.filters.OfferingFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -31,6 +36,10 @@ public class OfferingService {
 
         log.info("Saving offering from {} at {}", usersRecord.getId(), now);
         offeringRepository.insertOne(OfferingMapper.fromRequestToRecord(request, usersRecord.getId(), now, areaId));
+    }
+
+    public List<OfferingResponse> getOfferings(OfferingFilter filter) {
+        return offeringRepository.getOfferings(filter);
     }
 
 }

@@ -8,6 +8,7 @@ import org.jooq.impl.DSL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.jooq.sources.Tables.OFFERING;
 
@@ -15,6 +16,7 @@ import static org.jooq.sources.Tables.OFFERING;
 public class OfferingFilter implements PredicateFilter {
     public Optional<OfferingCategory> category;
     public PriceFilter price;
+    public Optional<UUID> areaId;
 
     @Override
     public Condition parseFilterAnd() {
@@ -31,6 +33,7 @@ public class OfferingFilter implements PredicateFilter {
         List<Condition> conditionList = new ArrayList<>();
 
         category.ifPresent(r -> conditionList.add(OFFERING.CATEGORY.eq(r.name())));
+        areaId.ifPresent(r -> conditionList.add(OFFERING.AREA_ID.eq(r)));
 
         switch (price.priceModifier) {
             case LOWER -> price.price.ifPresent(r -> conditionList.add(OFFERING.PRICE.le(r)));
