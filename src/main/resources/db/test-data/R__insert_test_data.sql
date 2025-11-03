@@ -25,7 +25,7 @@ VALUES
      '$2a$10$JBiiTafCTHHYt76EwChHo.7IRICjBwTU8Aqnq/btISa4uMSkiN3Ny',
      'a3f5c9d2-4b8e-4d61-9a67-12c4e9b7f8a1', 'ACTIVE', '22222222-2222-2222-2222-222222222222'),
 
-    ('55555555-5555-5555-5555-555555555555', 'Natalia', 'Nowak', 'anna.nowak@example.com', 'Natalia',
+    ('55555555-5555-5555-5555-555555555555', 'Natalia', 'Nowak', 'anna.nowak@example.com', 'Natalka',
      '$2a$10$JBiiTafCTHHYt76EwChHo.7IRICjBwTU8Aqnq/btISa4uMSkiN3Ny',
      'a3f5c9d2-4b8e-4d61-9a67-12c4e9b7f8a1', 'ACTIVE', '33333333-3333-3333-3333-333333333333'),
 

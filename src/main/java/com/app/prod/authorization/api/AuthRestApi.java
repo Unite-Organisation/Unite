@@ -24,6 +24,7 @@ public class AuthRestApi {
         return ResponseEntity.ok().body("User registered");
     }
 
+    //TODO: while providing bad credentials 500 is being thrown
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserLoginRequest request) {
         String token = userService.login(request);
