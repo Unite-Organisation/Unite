@@ -35,7 +35,7 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Issue.IssuePath;
+import org.jooq.sources.tables.Areas.AreasPath;
 import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.OfferingRecord;
 
@@ -188,16 +188,16 @@ public class Offering extends TableImpl<OfferingRecord> {
         return Arrays.asList(Keys.OFFERING__OFFERINGS_AREA_ID_FKEY, Keys.OFFERING__OFFERINGS_USER_PROVIDER_FKEY);
     }
 
-    private transient IssuePath _issue;
+    private transient AreasPath _areas;
 
     /**
-     * Get the implicit join path to the <code>public.issue</code> table.
+     * Get the implicit join path to the <code>public.areas</code> table.
      */
-    public IssuePath issue() {
-        if (_issue == null)
-            _issue = new IssuePath(this, Keys.OFFERING__OFFERINGS_AREA_ID_FKEY, null);
+    public AreasPath areas() {
+        if (_areas == null)
+            _areas = new AreasPath(this, Keys.OFFERING__OFFERINGS_AREA_ID_FKEY, null);
 
-        return _issue;
+        return _areas;
     }
 
     private transient UsersPath _users;

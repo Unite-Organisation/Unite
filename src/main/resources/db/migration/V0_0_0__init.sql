@@ -172,16 +172,6 @@ CREATE TABLE notification (
     seen_at TIMESTAMP
 );
 
---CREATE TABLE events (
---    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
---    title VARCHAR(50) NOT NULL,
---    description TEXT NOT NULL,
---    area_id UUID REFERENCES issue(id) ON DELETE CASCADE,
---    building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
---    created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
---    event_date TIMESTAMP NOT NULL
---);
-
  --messaging section
 CREATE TABLE conversations
 (

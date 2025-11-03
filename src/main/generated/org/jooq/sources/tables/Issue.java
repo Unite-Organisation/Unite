@@ -36,7 +36,6 @@ import org.jooq.sources.tables.Areas.AreasPath;
 import org.jooq.sources.tables.Buildings.BuildingsPath;
 import org.jooq.sources.tables.Facilities.FacilitiesPath;
 import org.jooq.sources.tables.Notification.NotificationPath;
-import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.Polls.PollsPath;
 import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.IssueRecord;
@@ -271,19 +270,6 @@ public class Issue extends TableImpl<IssueRecord> {
             _notification = new NotificationPath(this, null, Keys.NOTIFICATION__NOTIFICATION_ISSUE_ID_FKEY.getInverseKey());
 
         return _notification;
-    }
-
-    private transient OfferingPath _offering;
-
-    /**
-     * Get the implicit to-many join path to the <code>public.offering</code>
-     * table
-     */
-    public OfferingPath offering() {
-        if (_offering == null)
-            _offering = new OfferingPath(this, null, Keys.OFFERING__OFFERINGS_AREA_ID_FKEY.getInverseKey());
-
-        return _offering;
     }
 
     @Override
