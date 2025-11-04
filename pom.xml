@@ -163,10 +163,10 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
-                    <compileSourceRoots>
-                        <compileSourceRoot>src/main/java</compileSourceRoot>
-                        <compileSourceRoot>src/main/generated</compileSourceRoot>
-                    </compileSourceRoots>
+<!--                    <compileSourceRoots>-->
+<!--                        <compileSourceRoot>src/main/java</compileSourceRoot>-->
+<!--                        <compileSourceRoot>src/main/generated</compileSourceRoot>-->
+<!--                    </compileSourceRoots>-->
 				</configuration>
 			</plugin>
 			<plugin>

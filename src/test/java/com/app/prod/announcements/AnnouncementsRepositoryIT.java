@@ -1,7 +1,6 @@
 package com.app.prod.announcements;
 
 import com.app.prod.announcements.dto.AnnouncementDto;
-import com.app.prod.announcements.dto.AnnouncementResponse;
 import com.app.prod.announcements.repository.AnnouncementsRepository;
 import com.app.prod.builders.AnnouncementPersistenceFactory;
 import com.app.prod.builders.AreaPersistenceFactory;
