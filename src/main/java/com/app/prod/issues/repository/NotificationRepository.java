@@ -10,6 +10,7 @@ import org.jooq.sources.tables.Notification;
 import org.jooq.sources.tables.records.NotificationRecord;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -74,5 +75,14 @@ public class NotificationRepository extends BaseJooqRepository<Notification, Not
                             issuerData
                     );
                 });
+    }
+
+    public UUID updateSeenAtDateReturnIssueId(UUID managerId, UUID notificationId, LocalDateTime now) {
+        return dslContext.update(NOTIFICATION)
+                .set(NOTIFICATION.SEEN_AT, now)
+                .where(NOTIFICATION.RECIPIENT_ID.eq(managerId))
+                .and(NOTIFICATION.ID.eq(notificationId))
+                .returning(NOTIFICATION.ISSUE_ID)
+                .fetchOne(NOTIFICATION.ISSUE_ID);
     }
 }

@@ -10,6 +10,7 @@ import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.issues.repository.IssueRepository;
+import com.app.prod.issues.repository.NotificationRepository;
 import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.user.enums.UserRole;
@@ -42,6 +43,7 @@ public class Validate {
     private final OfferingRepository offeringRepository;
     private final UserRoleRepository userRoleRepository;
     private final IssueRepository issueRepository;
+    private final NotificationRepository notificationRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -84,6 +86,15 @@ public class Validate {
             throw new EntityNotPresentException(
                     String.format("Facility with id: %s doesn't exist.", id),
                     Facilities.class.getSimpleName()
+            );
+        }
+    }
+
+    public void notification(UUID id){
+        if(!notificationRepository.exists(id)){
+            throw new EntityNotPresentException(
+                    String.format("Notification with id: %s doesn't exist.", id),
+                    Notification.class.getSimpleName()
             );
         }
     }
