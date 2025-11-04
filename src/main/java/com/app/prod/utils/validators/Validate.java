@@ -9,11 +9,16 @@ import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 import com.app.prod.facilities.repository.FacilityRepository;
+import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.polls.repository.PollRepository;
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.*;
+import org.jooq.sources.tables.records.OfferingRecord;
+import org.jooq.sources.tables.records.UserRolesRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +38,8 @@ public class Validate {
     private final PollRepository pollRepository;
     private final FacilityRepository facilityRepository;
     private final AnnouncementsRepository announcementsRepository;
+    private final OfferingRepository offeringRepository;
+    private final UserRoleRepository userRoleRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -163,5 +170,22 @@ public class Validate {
         if(facility.getBuildingId() != user.getBuildingId()){
             throw new UnauthorizedDataAccessException(String.format("User %s does not have access to facility %s", user.getId(), facilityId));
         }
+    }
+
+    public OfferingRecord offer(UUID offeringId, UsersRecord user) {
+        var offering = offeringRepository.findById(offeringId).orElseThrow(() -> new EntityNotPresentException(
+                String.format("Offering with id: %s doesn't exist.", offeringId),
+                Offering.class.getSimpleName()
+        ));
+
+        UserRolesRecord userRole = userRoleRepository.findById(user.getUserRole()).orElseThrow();
+        if(UserRole.MANAGER.name().equals(userRole.getUserRole()))
+            return offering;
+
+        if(!offering.getUserProvider().equals(user.getId())){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to offering %s", user.getId(), offering.getId()));
+        }
+
+        return offering;
     }
 }
