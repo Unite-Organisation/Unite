@@ -3,6 +3,7 @@ package com.app.prod.issues.api;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.issues.dto.IssueRequest;
 import com.app.prod.issues.dto.IssueResponse;
+import com.app.prod.issues.enums.IssueProcessingStatus;
 import com.app.prod.issues.service.IssueFetchingService;
 import com.app.prod.issues.service.IssueService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,4 +53,12 @@ public class IssueRestApi {
         return issueFetchingService.getPollIssues(pollId, user);
     }
 
+    @PatchMapping("/{id}/update-status")
+    public void updateIssueStatus(
+            @PathVariable UUID id,
+            @RequestParam IssueProcessingStatus status
+    ){
+        var userRole = globalSecurityManager.getUserRole();
+        issueService.updateIssueStatus(id, status, userRole);
+    }
 }

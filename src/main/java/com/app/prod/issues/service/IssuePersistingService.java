@@ -32,7 +32,8 @@ public class IssuePersistingService {
                 request.pollId(),
                 request.notifyEveryone(),
                 userId,
-                LocalDateTime.now(clock)
+                LocalDateTime.now(clock),
+                request.issueObject().name()
         );
 
         issueRepository.insertOne(record);

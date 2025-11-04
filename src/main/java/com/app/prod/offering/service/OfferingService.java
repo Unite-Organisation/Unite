@@ -1,11 +1,9 @@
 package com.app.prod.offering.service;
 
-import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.service.BuildingService;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.offering.dto.OfferingRequest;
 import com.app.prod.offering.dto.OfferingResponse;
-import com.app.prod.offering.enums.OfferingCategory;
 import com.app.prod.offering.mappers.OfferingMapper;
 import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.utils.filters.OfferingFilter;
@@ -16,7 +14,6 @@ import org.jooq.sources.tables.records.OfferingRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +43,7 @@ public class OfferingService {
     }
 
     public void cancelOffering(UsersRecord user, UUID offeringId) {
-        OfferingRecord offering = validate.offer(offeringId, user);
+        OfferingRecord offering = validate.andGetOffer(offeringId, user);
 
         if(!offering.getIsActive()){
             throw new BadRequestException("Offering is already finished or cancelled");

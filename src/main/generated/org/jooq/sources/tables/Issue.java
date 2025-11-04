@@ -122,6 +122,11 @@ public class Issue extends TableImpl<IssueRecord> {
      */
     public final TableField<IssueRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
 
+    /**
+     * The column <code>public.issue.issue_object</code>.
+     */
+    public final TableField<IssueRecord, String> ISSUE_OBJECT = createField(DSL.name("issue_object"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field(DSL.raw("'AREA'::character varying"), SQLDataType.VARCHAR)), this, "");
+
     private Issue(Name alias, Table<IssueRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

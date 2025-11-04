@@ -16,12 +16,6 @@ public class UserRoleRepository extends BaseJooqRepository<UserRoles, UserRolesR
         super(dsl, UserRoles.USER_ROLES, UserRoles.USER_ROLES.ID);
     }
 
-    public Optional<UserRolesRecord> findById(UUID id){
-        return dslContext.selectFrom(table)
-                .where(table.ID.eq(id))
-                .fetchOptional();
-    }
-
     public Optional<UserRolesRecord> findByRoleName(UserRole userRole){
         return dslContext.selectFrom(table)
                 .where(table.USER_ROLE.eq(userRole.name()))

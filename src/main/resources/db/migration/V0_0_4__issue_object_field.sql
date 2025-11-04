@@ -1,0 +1,2 @@
+ALTER TABLE issue
+    ADD COLUMN issue_object VARCHAR(50) NOT NULL DEFAULT 'AREA';

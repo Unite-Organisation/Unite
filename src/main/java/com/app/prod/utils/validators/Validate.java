@@ -9,6 +9,7 @@ import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 import com.app.prod.facilities.repository.FacilityRepository;
+import com.app.prod.issues.repository.IssueRepository;
 import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.user.enums.UserRole;
@@ -17,12 +18,12 @@ import com.app.prod.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.*;
+import org.jooq.sources.tables.records.IssueRecord;
 import org.jooq.sources.tables.records.OfferingRecord;
 import org.jooq.sources.tables.records.UserRolesRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.stereotype.Component;
 
-import java.awt.geom.Area;
 import java.util.UUID;
 
 @Component
@@ -40,6 +41,7 @@ public class Validate {
     private final AnnouncementsRepository announcementsRepository;
     private final OfferingRepository offeringRepository;
     private final UserRoleRepository userRoleRepository;
+    private final IssueRepository issueRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -172,7 +174,7 @@ public class Validate {
         }
     }
 
-    public OfferingRecord offer(UUID offeringId, UsersRecord user) {
+    public OfferingRecord andGetOffer(UUID offeringId, UsersRecord user) {
         var offering = offeringRepository.findById(offeringId).orElseThrow(() -> new EntityNotPresentException(
                 String.format("Offering with id: %s doesn't exist.", offeringId),
                 Offering.class.getSimpleName()
@@ -187,5 +189,12 @@ public class Validate {
         }
 
         return offering;
+    }
+
+    public IssueRecord andGetIssue(UUID issueId){
+        return issueRepository.findById(issueId).orElseThrow(() -> new EntityNotPresentException(
+                String.format("Issue with id: %s doesn't exist.", issueId),
+                Issue.class.getSimpleName()
+        ));
     }
 }

@@ -28,4 +28,16 @@ public class UserRoleService {
                 );
     }
 
+    public UserRole getUserRoleFromId(UUID id){
+        return userRoleRepository.findById(id)
+                .map(UserRolesRecord::getUserRole)
+                .map(UserRole::valueOf)
+                .orElseThrow(
+                    () -> new EntityNotPresentException(
+                            String.format("Role with id %s not found", id),
+                            UserRoles.class.getSimpleName()
+                    )
+            );
+    }
+
 }

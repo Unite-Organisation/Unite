@@ -2,15 +2,17 @@ package com.app.prod.issues.service;
 
 import com.app.prod.building.repository.BuildingsManagersRepository;
 import com.app.prod.facilities.repository.FacilityRepository;
-import com.app.prod.issues.enums.IssueProcessingStatus;
+import com.app.prod.issues.dto.NotificationResponse;
 import com.app.prod.issues.repository.NotificationRepository;
 import com.app.prod.polls.service.PollService;
+import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.IssueRecord;
 import org.jooq.sources.tables.records.NotificationRecord;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,6 +24,7 @@ public class NotificationService {
     private final BuildingsManagersRepository buildingsManagersRepository;
     private final FacilityRepository facilityRepository;
     private final PollService pollService;
+    private final Validate validate;
 
     public void notifyManagerAboutBuildingIssue(IssueRecord issue){
         var managerId = fetchManagerIdForBuilding(issue.getBuildingId());
@@ -69,4 +72,8 @@ public class NotificationService {
         );
     }
 
+    public List<NotificationResponse> getNotifications(UUID managerId) {
+        log.info("Fetching notifications for {}", managerId);
+        return notificationRepository.getNotifications(managerId);
+    }
 }

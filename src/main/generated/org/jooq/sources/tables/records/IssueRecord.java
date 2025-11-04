@@ -188,6 +188,20 @@ public class IssueRecord extends UpdatableRecordImpl<IssueRecord> {
         return (LocalDateTime) get(11);
     }
 
+    /**
+     * Setter for <code>public.issue.issue_object</code>.
+     */
+    public void setIssueObject(String value) {
+        set(12, value);
+    }
+
+    /**
+     * Getter for <code>public.issue.issue_object</code>.
+     */
+    public String getIssueObject() {
+        return (String) get(12);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -211,7 +225,7 @@ public class IssueRecord extends UpdatableRecordImpl<IssueRecord> {
     /**
      * Create a detached, initialised IssueRecord
      */
-    public IssueRecord(UUID id, String title, String description, String status, String priority, UUID areaId, UUID buildingId, UUID facilityId, UUID pollId, Boolean notifyEveryone, UUID createdBy, LocalDateTime createdAt) {
+    public IssueRecord(UUID id, String title, String description, String status, String priority, UUID areaId, UUID buildingId, UUID facilityId, UUID pollId, Boolean notifyEveryone, UUID createdBy, LocalDateTime createdAt, String issueObject) {
         super(Issue.ISSUE);
 
         setId(id);
@@ -226,6 +240,7 @@ public class IssueRecord extends UpdatableRecordImpl<IssueRecord> {
         setNotifyEveryone(notifyEveryone);
         setCreatedBy(createdBy);
         setCreatedAt(createdAt);
+        setIssueObject(issueObject);
         resetChangedOnNotNull();
     }
 }

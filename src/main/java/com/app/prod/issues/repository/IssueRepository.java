@@ -25,7 +25,7 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
         super(dsl, ISSUE, ISSUE.ID);
     }
 
-    public List<IssueResponse> getEntityIssues(UUID buildingId, IssueJoiningStrategy joiningStrategy) {
+    public List<IssueResponse> getEntityIssues(UUID entityId, IssueJoiningStrategy joiningStrategy) {
         var baseQuery = dslContext.select(
                 ISSUE.ID,
                 ISSUE.TITLE,
@@ -42,7 +42,7 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
                 .leftJoin(USERS).on(USERS.ID.eq(NOTIFICATION.RECIPIENT_ID))
                 .leftJoin(USER_ROLES).on(USER_ROLES.ID.eq(USERS.USER_ROLE));
 
-        var finalQuery = joiningStrategy.joinEntity(baseQuery, buildingId);
+        var finalQuery = joiningStrategy.joinEntity(baseQuery, entityId);
 
         return finalQuery.orderBy(ISSUE.CREATED_AT)
                 .fetch(record -> {
@@ -62,6 +62,14 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
                                 recipientInfo
                         );
                 });
+
+    }
+
+    public void updateStatus(UUID issueId, IssueProcessingStatus updatedStatus) {
+        dslContext.update(ISSUE)
+                .set(ISSUE.STATUS, updatedStatus.name())
+                .where(ISSUE.ID.eq(issueId))
+                .execute();
 
     }
 }
