@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("offering")
@@ -46,6 +47,13 @@ public class OfferingRestApi {
         var user = globalSecurityManager.getCurrentUser();
         OfferingFilter filter = offeringFilteringService.prepareFilter(user, category, price, modifier);
         return offeringService.getOfferings(filter);
+    }
+
+    @PatchMapping("/{offeringId}/cancel")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGER')")
+    public void cancelOffering(@PathVariable UUID offeringId){
+        var user = globalSecurityManager.getCurrentUser();
+        offeringService.cancelOffering(user, offeringId);
     }
 
 }

@@ -39,6 +39,7 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                 .leftJoin(USERS).on(OFFERING.USER_PROVIDER.eq(USERS.ID))
                 .leftJoin(USER_ROLES).on(USERS.USER_ROLE.eq(USER_ROLES.ID))
                 .where(filter.parseFilterAnd())
+                .and(OFFERING.IS_ACTIVE.eq(Boolean.TRUE))
                 .fetch(record -> new OfferingResponse(
                         record.get(OFFERING.ID),
                         record.get(OFFERING.TITLE),
@@ -56,5 +57,11 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                         )
                 ));
 
+    }
+
+    public boolean cancelOffering(UUID id){
+        return dslContext.update(OFFERING)
+                .set(OFFERING.IS_ACTIVE, Boolean.FALSE)
+                .execute() > 0;
     }
 }
