@@ -5,6 +5,7 @@ import com.app.prod.exceptions.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,6 +19,12 @@ public class GlobalExceptionHandler {
 
     public GlobalExceptionHandler(TokenSecurityManager tokenSecurityManager) {
         this.tokenSecurityManager = tokenSecurityManager;
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> handleException(AuthenticationException e){
+        log.info("Wrong credentials. Exception content: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 
     @ExceptionHandler(BadRequestException.class)

@@ -4,6 +4,7 @@ import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.records.UsersRecord;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -31,6 +33,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         List<GrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + getUserRole(userRecord))
         );
+
+        log.debug("Loaded user {} with password {} and authorities {}",
+                userRecord.getUsername(),
+                userRecord.getPassword(),
+                authorities);
 
         return new org.springframework.security.core.userdetails.User(
                 userRecord.getUsername(), userRecord.getPassword(), authorities
