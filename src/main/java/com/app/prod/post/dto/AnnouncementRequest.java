@@ -1,4 +1,4 @@
-package com.app.prod.announcements.dto;
+package com.app.prod.post.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

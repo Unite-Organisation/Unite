@@ -1,9 +1,9 @@
-package com.app.prod.announcements.service;
+package com.app.prod.post.service;
 
-import com.app.prod.announcements.dto.AnnouncementRequest;
-import com.app.prod.announcements.dto.AnnouncementResponse;
-import com.app.prod.announcements.mappers.AnnouncementMapper;
-import com.app.prod.announcements.repository.AnnouncementsRepository;
+import com.app.prod.post.dto.AnnouncementRequest;
+import com.app.prod.post.dto.AnnouncementResponse;
+import com.app.prod.post.mappers.AnnouncementMapper;
+import com.app.prod.post.repository.AnnouncementsRepository;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.uploads.PhotosUploadService;
 import com.app.prod.utils.validators.Validate;

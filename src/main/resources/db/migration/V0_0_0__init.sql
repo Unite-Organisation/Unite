@@ -75,7 +75,7 @@ CREATE TABLE facilities_reservations (
     UNIQUE (facility_id, start_time, end_time)
 );
 
-CREATE TABLE announcements (
+CREATE TABLE post (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
     area_id UUID REFERENCES areas(id) ON DELETE CASCADE,
@@ -84,10 +84,17 @@ CREATE TABLE announcements (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     content TEXT NOT NULL,
     image_reference VARCHAR(2048),
-    related_date TIMESTAMP
+    related_date TIMESTAMP,
+
+    post_type VARCHAR(50) NOT NULL,
+    start_date_time TIMESTAMP,
+    end_date_time TIMESTAMP,
+    location_name VARCHAR(256),
+    online_url VARCHAR(2048),
+    max_attendees INT
 );
 
-ALTER TABLE announcements
+ALTER TABLE post
     ADD CONSTRAINT area_or_building_not_both_null_or_not_null_ann
         CHECK (
             (area_id IS NULL AND building_id IS NOT NULL)
@@ -162,7 +169,8 @@ CREATE TABLE issue (
 
     notify_everyone BOOLEAN NOT NULL,
     created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    issue_object VARCHAR(50) NOT NULL DEFAULT 'AREA'
 );
 
 CREATE TABLE notification (
@@ -170,6 +178,19 @@ CREATE TABLE notification (
     issue_id UUID REFERENCES issue(id) ON DELETE CASCADE,
     recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     seen_at TIMESTAMP
+);
+
+CREATE TABLE offering (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    area_id UUID NOT NULL REFERENCES areas(id) ON DELETE CASCADE,
+    user_provider UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+    end_date TIMESTAMP,
+    created_at TIMESTAMP NOT NULL
 );
 
  --messaging section

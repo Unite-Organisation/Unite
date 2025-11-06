@@ -1,7 +1,7 @@
-package com.app.prod.announcements;
+package com.app.prod.post;
 
-import com.app.prod.announcements.dto.AnnouncementDto;
-import com.app.prod.announcements.repository.AnnouncementsRepository;
+import com.app.prod.post.dto.AnnouncementDto;
+import com.app.prod.post.repository.AnnouncementsRepository;
 import com.app.prod.builders.AnnouncementPersistenceFactory;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;

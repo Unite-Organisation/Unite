@@ -1,6 +1,6 @@
 package com.app.prod.builders;
 
-import com.app.prod.announcements.repository.AnnouncementsRepository;
+import com.app.prod.post.repository.AnnouncementsRepository;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.AnnouncementsRecord;
 import org.springframework.stereotype.Service;

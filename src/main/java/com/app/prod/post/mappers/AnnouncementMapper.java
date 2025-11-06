@@ -1,6 +1,6 @@
-package com.app.prod.announcements.mappers;
+package com.app.prod.post.mappers;
 
-import com.app.prod.announcements.dto.AnnouncementRequest;
+import com.app.prod.post.dto.AnnouncementRequest;
 import org.jooq.sources.tables.records.AnnouncementsRecord;
 
 import java.time.LocalDateTime;

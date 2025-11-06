@@ -1,8 +1,8 @@
-package com.app.prod.announcements.api;
+package com.app.prod.post.api;
 
-import com.app.prod.announcements.dto.AnnouncementRequest;
-import com.app.prod.announcements.dto.AnnouncementResponse;
-import com.app.prod.announcements.service.AnnouncementsService;
+import com.app.prod.post.dto.AnnouncementRequest;
+import com.app.prod.post.dto.AnnouncementResponse;
+import com.app.prod.post.service.AnnouncementsService;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.Pagination;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("announcements")
+@RequestMapping("post")
 @RequiredArgsConstructor
-@Tag(name = "Announcements")
-public class AnnouncementsRestApi {
+@Tag(name = "Posts")
+public class PostRestApi {
 
     private final AnnouncementsService announcementsService;
     private final GlobalSecurityManager globalSecurityManager;

@@ -1,0 +1,8 @@
+-- ALTER TABLE announcements
+--     ADD COLUMN post_type VARCHAR(50) NOT NULL DEFAULT 'ANNOUNCEMENT',
+--     ADD COLUMN start_date_time TIMESTAMP,
+--     ADD COLUMN end_date_time TIMESTAMP,
+--     ADD COLUMN location_name VARCHAR(256),
+--     ADD COLUMN online_url VARCHAR(2048),
+--     ADD COLUMN max_attendees INT,
+--     ADD COLUMN is_public BOOLEAN;

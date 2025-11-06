@@ -1,12 +1,12 @@
-CREATE TABLE offerings (
-   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-   title VARCHAR(50) NOT NULL,
-   description TEXT NOT NULL,
-   category VARCHAR(50) NOT NULL,
-   is_active BOOLEAN DEFAULT TRUE,
-   area_id UUID NOT NULL REFERENCES issue(id) ON DELETE CASCADE,
-   user_provider UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-   price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
-   end_date TIMESTAMP,
-   created_at TIMESTAMP NOT NULL
-);
+-- CREATE TABLE offerings (
+--    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--    title VARCHAR(50) NOT NULL,
+--    description TEXT NOT NULL,
+--    category VARCHAR(50) NOT NULL,
+--    is_active BOOLEAN DEFAULT TRUE,
+--    area_id UUID NOT NULL REFERENCES issue(id) ON DELETE CASCADE,
+--    user_provider UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--    price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+--    end_date TIMESTAMP,
+--    created_at TIMESTAMP NOT NULL
+-- );

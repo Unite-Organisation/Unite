@@ -1,6 +1,6 @@
 package com.app.prod.utils.validators;
 
-import com.app.prod.announcements.repository.AnnouncementsRepository;
+import com.app.prod.post.repository.AnnouncementsRepository;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.conversation.repository.ConversationMemberRepository;

@@ -1,1 +1,1 @@
-ALTER TABLE offerings RENAME TO offering;
+-- ALTER TABLE offerings RENAME TO offering;

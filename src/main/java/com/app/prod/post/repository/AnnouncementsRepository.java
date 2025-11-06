@@ -1,7 +1,6 @@
-package com.app.prod.announcements.repository;
+package com.app.prod.post.repository;
 
-import com.app.prod.announcements.dto.AnnouncementDto;
-import com.app.prod.announcements.dto.AnnouncementResponse;
+import com.app.prod.post.dto.AnnouncementDto;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
