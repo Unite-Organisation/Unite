@@ -19,16 +19,6 @@ public class OfferingFilter implements PredicateFilter {
     public Optional<UUID> areaId;
 
     @Override
-    public Condition parseFilterAnd() {
-        return combineConditions().stream().reduce(DSL.trueCondition(), Condition::and);
-    }
-
-    @Override
-    public Condition parseFilterOr() {
-        return combineConditions().stream().reduce(DSL.trueCondition(), Condition::or);
-    }
-
-    @Override
     public List<Condition> combineConditions() {
         List<Condition> conditionList = new ArrayList<>();
 

@@ -1,10 +1,16 @@
 package com.app.prod.post.api;
 
 import com.app.prod.post.dto.AnnouncementRequest;
-import com.app.prod.post.dto.AnnouncementResponse;
-import com.app.prod.post.service.AnnouncementsService;
+import com.app.prod.post.dto.EventRequest;
+import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
+import com.app.prod.post.service.AnnouncementService;
+import com.app.prod.post.service.EventService;
+import com.app.prod.post.service.PostFilteringService;
+import com.app.prod.post.service.PostService;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.PostFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,39 +28,54 @@ import java.util.UUID;
 @Tag(name = "Posts")
 public class PostRestApi {
 
-    private final AnnouncementsService announcementsService;
+    private final PostService postService;
     private final GlobalSecurityManager globalSecurityManager;
+    private final EventService eventService;
+    private final AnnouncementService announcementService;
+    private final PostFilteringService postFilteringService;
 
-    @PostMapping()
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<UUID> createAnnouncement(@RequestBody AnnouncementRequest request){
+    @GetMapping()
+    public List<PostResponse> getPosts(
+            @Valid @ModelAttribute Pagination pagination,
+            @RequestParam(required = false) PostType postType
+    ){
         var userId = globalSecurityManager.getCurrentUser().getId();
-        var id = announcementsService.createAnnouncement(request, userId);
-        return ResponseEntity.ok(id);
+        PostFilter filter = postFilteringService.prepareFilter(postType);
+        return postService.getPosts(pagination, userId, filter);
     }
 
     @PatchMapping("/{id}/image")
     @PreAuthorize("hasRole('MANAGER')")
-    public void addImageForAnnouncement(
+    public void addImageForPost(
             @PathVariable UUID id,
             @RequestParam("file") MultipartFile photo
     ){
-        announcementsService.addImageForAnnouncement(photo, id);
-    }
-
-    @GetMapping()
-    public List<AnnouncementResponse> getAnnouncements(@Valid @ModelAttribute Pagination pagination){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        return announcementsService.getAnnouncements(pagination, userId);
+        postService.addImageForPost(photo, id);
     }
 
     @GetMapping("/{id}/image")
-    public ResponseEntity<byte[]> getAnnouncementPhoto(@PathVariable UUID id){
-        var dataPair = announcementsService.getAnnouncementPhoto(id);
+    public ResponseEntity<byte[]> getPostPhoto(@PathVariable UUID id){
+        var dataPair = postService.getPostPhoto(id);
 
         return ResponseEntity.ok()
                 .contentType(dataPair.getRight())
                 .body(dataPair.getLeft());
+    }
+
+    /* Announcements */
+    @PostMapping("/announcement")
+    @PreAuthorize("hasRole('MANAGER')")
+    public void createAnnouncement(@RequestBody AnnouncementRequest request){
+        var userId = globalSecurityManager.getCurrentUser().getId();
+        announcementService.createAnnouncement(request, userId);
+    }
+
+    /* Events */
+    @PostMapping("/event")
+    @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
+    public void createEvent(@RequestBody EventRequest request){
+        var userId = globalSecurityManager.getCurrentUser().getId();
+        eventService.createEvent(request, userId);
     }
 
 }

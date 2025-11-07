@@ -4,7 +4,6 @@
 package org.jooq.sources;
 
 
-import org.jooq.sources.tables.Announcements;
 import org.jooq.sources.tables.Areas;
 import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.BuildingsManagers;
@@ -23,6 +22,7 @@ import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
 import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Polls;
+import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
 
@@ -32,11 +32,6 @@ import org.jooq.sources.tables.Users;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
-
-    /**
-     * The table <code>public.announcements</code>.
-     */
-    public static final Announcements ANNOUNCEMENTS = Announcements.ANNOUNCEMENTS;
 
     /**
      * The table <code>public.areas</code>.
@@ -127,6 +122,11 @@ public class Tables {
      * The table <code>public.polls</code>.
      */
     public static final Polls POLLS = Polls.POLLS;
+
+    /**
+     * The table <code>public.post</code>.
+     */
+    public static final Post POST = Post.POST;
 
     /**
      * The table <code>public.user_roles</code>.

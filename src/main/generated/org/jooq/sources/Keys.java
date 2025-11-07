@@ -9,7 +9,6 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
-import org.jooq.sources.tables.Announcements;
 import org.jooq.sources.tables.Areas;
 import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.BuildingsManagers;
@@ -28,9 +27,9 @@ import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
 import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Polls;
+import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
-import org.jooq.sources.tables.records.AnnouncementsRecord;
 import org.jooq.sources.tables.records.AreasRecord;
 import org.jooq.sources.tables.records.BuildingsManagersRecord;
 import org.jooq.sources.tables.records.BuildingsRecord;
@@ -49,6 +48,7 @@ import org.jooq.sources.tables.records.PollResultRecord;
 import org.jooq.sources.tables.records.PollVotesRecord;
 import org.jooq.sources.tables.records.PollWinnerRecord;
 import org.jooq.sources.tables.records.PollsRecord;
+import org.jooq.sources.tables.records.PostRecord;
 import org.jooq.sources.tables.records.UserRolesRecord;
 import org.jooq.sources.tables.records.UsersRecord;
 
@@ -64,7 +64,6 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<AnnouncementsRecord> ANNOUNCEMENTS_PKEY = Internal.createUniqueKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_pkey"), new TableField[] { Announcements.ANNOUNCEMENTS.ID }, true);
     public static final UniqueKey<AreasRecord> AREAS_PKEY = Internal.createUniqueKey(Areas.AREAS, DSL.name("areas_pkey"), new TableField[] { Areas.AREAS.ID }, true);
     public static final UniqueKey<BuildingsRecord> BUILDINGS_PKEY = Internal.createUniqueKey(Buildings.BUILDINGS, DSL.name("buildings_pkey"), new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final UniqueKey<BuildingsManagersRecord> BUILDINGS_MANAGERS_PKEY = Internal.createUniqueKey(BuildingsManagers.BUILDINGS_MANAGERS, DSL.name("buildings_managers_pkey"), new TableField[] { BuildingsManagers.BUILDINGS_MANAGERS.ID }, true);
@@ -78,7 +77,7 @@ public class Keys {
     public static final UniqueKey<MessageRecord> MESSAGE_PKEY = Internal.createUniqueKey(Message.MESSAGE, DSL.name("message_pkey"), new TableField[] { Message.MESSAGE.ID }, true);
     public static final UniqueKey<MessagesReadRecord> MESSAGES_READ_PKEY = Internal.createUniqueKey(MessagesRead.MESSAGES_READ, DSL.name("messages_read_pkey"), new TableField[] { MessagesRead.MESSAGES_READ.MESSAGE_ID, MessagesRead.MESSAGES_READ.VIEWED_BY }, true);
     public static final UniqueKey<NotificationRecord> NOTIFICATION_PKEY = Internal.createUniqueKey(Notification.NOTIFICATION, DSL.name("notification_pkey"), new TableField[] { Notification.NOTIFICATION.ID }, true);
-    public static final UniqueKey<OfferingRecord> OFFERINGS_PKEY = Internal.createUniqueKey(Offering.OFFERING, DSL.name("offerings_pkey"), new TableField[] { Offering.OFFERING.ID }, true);
+    public static final UniqueKey<OfferingRecord> OFFERING_PKEY = Internal.createUniqueKey(Offering.OFFERING, DSL.name("offering_pkey"), new TableField[] { Offering.OFFERING.ID }, true);
     public static final UniqueKey<PollOptionsRecord> POLL_OPTIONS_PKEY = Internal.createUniqueKey(PollOptions.POLL_OPTIONS, DSL.name("poll_options_pkey"), new TableField[] { PollOptions.POLL_OPTIONS.ID }, true);
     public static final UniqueKey<PollOptionsRecord> POLL_OPTIONS_POLL_ID_OPTION_TEXT_KEY = Internal.createUniqueKey(PollOptions.POLL_OPTIONS, DSL.name("poll_options_poll_id_option_text_key"), new TableField[] { PollOptions.POLL_OPTIONS.POLL_ID, PollOptions.POLL_OPTIONS.OPTION_TEXT }, true);
     public static final UniqueKey<PollResultRecord> POLL_RESULT_PKEY = Internal.createUniqueKey(PollResult.POLL_RESULT, DSL.name("poll_result_pkey"), new TableField[] { PollResult.POLL_RESULT.ID }, true);
@@ -86,6 +85,7 @@ public class Keys {
     public static final UniqueKey<PollVotesRecord> POLL_VOTES_POLL_ID_USER_ID_KEY = Internal.createUniqueKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_poll_id_user_id_key"), new TableField[] { PollVotes.POLL_VOTES.POLL_ID, PollVotes.POLL_VOTES.USER_ID }, true);
     public static final UniqueKey<PollWinnerRecord> POLL_WINNER_PKEY = Internal.createUniqueKey(PollWinner.POLL_WINNER, DSL.name("poll_winner_pkey"), new TableField[] { PollWinner.POLL_WINNER.ID }, true);
     public static final UniqueKey<PollsRecord> POLLS_PKEY = Internal.createUniqueKey(Polls.POLLS, DSL.name("polls_pkey"), new TableField[] { Polls.POLLS.ID }, true);
+    public static final UniqueKey<PostRecord> POST_PKEY = Internal.createUniqueKey(Post.POST, DSL.name("post_pkey"), new TableField[] { Post.POST.ID }, true);
     public static final UniqueKey<UserRolesRecord> USER_ROLES_PKEY = Internal.createUniqueKey(UserRoles.USER_ROLES, DSL.name("user_roles_pkey"), new TableField[] { UserRoles.USER_ROLES.ID }, true);
     public static final UniqueKey<UsersRecord> USERS_EMAIL_KEY = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), new TableField[] { Users.USERS.EMAIL }, true);
     public static final UniqueKey<UsersRecord> USERS_PKEY = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), new TableField[] { Users.USERS.ID }, true);
@@ -95,9 +95,6 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final ForeignKey<AnnouncementsRecord, AreasRecord> ANNOUNCEMENTS__ANNOUNCEMENTS_AREA_ID_FKEY = Internal.createForeignKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_area_id_fkey"), new TableField[] { Announcements.ANNOUNCEMENTS.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
-    public static final ForeignKey<AnnouncementsRecord, BuildingsRecord> ANNOUNCEMENTS__ANNOUNCEMENTS_BUILDING_ID_FKEY = Internal.createForeignKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_building_id_fkey"), new TableField[] { Announcements.ANNOUNCEMENTS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
-    public static final ForeignKey<AnnouncementsRecord, UsersRecord> ANNOUNCEMENTS__ANNOUNCEMENTS_CREATED_BY_FKEY = Internal.createForeignKey(Announcements.ANNOUNCEMENTS, DSL.name("announcements_created_by_fkey"), new TableField[] { Announcements.ANNOUNCEMENTS.CREATED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<BuildingsRecord, AreasRecord> BUILDINGS__BUILDINGS_AREA_ID_FKEY = Internal.createForeignKey(Buildings.BUILDINGS, DSL.name("buildings_area_id_fkey"), new TableField[] { Buildings.BUILDINGS.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
     public static final ForeignKey<BuildingsManagersRecord, BuildingsRecord> BUILDINGS_MANAGERS__BUILDINGS_MANAGERS_BUILDING_ID_FKEY = Internal.createForeignKey(BuildingsManagers.BUILDINGS_MANAGERS, DSL.name("buildings_managers_building_id_fkey"), new TableField[] { BuildingsManagers.BUILDINGS_MANAGERS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final ForeignKey<BuildingsManagersRecord, UsersRecord> BUILDINGS_MANAGERS__BUILDINGS_MANAGERS_USER_ID_FKEY = Internal.createForeignKey(BuildingsManagers.BUILDINGS_MANAGERS, DSL.name("buildings_managers_user_id_fkey"), new TableField[] { BuildingsManagers.BUILDINGS_MANAGERS.USER_ID }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
@@ -117,8 +114,8 @@ public class Keys {
     public static final ForeignKey<MessagesReadRecord, UsersRecord> MESSAGES_READ__MESSAGES_READ_VIEWED_BY_FKEY = Internal.createForeignKey(MessagesRead.MESSAGES_READ, DSL.name("messages_read_viewed_by_fkey"), new TableField[] { MessagesRead.MESSAGES_READ.VIEWED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<NotificationRecord, IssueRecord> NOTIFICATION__NOTIFICATION_ISSUE_ID_FKEY = Internal.createForeignKey(Notification.NOTIFICATION, DSL.name("notification_issue_id_fkey"), new TableField[] { Notification.NOTIFICATION.ISSUE_ID }, Keys.ISSUE_PKEY, new TableField[] { Issue.ISSUE.ID }, true);
     public static final ForeignKey<NotificationRecord, UsersRecord> NOTIFICATION__NOTIFICATION_RECIPIENT_ID_FKEY = Internal.createForeignKey(Notification.NOTIFICATION, DSL.name("notification_recipient_id_fkey"), new TableField[] { Notification.NOTIFICATION.RECIPIENT_ID }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
-    public static final ForeignKey<OfferingRecord, AreasRecord> OFFERING__OFFERINGS_AREA_ID_FKEY = Internal.createForeignKey(Offering.OFFERING, DSL.name("offerings_area_id_fkey"), new TableField[] { Offering.OFFERING.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
-    public static final ForeignKey<OfferingRecord, UsersRecord> OFFERING__OFFERINGS_USER_PROVIDER_FKEY = Internal.createForeignKey(Offering.OFFERING, DSL.name("offerings_user_provider_fkey"), new TableField[] { Offering.OFFERING.USER_PROVIDER }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
+    public static final ForeignKey<OfferingRecord, AreasRecord> OFFERING__OFFERING_AREA_ID_FKEY = Internal.createForeignKey(Offering.OFFERING, DSL.name("offering_area_id_fkey"), new TableField[] { Offering.OFFERING.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
+    public static final ForeignKey<OfferingRecord, UsersRecord> OFFERING__OFFERING_USER_PROVIDER_FKEY = Internal.createForeignKey(Offering.OFFERING, DSL.name("offering_user_provider_fkey"), new TableField[] { Offering.OFFERING.USER_PROVIDER }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<PollOptionsRecord, PollsRecord> POLL_OPTIONS__POLL_OPTIONS_POLL_ID_FKEY = Internal.createForeignKey(PollOptions.POLL_OPTIONS, DSL.name("poll_options_poll_id_fkey"), new TableField[] { PollOptions.POLL_OPTIONS.POLL_ID }, Keys.POLLS_PKEY, new TableField[] { Polls.POLLS.ID }, true);
     public static final ForeignKey<PollResultRecord, PollsRecord> POLL_RESULT__POLL_RESULT_POLL_ID_FKEY = Internal.createForeignKey(PollResult.POLL_RESULT, DSL.name("poll_result_poll_id_fkey"), new TableField[] { PollResult.POLL_RESULT.POLL_ID }, Keys.POLLS_PKEY, new TableField[] { Polls.POLLS.ID }, true);
     public static final ForeignKey<PollVotesRecord, PollOptionsRecord> POLL_VOTES__POLL_VOTES_OPTION_ID_FKEY = Internal.createForeignKey(PollVotes.POLL_VOTES, DSL.name("poll_votes_option_id_fkey"), new TableField[] { PollVotes.POLL_VOTES.OPTION_ID }, Keys.POLL_OPTIONS_PKEY, new TableField[] { PollOptions.POLL_OPTIONS.ID }, true);
@@ -129,6 +126,9 @@ public class Keys {
     public static final ForeignKey<PollsRecord, AreasRecord> POLLS__POLLS_AREA_ID_FKEY = Internal.createForeignKey(Polls.POLLS, DSL.name("polls_area_id_fkey"), new TableField[] { Polls.POLLS.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
     public static final ForeignKey<PollsRecord, BuildingsRecord> POLLS__POLLS_BUILDING_ID_FKEY = Internal.createForeignKey(Polls.POLLS, DSL.name("polls_building_id_fkey"), new TableField[] { Polls.POLLS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final ForeignKey<PollsRecord, UsersRecord> POLLS__POLLS_CREATED_BY_FKEY = Internal.createForeignKey(Polls.POLLS, DSL.name("polls_created_by_fkey"), new TableField[] { Polls.POLLS.CREATED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
+    public static final ForeignKey<PostRecord, AreasRecord> POST__POST_AREA_ID_FKEY = Internal.createForeignKey(Post.POST, DSL.name("post_area_id_fkey"), new TableField[] { Post.POST.AREA_ID }, Keys.AREAS_PKEY, new TableField[] { Areas.AREAS.ID }, true);
+    public static final ForeignKey<PostRecord, BuildingsRecord> POST__POST_BUILDING_ID_FKEY = Internal.createForeignKey(Post.POST, DSL.name("post_building_id_fkey"), new TableField[] { Post.POST.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
+    public static final ForeignKey<PostRecord, UsersRecord> POST__POST_CREATED_BY_FKEY = Internal.createForeignKey(Post.POST, DSL.name("post_created_by_fkey"), new TableField[] { Post.POST.CREATED_BY }, Keys.USERS_PKEY, new TableField[] { Users.USERS.ID }, true);
     public static final ForeignKey<UsersRecord, BuildingsRecord> USERS__USERS_BUILDING_ID_FKEY = Internal.createForeignKey(Users.USERS, DSL.name("users_building_id_fkey"), new TableField[] { Users.USERS.BUILDING_ID }, Keys.BUILDINGS_PKEY, new TableField[] { Buildings.BUILDINGS.ID }, true);
     public static final ForeignKey<UsersRecord, UserRolesRecord> USERS__USERS_USER_ROLE_FKEY = Internal.createForeignKey(Users.USERS, DSL.name("users_user_role_fkey"), new TableField[] { Users.USERS.USER_ROLE }, Keys.USER_ROLES_PKEY, new TableField[] { UserRoles.USER_ROLES.ID }, true);
 }

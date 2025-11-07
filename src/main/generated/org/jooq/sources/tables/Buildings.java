@@ -31,12 +31,12 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Announcements.AnnouncementsPath;
 import org.jooq.sources.tables.Areas.AreasPath;
 import org.jooq.sources.tables.BuildingsManagers.BuildingsManagersPath;
 import org.jooq.sources.tables.Facilities.FacilitiesPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Polls.PollsPath;
+import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.BuildingsRecord;
 
@@ -186,19 +186,6 @@ public class Buildings extends TableImpl<BuildingsRecord> {
         return _areas;
     }
 
-    private transient AnnouncementsPath _announcements;
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.announcements</code> table
-     */
-    public AnnouncementsPath announcements() {
-        if (_announcements == null)
-            _announcements = new AnnouncementsPath(this, null, Keys.ANNOUNCEMENTS__ANNOUNCEMENTS_BUILDING_ID_FKEY.getInverseKey());
-
-        return _announcements;
-    }
-
     private transient BuildingsManagersPath _buildingsManagers;
 
     /**
@@ -247,6 +234,18 @@ public class Buildings extends TableImpl<BuildingsRecord> {
             _polls = new PollsPath(this, null, Keys.POLLS__POLLS_BUILDING_ID_FKEY.getInverseKey());
 
         return _polls;
+    }
+
+    private transient PostPath _post;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.post</code> table
+     */
+    public PostPath post() {
+        if (_post == null)
+            _post = new PostPath(this, null, Keys.POST__POST_BUILDING_ID_FKEY.getInverseKey());
+
+        return _post;
     }
 
     private transient UsersPath _users;

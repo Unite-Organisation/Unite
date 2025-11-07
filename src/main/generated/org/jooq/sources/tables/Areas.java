@@ -30,11 +30,11 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Announcements.AnnouncementsPath;
 import org.jooq.sources.tables.Buildings.BuildingsPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.Polls.PollsPath;
+import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.records.AreasRecord;
 
 
@@ -161,19 +161,6 @@ public class Areas extends TableImpl<AreasRecord> {
         return Keys.AREAS_PKEY;
     }
 
-    private transient AnnouncementsPath _announcements;
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.announcements</code> table
-     */
-    public AnnouncementsPath announcements() {
-        if (_announcements == null)
-            _announcements = new AnnouncementsPath(this, null, Keys.ANNOUNCEMENTS__ANNOUNCEMENTS_AREA_ID_FKEY.getInverseKey());
-
-        return _announcements;
-    }
-
     private transient BuildingsPath _buildings;
 
     /**
@@ -207,7 +194,7 @@ public class Areas extends TableImpl<AreasRecord> {
      */
     public OfferingPath offering() {
         if (_offering == null)
-            _offering = new OfferingPath(this, null, Keys.OFFERING__OFFERINGS_AREA_ID_FKEY.getInverseKey());
+            _offering = new OfferingPath(this, null, Keys.OFFERING__OFFERING_AREA_ID_FKEY.getInverseKey());
 
         return _offering;
     }
@@ -222,6 +209,18 @@ public class Areas extends TableImpl<AreasRecord> {
             _polls = new PollsPath(this, null, Keys.POLLS__POLLS_AREA_ID_FKEY.getInverseKey());
 
         return _polls;
+    }
+
+    private transient PostPath _post;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.post</code> table
+     */
+    public PostPath post() {
+        if (_post == null)
+            _post = new PostPath(this, null, Keys.POST__POST_AREA_ID_FKEY.getInverseKey());
+
+        return _post;
     }
 
     @Override

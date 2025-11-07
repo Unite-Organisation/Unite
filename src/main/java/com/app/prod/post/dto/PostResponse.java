@@ -1,9 +1,11 @@
 package com.app.prod.post.dto;
 
+import com.app.prod.post.enums.PostType;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record AnnouncementDto(
+public record PostResponse(
         UUID id,
         String name,
         UUID areaId,
@@ -12,6 +14,11 @@ public record AnnouncementDto(
         String content,
         LocalDateTime relatedDate,
         LocalDateTime createdAt,
-        String photoPath
+        PostType postType,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        String locationName,
+        String onlineUrl,
+        Integer maxAttendees
 ) {
 }
