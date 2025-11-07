@@ -1,0 +1,78 @@
+package com.app.prod.post.repository;
+
+import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
+import com.app.prod.utils.BaseJooqRepository;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.PostFilter;
+import org.jooq.DSLContext;
+import org.jooq.sources.tables.Post;
+import org.jooq.sources.tables.records.PostRecord;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.jooq.sources.Tables.*;
+
+@Repository
+public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
+    protected PostRepository(DSLContext dsl) {
+        super(dsl, POST, POST.ID);
+    }
+
+    public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
+        return dslContext.selectDistinct(
+                        POST.ID,
+                        POST.NAME,
+                        POST.AREA_ID,
+                        POST.BUILDING_ID,
+                        POST.CREATED_BY,
+                        POST.CONTENT,
+                        POST.RELATED_DATE,
+                        POST.CREATED_AT,
+                        POST.POST_TYPE,
+                        POST.START_DATE_TIME,
+                        POST.END_DATE_TIME,
+                        POST.LOCATION_NAME,
+                        POST.ONLINE_URL,
+                        POST.MAX_ATTENDEES
+                )
+                .from(USERS)
+                .join(BUILDINGS).on(BUILDINGS.ID.eq(USERS.BUILDING_ID))
+                .join(AREAS).on(AREAS.ID.eq(BUILDINGS.AREA_ID))
+                .join(POST).on(
+                        POST.BUILDING_ID.eq(BUILDINGS.ID)
+                                .or(POST.AREA_ID.eq(AREAS.ID))
+                )
+                .where(USERS.ID.eq(userId))
+                .and(filter.parseFilterOr())
+                .orderBy(POST.CREATED_AT)
+                .offset(pagination.getOffset())
+                .limit(pagination.pageSize())
+                .fetch(record -> new PostResponse(
+                        record.get(POST.ID),
+                        record.get(POST.NAME),
+                        record.get(POST.AREA_ID),
+                        record.get(POST.BUILDING_ID),
+                        record.get(POST.CREATED_BY),
+                        record.get(POST.CONTENT),
+                        record.get(POST.RELATED_DATE),
+                        record.get(POST.CREATED_AT),
+                        PostType.valueOf(record.get(POST.POST_TYPE)),
+                        record.get(POST.START_DATE_TIME),
+                        record.get(POST.END_DATE_TIME),
+                        record.get(POST.LOCATION_NAME),
+                        record.get(POST.ONLINE_URL),
+                        record.get(POST.MAX_ATTENDEES)
+                ));
+    }
+
+    public void updatePhotoPath(UUID id, String path){
+        dslContext.update(POST)
+                .set(POST.IMAGE_REFERENCE, path)
+                .where(POST.ID.eq(id))
+                .execute();
+    }
+}

@@ -32,7 +32,6 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Announcements.AnnouncementsPath;
 import org.jooq.sources.tables.Buildings.BuildingsPath;
 import org.jooq.sources.tables.BuildingsManagers.BuildingsManagersPath;
 import org.jooq.sources.tables.ConversationMember.ConversationMemberPath;
@@ -44,6 +43,7 @@ import org.jooq.sources.tables.Notification.NotificationPath;
 import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.PollVotes.PollVotesPath;
 import org.jooq.sources.tables.Polls.PollsPath;
+import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.UserRoles.UserRolesPath;
 import org.jooq.sources.tables.records.UsersRecord;
 
@@ -225,19 +225,6 @@ public class Users extends TableImpl<UsersRecord> {
         return _userRoles;
     }
 
-    private transient AnnouncementsPath _announcements;
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.announcements</code> table
-     */
-    public AnnouncementsPath announcements() {
-        if (_announcements == null)
-            _announcements = new AnnouncementsPath(this, null, Keys.ANNOUNCEMENTS__ANNOUNCEMENTS_CREATED_BY_FKEY.getInverseKey());
-
-        return _announcements;
-    }
-
     private transient BuildingsManagersPath _buildingsManagers;
 
     /**
@@ -336,7 +323,7 @@ public class Users extends TableImpl<UsersRecord> {
      */
     public OfferingPath offering() {
         if (_offering == null)
-            _offering = new OfferingPath(this, null, Keys.OFFERING__OFFERINGS_USER_PROVIDER_FKEY.getInverseKey());
+            _offering = new OfferingPath(this, null, Keys.OFFERING__OFFERING_USER_PROVIDER_FKEY.getInverseKey());
 
         return _offering;
     }
@@ -364,6 +351,18 @@ public class Users extends TableImpl<UsersRecord> {
             _polls = new PollsPath(this, null, Keys.POLLS__POLLS_CREATED_BY_FKEY.getInverseKey());
 
         return _polls;
+    }
+
+    private transient PostPath _post;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.post</code> table
+     */
+    public PostPath post() {
+        if (_post == null)
+            _post = new PostPath(this, null, Keys.POST__POST_CREATED_BY_FKEY.getInverseKey());
+
+        return _post;
     }
 
     @Override

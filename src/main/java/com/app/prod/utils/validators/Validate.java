@@ -1,6 +1,6 @@
 package com.app.prod.utils.validators;
 
-import com.app.prod.announcements.repository.AnnouncementsRepository;
+import com.app.prod.post.repository.PostRepository;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
@@ -39,7 +39,7 @@ public class Validate {
     private final BuildingRepository buildingRepository;
     private final PollRepository pollRepository;
     private final FacilityRepository facilityRepository;
-    private final AnnouncementsRepository announcementsRepository;
+    private final PostRepository postRepository;
     private final OfferingRepository offeringRepository;
     private final UserRoleRepository userRoleRepository;
     private final IssueRepository issueRepository;
@@ -63,11 +63,11 @@ public class Validate {
         }
     }
 
-    public void announcement(UUID id){
-        if(!announcementsRepository.exists(id)){
+    public void post(UUID id){
+        if(!postRepository.exists(id)){
             throw new EntityNotPresentException(
-                    String.format("Announcement with id: %s doesn't exist.", id),
-                    Announcements.class.getSimpleName()
+                    String.format("Post with id: %s doesn't exist.", id),
+                    Post.class.getSimpleName()
             );
         }
     }

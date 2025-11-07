@@ -1,22 +1,28 @@
-package com.app.prod.announcements;
+package com.app.prod.post;
 
-import com.app.prod.announcements.dto.AnnouncementDto;
-import com.app.prod.announcements.repository.AnnouncementsRepository;
-import com.app.prod.builders.AnnouncementPersistenceFactory;
+import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
+import com.app.prod.post.repository.PostRepository;
+import com.app.prod.builders.PostPersistenceFactory;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
 import com.app.prod.builders.UserPersistanceFactory;
 import com.app.prod.config.IntegrationTest;
 import com.app.prod.utils.Pagination;
+
+import static com.app.prod.post.enums.PostType.ANNOUNCEMENT;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
-public class AnnouncementsRepositoryIT extends IntegrationTest {
+public class PostRepositoryIT extends IntegrationTest {
 
     @Autowired
     private UserPersistanceFactory userPersistanceFactory;
@@ -25,10 +31,12 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
     @Autowired
     private BuildingPersistenceFactory buildingPersistenceFactory;
     @Autowired
-    private AnnouncementPersistenceFactory announcementPersistenceFactory;
+    private PostPersistenceFactory postPersistenceFactory;
 
     @Autowired
-    private AnnouncementsRepository announcementsRepository;
+    private PostRepository postRepository;
+
+    private PostFilter filter = PostFilter.builder().postType(Optional.ofNullable(ANNOUNCEMENT)).build();
 
     @Test
     void shouldReturnAnnouncementsOnlyForMe(){
@@ -39,7 +47,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
         var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
 
         //only for building
-        var ann1 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann1 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event1")
                 .buildingId(building.getId())
@@ -47,7 +55,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
                 .buildAndSave();
 
         //obly for area but user belongs to area
-        var ann2 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann2 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event2")
                 .areaId(area.getId())
@@ -56,10 +64,10 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
 
         Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
 
-        var result = announcementsRepository.findForUser(user.getId(), pagination);
+        var result = postRepository.findForUser(user.getId(), pagination, filter);
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.stream().map(AnnouncementDto::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
+        assertThat(result.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
     }
 
     @Test
@@ -80,7 +88,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
         var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
 
         //for building in my area - but not mine building (SHOULD NOT MATCH)
-        var ann1 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann1 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event1")
                 .buildingId(differentBuilding.getId())
@@ -88,7 +96,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
                 .buildAndSave();
 
         //for building in another area (SHOULD NOT MATCH)
-        var ann2 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann2 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event2")
                 .buildingId(farBuilding.getId())
@@ -96,7 +104,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
                 .buildAndSave();
 
         //for another area (SHOULD NOT MATCH)
-        var ann3 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann3 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event3")
                 .areaId(differentArea.getId())
@@ -104,7 +112,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
                 .buildAndSave();
 
         //for my building
-        var ann4 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann4 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event4")
                 .buildingId(myBuilding.getId())
@@ -112,7 +120,7 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
                 .buildAndSave();
 
         //for my area
-        var ann5 = announcementPersistenceFactory.getNewAnnouncement()
+        var ann5 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                 .withRandomValues()
                 .name("Event5")
                 .areaId(myArea.getId())
@@ -121,17 +129,17 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
 
         Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
 
-        var resultForMyUser = announcementsRepository.findForUser(myUser.getId(), pagination);
+        var resultForMyUser = postRepository.findForUser(myUser.getId(), pagination, filter);
         assertThat(resultForMyUser).isNotNull();
         assertThat(resultForMyUser).hasSize(2);
-        assertThat(resultForMyUser.stream().map(AnnouncementDto::name).toList()).containsExactlyInAnyOrder("Event4", "Event5");
+        assertThat(resultForMyUser.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event4", "Event5");
 
-        var resultForDifferentUser = announcementsRepository.findForUser(differentUserFromFar.getId(), pagination);
+        var resultForDifferentUser = postRepository.findForUser(differentUserFromFar.getId(), pagination, filter);
         assertThat(resultForDifferentUser).isNotNull();
         assertThat(resultForDifferentUser).hasSize(2);
-        assertThat(resultForDifferentUser.stream().map(AnnouncementDto::name).toList()).containsExactlyInAnyOrder("Event2", "Event3");
+        assertThat(resultForDifferentUser.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event2", "Event3");
 
-        var resultForUserFromAnotherCountry = announcementsRepository.findForUser(userFromAnotherCountry.getId(), pagination);
+        var resultForUserFromAnotherCountry = postRepository.findForUser(userFromAnotherCountry.getId(), pagination, filter);
         assertThat(resultForUserFromAnotherCountry).isNotNull();
         assertThat(resultForUserFromAnotherCountry).isEmpty();
     }
@@ -146,14 +154,14 @@ public class AnnouncementsRepositoryIT extends IntegrationTest {
         createManyAnnouncements(building.getId(), manager.getId(), 10);
         Pagination pagination = Pagination.builder().page(2).pageSize(3).build();
 
-        var result = announcementsRepository.findForUser(user.getId(), pagination);
+        var result = postRepository.findForUser(user.getId(), pagination, filter);
 
         //TODO: assertions
     }
 
     private void createManyAnnouncements(UUID buildingId, UUID createdBy, int number){
         for(int i = 0; i < number; i++){
-            announcementPersistenceFactory.getNewAnnouncement()
+            postPersistenceFactory.getNewPost(ANNOUNCEMENT)
                     .withRandomValues()
                     .name("Event" + (i + 1))
                     .buildingId(buildingId)

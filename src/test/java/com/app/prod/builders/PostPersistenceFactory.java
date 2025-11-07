@@ -1,8 +1,9 @@
 package com.app.prod.builders;
 
-import com.app.prod.announcements.repository.AnnouncementsRepository;
+import com.app.prod.post.enums.PostType;
+import com.app.prod.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.AnnouncementsRecord;
+import org.jooq.sources.tables.records.PostRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -11,21 +12,22 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AnnouncementPersistenceFactory {
+public class PostPersistenceFactory {
 
     private final Clock clock;
-    private final AnnouncementsRepository announcementRepository;
+    private final PostRepository announcementRepository;
 
-    public Builder getNewAnnouncement() {
-        return new Builder();
+    public Builder getNewPost(PostType postType) {
+        return new Builder(postType);
     }
 
     public class Builder {
 
-        private final AnnouncementsRecord instance;
+        private final PostRecord instance;
 
-        public Builder() {
-            instance = new AnnouncementsRecord();
+        public Builder(PostType postType) {
+            instance = new PostRecord();
+            instance.setPostType(postType.name());
         }
 
         public Builder id(UUID id) {
@@ -83,12 +85,12 @@ public class AnnouncementPersistenceFactory {
             return this;
         }
 
-        public AnnouncementsRecord build() {
+        public PostRecord build() {
             return instance;
         }
 
-        public AnnouncementsRecord buildAndSave() {
-            AnnouncementsRecord record = build();
+        public PostRecord buildAndSave() {
+            PostRecord record = build();
             announcementRepository.insertOne(record);
             return record;
         }

@@ -10,7 +10,6 @@ import java.util.List;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
-import org.jooq.sources.tables.Announcements;
 import org.jooq.sources.tables.Areas;
 import org.jooq.sources.tables.Buildings;
 import org.jooq.sources.tables.BuildingsManagers;
@@ -29,6 +28,7 @@ import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVotes;
 import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Polls;
+import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.UserRoles;
 import org.jooq.sources.tables.Users;
 
@@ -45,11 +45,6 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
-
-    /**
-     * The table <code>public.announcements</code>.
-     */
-    public final Announcements ANNOUNCEMENTS = Announcements.ANNOUNCEMENTS;
 
     /**
      * The table <code>public.areas</code>.
@@ -142,6 +137,11 @@ public class Public extends SchemaImpl {
     public final Polls POLLS = Polls.POLLS;
 
     /**
+     * The table <code>public.post</code>.
+     */
+    public final Post POST = Post.POST;
+
+    /**
      * The table <code>public.user_roles</code>.
      */
     public final UserRoles USER_ROLES = UserRoles.USER_ROLES;
@@ -167,7 +167,6 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
-            Announcements.ANNOUNCEMENTS,
             Areas.AREAS,
             Buildings.BUILDINGS,
             BuildingsManagers.BUILDINGS_MANAGERS,
@@ -186,6 +185,7 @@ public class Public extends SchemaImpl {
             PollVotes.POLL_VOTES,
             PollWinner.POLL_WINNER,
             Polls.POLLS,
+            Post.POST,
             UserRoles.USER_ROLES,
             Users.USERS
         );

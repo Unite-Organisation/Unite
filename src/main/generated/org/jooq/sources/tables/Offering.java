@@ -180,12 +180,12 @@ public class Offering extends TableImpl<OfferingRecord> {
 
     @Override
     public UniqueKey<OfferingRecord> getPrimaryKey() {
-        return Keys.OFFERINGS_PKEY;
+        return Keys.OFFERING_PKEY;
     }
 
     @Override
     public List<ForeignKey<OfferingRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.OFFERING__OFFERINGS_AREA_ID_FKEY, Keys.OFFERING__OFFERINGS_USER_PROVIDER_FKEY);
+        return Arrays.asList(Keys.OFFERING__OFFERING_AREA_ID_FKEY, Keys.OFFERING__OFFERING_USER_PROVIDER_FKEY);
     }
 
     private transient AreasPath _areas;
@@ -195,7 +195,7 @@ public class Offering extends TableImpl<OfferingRecord> {
      */
     public AreasPath areas() {
         if (_areas == null)
-            _areas = new AreasPath(this, Keys.OFFERING__OFFERINGS_AREA_ID_FKEY, null);
+            _areas = new AreasPath(this, Keys.OFFERING__OFFERING_AREA_ID_FKEY, null);
 
         return _areas;
     }
@@ -207,7 +207,7 @@ public class Offering extends TableImpl<OfferingRecord> {
      */
     public UsersPath users() {
         if (_users == null)
-            _users = new UsersPath(this, Keys.OFFERING__OFFERINGS_USER_PROVIDER_FKEY, null);
+            _users = new UsersPath(this, Keys.OFFERING__OFFERING_USER_PROVIDER_FKEY, null);
 
         return _users;
     }
@@ -215,7 +215,7 @@ public class Offering extends TableImpl<OfferingRecord> {
     @Override
     public List<Check<OfferingRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("offerings_price_check"), "((price >= (0)::numeric))", true)
+            Internal.createCheck(this, DSL.name("offering_price_check"), "((price >= (0)::numeric))", true)
         );
     }
 
