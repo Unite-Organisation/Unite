@@ -161,6 +161,8 @@ public class Validate {
     public void thatUserBelongsToBuilding(UsersRecord user, UUID buildingId){
         var userBuilding = user.getBuildingId();
 
+        //TODO: manager should be able to access all his buildings
+
         if(userBuilding == null || !userBuilding.equals(buildingId)){
             throw new UnauthorizedDataAccessException(String.format("User %s does not have access to building %s", user.getId(), buildingId));
         }
@@ -171,7 +173,7 @@ public class Validate {
         thatUserHasBuilding(user);
         var building = buildingRepository.findById(user.getBuildingId()).orElseThrow();
 
-        if(building.getAreaId() != areaId){
+        if(!building.getAreaId().equals(areaId)){
             throw new UnauthorizedDataAccessException(String.format("User %s does not have access to area %s", user.getId(), areaId));
         }
     }
@@ -180,7 +182,7 @@ public class Validate {
         thatUserHasBuilding(user);
         var facility = facilityRepository.findById(facilityId).orElseThrow();
 
-        if(facility.getBuildingId() != user.getBuildingId()){
+        if(!facility.getBuildingId().equals(user.getBuildingId())){
             throw new UnauthorizedDataAccessException(String.format("User %s does not have access to facility %s", user.getId(), facilityId));
         }
     }

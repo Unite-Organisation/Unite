@@ -31,7 +31,7 @@ public class FacilitiyRestApi {
     }
 
     @PostMapping("/reserve")
-    public ResponseEntity<ReserveResponse> reserveFacility(ReservationRequest request){
+    public ResponseEntity<ReserveResponse> reserveFacility(@RequestBody ReservationRequest request){
         var userId = globalSecurityManager.getCurrentUser().getId();
         ReserveResponse response = reservationService.reserve(request, userId);
 

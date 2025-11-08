@@ -9,11 +9,11 @@ import java.util.List;
 public interface PredicateFilter {
     List<Condition> combineConditions();
 
-    default public Condition parseFilterAnd() {
+    default Condition parseFilterAnd() {
         return combineConditions().stream().reduce(DSL.trueCondition(), Condition::and);
     }
 
-    default public Condition parseFilterOr() {
+    default Condition parseFilterOr() {
         return combineConditions().stream().reduce(DSL.trueCondition(), Condition::or);
     }
 }

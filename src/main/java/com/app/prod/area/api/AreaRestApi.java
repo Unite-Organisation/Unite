@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("area")
 @Tag(name = "Areas")
-public class ArreaRestApi {
+public class AreaRestApi {
 
     private final AreaService areaService;
 

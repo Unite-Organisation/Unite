@@ -47,7 +47,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                                 .or(POST.AREA_ID.eq(AREAS.ID))
                 )
                 .where(USERS.ID.eq(userId))
-                .and(filter.parseFilterOr())
+                .and(filter.parseFilterAnd())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())

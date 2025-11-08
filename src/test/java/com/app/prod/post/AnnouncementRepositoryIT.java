@@ -1,7 +1,6 @@
 package com.app.prod.post;
 
 import com.app.prod.post.dto.PostResponse;
-import com.app.prod.post.enums.PostType;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.builders.PostPersistenceFactory;
 import com.app.prod.builders.AreaPersistenceFactory;
@@ -22,7 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
-public class PostRepositoryIT extends IntegrationTest {
+public class AnnouncementRepositoryIT extends IntegrationTest {
 
     @Autowired
     private UserPersistanceFactory userPersistanceFactory;
@@ -36,7 +35,7 @@ public class PostRepositoryIT extends IntegrationTest {
     @Autowired
     private PostRepository postRepository;
 
-    private PostFilter filter = PostFilter.builder().postType(Optional.ofNullable(ANNOUNCEMENT)).build();
+    private PostFilter filter = PostFilter.builder().postType(Optional.of(ANNOUNCEMENT)).build();
 
     @Test
     void shouldReturnAnnouncementsOnlyForMe(){

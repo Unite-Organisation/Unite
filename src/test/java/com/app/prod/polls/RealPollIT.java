@@ -4,6 +4,7 @@ import com.app.prod.builders.*;
 import com.app.prod.config.IntegrationTest;
 import com.app.prod.config.MutableClock;
 import com.app.prod.exceptions.TestDataException;
+import com.app.prod.polls.dto.PollOptionPercentageShare;
 import com.app.prod.polls.dto.PollOptionVoteCount;
 import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResult;
@@ -253,13 +254,23 @@ public class RealPollIT extends IntegrationTest {
         assertThat(result.sortedVotes()).hasSize(3);
         assertThat(result.sortedPercentageShareOfVotes()).hasSize(3);
 
+        // Verify the two winners (A and B) both have 3 votes - order is not deterministic when tied
+        assertThat(result.sortedVotes().get(0).count()).isEqualTo(3);
+        assertThat(result.sortedVotes().get(1).count()).isEqualTo(3);
+        assertThat(result.sortedVotes().subList(0, 2)).extracting(PollOptionVoteCount::optionId)
+                .containsExactlyInAnyOrder(pollOptionsRecords.get(0).getId(), pollOptionsRecords.get(1).getId());
+
+        // Verify the loser (C) has 1 vote
         assertThat(result.sortedVotes().get(2).optionId()).isEqualTo(pollOptionsRecords.get(2).getId());
         assertThat(result.sortedVotes().get(2).count()).isEqualTo(1);
 
-        assertThat(result.sortedPercentageShareOfVotes().get(0).optionId()).isEqualTo(pollOptionsRecords.get(0).getId());
+        // Verify percentage shares - the two winners should both have 0.43 (43%)
         assertThat(result.sortedPercentageShareOfVotes().get(0).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.43));
-        assertThat(result.sortedPercentageShareOfVotes().get(1).optionId()).isEqualTo(pollOptionsRecords.get(1).getId());
         assertThat(result.sortedPercentageShareOfVotes().get(1).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.43));
+        assertThat(result.sortedPercentageShareOfVotes().subList(0, 2)).extracting(PollOptionPercentageShare::optionId)
+                .containsExactlyInAnyOrder(pollOptionsRecords.get(0).getId(), pollOptionsRecords.get(1).getId());
+
+        // Verify the loser has 0.14 (14%)
         assertThat(result.sortedPercentageShareOfVotes().get(2).optionId()).isEqualTo(pollOptionsRecords.get(2).getId());
         assertThat(result.sortedPercentageShareOfVotes().get(2).percentageShare()).isEqualByComparingTo(BigDecimal.valueOf(0.14));
     }
