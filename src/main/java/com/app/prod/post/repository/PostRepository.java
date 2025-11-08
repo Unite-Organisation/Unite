@@ -39,14 +39,14 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         POST.ONLINE_URL,
                         POST.MAX_ATTENDEES
                 )
-                .from(USERS)
-                .join(BUILDINGS).on(BUILDINGS.ID.eq(USERS.BUILDING_ID))
-                .join(AREAS).on(AREAS.ID.eq(BUILDINGS.AREA_ID))
+                .from(APP_USER)
+                .join(BUILDING).on(BUILDING.ID.eq(APP_USER.BUILDING_ID))
+                .join(AREA).on(AREA.ID.eq(BUILDING.AREA_ID))
                 .join(POST).on(
-                        POST.BUILDING_ID.eq(BUILDINGS.ID)
-                                .or(POST.AREA_ID.eq(AREAS.ID))
+                        POST.BUILDING_ID.eq(BUILDING.ID)
+                                .or(POST.AREA_ID.eq(AREA.ID))
                 )
-                .where(USERS.ID.eq(userId))
+                .where(APP_USER.ID.eq(userId))
                 .and(filter.parseFilterAnd())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())

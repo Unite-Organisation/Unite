@@ -30,14 +30,14 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                 OFFERING.PRICE,
                 OFFERING.END_DATE,
                 OFFERING.CREATED_AT,
-                USERS.ID,
-                USERS.FIRST_NAME,
-                USERS.LAST_NAME,
-                USER_ROLES.USER_ROLE
+                APP_USER.ID,
+                APP_USER.FIRST_NAME,
+                APP_USER.LAST_NAME,
+                USER_ROLE.USER_ROLE_
         )
                 .from(OFFERING)
-                .leftJoin(USERS).on(OFFERING.USER_PROVIDER.eq(USERS.ID))
-                .leftJoin(USER_ROLES).on(USERS.USER_ROLE.eq(USER_ROLES.ID))
+                .leftJoin(APP_USER).on(OFFERING.USER_PROVIDER.eq(APP_USER.ID))
+                .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
                 .where(filter.parseFilterAnd())
                 .and(OFFERING.IS_ACTIVE.eq(Boolean.TRUE))
                 .fetch(record -> new OfferingResponse(
@@ -50,10 +50,10 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                         record.get(OFFERING.END_DATE),
                         record.get(OFFERING.CREATED_AT),
                         new BasicUserData(
-                                record.get(USERS.ID),
-                                record.get(USERS.FIRST_NAME),
-                                record.get(USERS.LAST_NAME),
-                                record.get(USER_ROLES.USER_ROLE)
+                                record.get(APP_USER.ID),
+                                record.get(APP_USER.FIRST_NAME),
+                                record.get(APP_USER.LAST_NAME),
+                                record.get(USER_ROLE.USER_ROLE_)
                         )
                 ));
 

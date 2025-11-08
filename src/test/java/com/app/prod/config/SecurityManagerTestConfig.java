@@ -3,7 +3,7 @@ package com.app.prod.config;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.user.enums.UserRole;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -32,8 +32,8 @@ public class SecurityManagerTestConfig {
             }
 
             @Override
-            public UsersRecord getCurrentUser() {
-                UsersRecord user = new UsersRecord();
+            public AppUserRecord getCurrentUser() {
+                AppUserRecord user = new AppUserRecord();
                 user.setId(LOGGED_USER_ID);
                 return user;
             }

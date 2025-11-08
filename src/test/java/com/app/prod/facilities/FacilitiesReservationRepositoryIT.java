@@ -6,8 +6,8 @@ import com.app.prod.builders.UserPersistanceFactory;
 import com.app.prod.config.IntegrationTest;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import io.swagger.v3.oas.annotations.Operation;
-import org.jooq.sources.tables.records.FacilitiesRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.FacilityRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,8 +27,8 @@ public class FacilitiesReservationRepositoryIT extends IntegrationTest {
     @Autowired
     private FacilityReservationsRepository facilityReservationsRepository;
 
-    private UsersRecord user;
-    private FacilitiesRecord facility;
+    private AppUserRecord user;
+    private FacilityRecord facility;
 
     private void stubUserAndFacility(String username){
         user = userPersistanceFactory.getNewUser()

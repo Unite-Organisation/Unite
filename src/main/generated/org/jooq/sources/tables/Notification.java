@@ -32,8 +32,8 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
+import org.jooq.sources.tables.AppUser.AppUserPath;
 import org.jooq.sources.tables.Issue.IssuePath;
-import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.NotificationRecord;
 
 
@@ -167,16 +167,16 @@ public class Notification extends TableImpl<NotificationRecord> {
         return _issue;
     }
 
-    private transient UsersPath _users;
+    private transient AppUserPath _appUser;
 
     /**
-     * Get the implicit join path to the <code>public.users</code> table.
+     * Get the implicit join path to the <code>public.app_user</code> table.
      */
-    public UsersPath users() {
-        if (_users == null)
-            _users = new UsersPath(this, Keys.NOTIFICATION__NOTIFICATION_RECIPIENT_ID_FKEY, null);
+    public AppUserPath appUser() {
+        if (_appUser == null)
+            _appUser = new AppUserPath(this, Keys.NOTIFICATION__NOTIFICATION_RECIPIENT_ID_FKEY, null);
 
-        return _users;
+        return _appUser;
     }
 
     @Override

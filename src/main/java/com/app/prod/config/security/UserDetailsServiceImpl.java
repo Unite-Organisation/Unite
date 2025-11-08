@@ -5,8 +5,7 @@ import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.UserRoles;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,11 +43,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         );
     }
 
-    private String getUserRole(UsersRecord user){
+    private String getUserRole(AppUserRecord user){
         return userRoleRepository.findById(user.getUserRole()).orElseThrow(
                 () -> new EntityNotPresentException(
                         String.format("User role with id %s not found.", user.getUserRole()),
-                        UserRoles.class.getSimpleName()
+                        org.jooq.sources.tables.UserRole.class.getSimpleName()
                 )
         ).getUserRole();
 

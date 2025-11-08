@@ -1,7 +1,7 @@
     package com.app.prod.config.security;
 
     import com.app.prod.user.enums.UserRole;
-    import org.jooq.sources.tables.records.UsersRecord;
+    import org.jooq.sources.tables.records.AppUserRecord;
 
     public interface GlobalSecurityManager {
 
@@ -9,7 +9,7 @@
 
         void checkUserRole(String role);
 
-        UsersRecord getCurrentUser();
+        AppUserRecord getCurrentUser();
 
         UserRole getUserRole();
 

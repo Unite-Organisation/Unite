@@ -32,9 +32,9 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Conversations.ConversationsPath;
+import org.jooq.sources.tables.AppUser.AppUserPath;
+import org.jooq.sources.tables.Conversation.ConversationPath;
 import org.jooq.sources.tables.MessagesRead.MessagesReadPath;
-import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.MessageRecord;
 
 
@@ -161,29 +161,28 @@ public class Message extends TableImpl<MessageRecord> {
         return Arrays.asList(Keys.MESSAGE__MESSAGE_CONVERSATION_ID_FKEY, Keys.MESSAGE__MESSAGE_SENDER_ID_FKEY);
     }
 
-    private transient ConversationsPath _conversations;
+    private transient ConversationPath _conversation;
 
     /**
-     * Get the implicit join path to the <code>public.conversations</code>
-     * table.
+     * Get the implicit join path to the <code>public.conversation</code> table.
      */
-    public ConversationsPath conversations() {
-        if (_conversations == null)
-            _conversations = new ConversationsPath(this, Keys.MESSAGE__MESSAGE_CONVERSATION_ID_FKEY, null);
+    public ConversationPath conversation() {
+        if (_conversation == null)
+            _conversation = new ConversationPath(this, Keys.MESSAGE__MESSAGE_CONVERSATION_ID_FKEY, null);
 
-        return _conversations;
+        return _conversation;
     }
 
-    private transient UsersPath _users;
+    private transient AppUserPath _appUser;
 
     /**
-     * Get the implicit join path to the <code>public.users</code> table.
+     * Get the implicit join path to the <code>public.app_user</code> table.
      */
-    public UsersPath users() {
-        if (_users == null)
-            _users = new UsersPath(this, Keys.MESSAGE__MESSAGE_SENDER_ID_FKEY, null);
+    public AppUserPath appUser() {
+        if (_appUser == null)
+            _appUser = new AppUserPath(this, Keys.MESSAGE__MESSAGE_SENDER_ID_FKEY, null);
 
-        return _users;
+        return _appUser;
     }
 
     private transient MessagesReadPath _messagesRead;

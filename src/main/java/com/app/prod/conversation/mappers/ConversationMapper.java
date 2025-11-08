@@ -2,8 +2,8 @@ package com.app.prod.conversation.mappers;
 
 import com.app.prod.conversation.dto.ConversationRequest;
 import com.app.prod.conversation.dto.ConversationResponse;
-import org.jooq.sources.tables.records.ConversationsRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.ConversationRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class ConversationMapper {
 
-    public static ConversationResponse fromRecordToResponse(ConversationsRecord conversationsRecord){
+    public static ConversationResponse fromRecordToResponse(ConversationRecord conversationsRecord){
         return new ConversationResponse(
                 conversationsRecord.getId(),
                 conversationsRecord.getIsGroup(),
@@ -21,7 +21,7 @@ public class ConversationMapper {
         );
     }
 
-    public static List<ConversationResponse> fromRecordsToResponses(List<ConversationsRecord> conversations){
+    public static List<ConversationResponse> fromRecordsToResponses(List<ConversationRecord> conversations){
         List<ConversationResponse> response = new ArrayList<>();
         for(var conversation : conversations){
             response.add(fromRecordToResponse(conversation));
@@ -29,8 +29,8 @@ public class ConversationMapper {
         return response;
     }
 
-    public static ConversationsRecord fromRequestToRecord(ConversationRequest request, UUID id, LocalDateTime now) {
-        return new ConversationsRecord(
+    public static ConversationRecord fromRequestToRecord(ConversationRequest request, UUID id, LocalDateTime now) {
+        return new ConversationRecord(
                 id,
                 request.isGroup(),
                 request.name(),

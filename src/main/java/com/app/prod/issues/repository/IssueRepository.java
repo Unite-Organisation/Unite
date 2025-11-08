@@ -33,23 +33,23 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
                 ISSUE.STATUS,
                 ISSUE.PRIORITY,
                 NOTIFICATION.SEEN_AT,
-                USERS.FIRST_NAME,
-                USERS.LAST_NAME,
-                USER_ROLES.USER_ROLE
+                APP_USER.FIRST_NAME,
+                APP_USER.LAST_NAME,
+                USER_ROLE.USER_ROLE_
         )
                 .from(ISSUE)
                 .leftJoin(NOTIFICATION).on(NOTIFICATION.ISSUE_ID.eq(ISSUE.ID))
-                .leftJoin(USERS).on(USERS.ID.eq(NOTIFICATION.RECIPIENT_ID))
-                .leftJoin(USER_ROLES).on(USER_ROLES.ID.eq(USERS.USER_ROLE));
+                .leftJoin(APP_USER).on(APP_USER.ID.eq(NOTIFICATION.RECIPIENT_ID))
+                .leftJoin(USER_ROLE).on(USER_ROLE.ID.eq(APP_USER.USER_ROLE));
 
         var finalQuery = joiningStrategy.joinEntity(baseQuery, entityId);
 
         return finalQuery.orderBy(ISSUE.CREATED_AT)
                 .fetch(record -> {
                         var recipientInfo = new IssueResponse.IssueRecipientInfo(
-                                record.get(USERS.FIRST_NAME),
-                                record.get(USERS.LAST_NAME),
-                                UserRole.valueOf(record.get(USER_ROLES.USER_ROLE))
+                                record.get(APP_USER.FIRST_NAME),
+                                record.get(APP_USER.LAST_NAME),
+                                UserRole.valueOf(record.get(USER_ROLE.USER_ROLE_))
                         );
 
                         return new IssueResponse(

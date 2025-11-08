@@ -13,7 +13,7 @@ import com.app.prod.utils.Pagination;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.Polls;
+import org.jooq.sources.tables.Poll;
 import org.jooq.sources.tables.records.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,8 +50,8 @@ public class PollService {
     private void createPollData(PollRequest request, UUID userId, LocalDateTime now, UUID pollId) {
         pollRepository.insertOne(PollMapper.fromRequestToRecord(request, userId, now, pollId));
 
-        List<PollOptionsRecord> records = request.options().stream()
-                .map(option -> new PollOptionsRecord(
+        List<PollOptionRecord> records = request.options().stream()
+                .map(option -> new PollOptionRecord(
                         UUID.randomUUID(),
                         pollId,
                         option,
@@ -79,7 +79,7 @@ public class PollService {
 
         var now = LocalDateTime.now(clock);
 
-        pollVotesRepository.insertOne(new PollVotesRecord(
+        pollVotesRepository.insertOne(new PollVoteRecord(
                 UUID.randomUUID(),
                 pollId,
                 vote,
@@ -99,11 +99,11 @@ public class PollService {
     }
 
 
-    public PollsRecord findById(UUID pollId){
+    public PollRecord findById(UUID pollId){
         return pollRepository.findById(pollId).orElseThrow(
                 () -> new EntityNotPresentException(
                         String.format("Poll with id: %s does not exist", pollId),
-                        Polls.class.getSimpleName()
+                        Poll.class.getSimpleName()
                 )
         );
     }

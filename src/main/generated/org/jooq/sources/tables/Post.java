@@ -34,9 +34,9 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Areas.AreasPath;
-import org.jooq.sources.tables.Buildings.BuildingsPath;
-import org.jooq.sources.tables.Users.UsersPath;
+import org.jooq.sources.tables.AppUser.AppUserPath;
+import org.jooq.sources.tables.Area.AreaPath;
+import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.records.PostRecord;
 
 
@@ -213,40 +213,40 @@ public class Post extends TableImpl<PostRecord> {
         return Arrays.asList(Keys.POST__POST_AREA_ID_FKEY, Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY);
     }
 
-    private transient AreasPath _areas;
+    private transient AreaPath _area;
 
     /**
-     * Get the implicit join path to the <code>public.areas</code> table.
+     * Get the implicit join path to the <code>public.area</code> table.
      */
-    public AreasPath areas() {
-        if (_areas == null)
-            _areas = new AreasPath(this, Keys.POST__POST_AREA_ID_FKEY, null);
+    public AreaPath area() {
+        if (_area == null)
+            _area = new AreaPath(this, Keys.POST__POST_AREA_ID_FKEY, null);
 
-        return _areas;
+        return _area;
     }
 
-    private transient BuildingsPath _buildings;
+    private transient BuildingPath _building;
 
     /**
-     * Get the implicit join path to the <code>public.buildings</code> table.
+     * Get the implicit join path to the <code>public.building</code> table.
      */
-    public BuildingsPath buildings() {
-        if (_buildings == null)
-            _buildings = new BuildingsPath(this, Keys.POST__POST_BUILDING_ID_FKEY, null);
+    public BuildingPath building() {
+        if (_building == null)
+            _building = new BuildingPath(this, Keys.POST__POST_BUILDING_ID_FKEY, null);
 
-        return _buildings;
+        return _building;
     }
 
-    private transient UsersPath _users;
+    private transient AppUserPath _appUser;
 
     /**
-     * Get the implicit join path to the <code>public.users</code> table.
+     * Get the implicit join path to the <code>public.app_user</code> table.
      */
-    public UsersPath users() {
-        if (_users == null)
-            _users = new UsersPath(this, Keys.POST__POST_CREATED_BY_FKEY, null);
+    public AppUserPath appUser() {
+        if (_appUser == null)
+            _appUser = new AppUserPath(this, Keys.POST__POST_CREATED_BY_FKEY, null);
 
-        return _users;
+        return _appUser;
     }
 
     @Override

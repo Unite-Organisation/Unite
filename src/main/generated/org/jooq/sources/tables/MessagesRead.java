@@ -32,8 +32,8 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
+import org.jooq.sources.tables.AppUser.AppUserPath;
 import org.jooq.sources.tables.Message.MessagePath;
-import org.jooq.sources.tables.Users.UsersPath;
 import org.jooq.sources.tables.records.MessagesReadRecord;
 
 
@@ -162,16 +162,16 @@ public class MessagesRead extends TableImpl<MessagesReadRecord> {
         return _message;
     }
 
-    private transient UsersPath _users;
+    private transient AppUserPath _appUser;
 
     /**
-     * Get the implicit join path to the <code>public.users</code> table.
+     * Get the implicit join path to the <code>public.app_user</code> table.
      */
-    public UsersPath users() {
-        if (_users == null)
-            _users = new UsersPath(this, Keys.MESSAGES_READ__MESSAGES_READ_VIEWED_BY_FKEY, null);
+    public AppUserPath appUser() {
+        if (_appUser == null)
+            _appUser = new AppUserPath(this, Keys.MESSAGES_READ__MESSAGES_READ_VIEWED_BY_FKEY, null);
 
-        return _users;
+        return _appUser;
     }
 
     @Override

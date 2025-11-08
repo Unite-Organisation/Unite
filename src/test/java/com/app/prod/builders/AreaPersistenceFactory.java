@@ -1,7 +1,7 @@
 package com.app.prod.builders;
 import com.app.prod.area.repository.AreaRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.AreasRecord;
+import org.jooq.sources.tables.records.AreaRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -21,10 +21,10 @@ public class AreaPersistenceFactory {
 
     public class Builder {
 
-        private final AreasRecord instance;
+        private final AreaRecord instance;
 
         public Builder() {
-            instance = new AreasRecord();
+            instance = new AreaRecord();
         }
 
         public Builder id(UUID id) {
@@ -67,12 +67,12 @@ public class AreaPersistenceFactory {
             return this;
         }
 
-        public AreasRecord build() {
+        public AreaRecord build() {
             return instance;
         }
 
-        public AreasRecord buildAndSave() {
-            AreasRecord record = build();
+        public AreaRecord buildAndSave() {
+            AreaRecord record = build();
             areaRepository.insertOne(record);
             return record;
         }

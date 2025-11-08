@@ -13,7 +13,7 @@ public class AreaJoiningStrategy implements IssueJoiningStrategy{
     @Override
     public SelectConditionStep<?> joinEntity(SelectJoinStep<?> step, UUID areaId) {
         return step
-                .leftJoin(AREAS).on(ISSUE.AREA_ID.eq(AREAS.ID))
-                .where(AREAS.ID.eq(areaId));
+                .leftJoin(AREA).on(ISSUE.AREA_ID.eq(AREA.ID))
+                .where(AREA.ID.eq(areaId));
     }
 }

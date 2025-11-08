@@ -12,8 +12,8 @@ import com.app.prod.utils.PasswordGenerator;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.Users;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.AppUser;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -43,7 +43,7 @@ public class UserService {
     private final ActivationService activationService;
     private final Validate validate;
 
-    public List<UsersRecord> getUsers(){
+    public List<AppUserRecord> getUsers(){
          return userRepository.findAll();
     }
 
@@ -76,17 +76,17 @@ public class UserService {
         return jwtService.generateToken((org.springframework.security.core.userdetails.User) ud);
     }
 
-    public UsersRecord findByUsername(String username){
+    public AppUserRecord findByUsername(String username){
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException(String.format("User with username: %s does not exist.", username))
         );
     }
 
-    public UsersRecord findById(UUID userId){
+    public AppUserRecord findById(UUID userId){
         return userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotPresentException(
                         String.format("User with id: %s does not exist.", userId),
-                        Users.class.getSimpleName()
+                        AppUser.class.getSimpleName()
                 )
         );
     }
@@ -115,13 +115,13 @@ public class UserService {
                 .build();
     }
 
-    private UsersRecord createNewNonActiveUser(PersonToBeCreated personToBeCreated){
+    private AppUserRecord createNewNonActiveUser(PersonToBeCreated personToBeCreated){
         String temporaryUsername = personToBeCreated.firstName().toLowerCase().charAt(0) + "." + personToBeCreated.lastName();
         var standardRole = userRoleService.getUserRoleId(UserRole.RESIDENT);
         var id = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now(clock);
 
-        return new UsersRecord(
+        return new AppUserRecord(
                 id,
                 personToBeCreated.firstName(),
                 personToBeCreated.lastName(),

@@ -9,7 +9,7 @@ import com.app.prod.issues.repository.strategy.PollJoiningStrategy;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,22 +28,22 @@ public class IssueFetchingService {
     private final FacilityJoiningStrategy facilityJoiningStrategy;
     private final PollJoiningStrategy pollJoiningStrategy;
 
-    public List<IssueResponse> getBuildingIssues(UUID buildingId, UsersRecord user) {
+    public List<IssueResponse> getBuildingIssues(UUID buildingId, AppUserRecord user) {
         validate.thatUserBelongsToBuilding(user, buildingId);
         return issueRepository.getEntityIssues(buildingId, buildingJoiningStrategy);
     }
 
-    public List<IssueResponse> getAreaIssues(UUID areaId, UsersRecord user) {
+    public List<IssueResponse> getAreaIssues(UUID areaId, AppUserRecord user) {
         validate.thatUserBelongsToArea(areaId, user);
         return issueRepository.getEntityIssues(areaId, areaJoiningStrategy);
     }
 
-    public List<IssueResponse> getFacilityIssues(UUID facilityId, UsersRecord user) {
+    public List<IssueResponse> getFacilityIssues(UUID facilityId, AppUserRecord user) {
         validate.thatUserCanUseFacility(user, facilityId);
         return issueRepository.getEntityIssues(facilityId, facilityJoiningStrategy);
     }
 
-    public List<IssueResponse> getPollIssues(UUID pollId, UsersRecord user) {
+    public List<IssueResponse> getPollIssues(UUID pollId, AppUserRecord user) {
         validate.thatUserCanVote(user.getId(), pollId);
         return issueRepository.getEntityIssues(pollId, pollJoiningStrategy);
     }

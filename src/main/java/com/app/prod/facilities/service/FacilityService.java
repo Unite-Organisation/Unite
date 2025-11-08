@@ -9,8 +9,8 @@ import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.FacilitiesRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.FacilityRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,8 +33,8 @@ public class FacilityService {
             throw new BadRequestException(String.format("User %s has not access to building %s", userId, buildingId));
         }
 
-        List<FacilitiesRecord> records = request.facilities().stream()
-                .map(record -> new FacilitiesRecord(
+        List<FacilityRecord> records = request.facilities().stream()
+                .map(record -> new FacilityRecord(
                         UUID.randomUUID(),
                         record.name(),
                         buildingId,
@@ -49,7 +49,7 @@ public class FacilityService {
         return String.format("Added %s facilities.", records.size());
     }
 
-    public BuildingFacilitiesResponse getFacilitiesForBuilding(UUID buildingId, UsersRecord user) {
+    public BuildingFacilitiesResponse getFacilitiesForBuilding(UUID buildingId, AppUserRecord user) {
         validate.thatUserBelongsToBuilding(user, buildingId);
         return new BuildingFacilitiesResponse(facilityRepository.getFacilitiesForBuilding(buildingId));
     }

@@ -4,27 +4,27 @@
 package org.jooq.sources;
 
 
-import org.jooq.sources.tables.Areas;
-import org.jooq.sources.tables.Buildings;
-import org.jooq.sources.tables.BuildingsManagers;
+import org.jooq.sources.tables.AppUser;
+import org.jooq.sources.tables.Area;
+import org.jooq.sources.tables.Building;
+import org.jooq.sources.tables.BuildingManager;
+import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
-import org.jooq.sources.tables.Conversations;
-import org.jooq.sources.tables.Facilities;
-import org.jooq.sources.tables.FacilitiesReservations;
+import org.jooq.sources.tables.Facility;
+import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.Notification;
 import org.jooq.sources.tables.Offering;
-import org.jooq.sources.tables.PollOptions;
+import org.jooq.sources.tables.Poll;
+import org.jooq.sources.tables.PollOption;
 import org.jooq.sources.tables.PollResult;
-import org.jooq.sources.tables.PollVotes;
+import org.jooq.sources.tables.PollVote;
 import org.jooq.sources.tables.PollWinner;
-import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.Post;
-import org.jooq.sources.tables.UserRoles;
-import org.jooq.sources.tables.Users;
+import org.jooq.sources.tables.UserRole;
 
 
 /**
@@ -34,19 +34,29 @@ import org.jooq.sources.tables.Users;
 public class Tables {
 
     /**
-     * The table <code>public.areas</code>.
+     * The table <code>public.app_user</code>.
      */
-    public static final Areas AREAS = Areas.AREAS;
+    public static final AppUser APP_USER = AppUser.APP_USER;
 
     /**
-     * The table <code>public.buildings</code>.
+     * The table <code>public.area</code>.
      */
-    public static final Buildings BUILDINGS = Buildings.BUILDINGS;
+    public static final Area AREA = Area.AREA;
 
     /**
-     * The table <code>public.buildings_managers</code>.
+     * The table <code>public.building</code>.
      */
-    public static final BuildingsManagers BUILDINGS_MANAGERS = BuildingsManagers.BUILDINGS_MANAGERS;
+    public static final Building BUILDING = Building.BUILDING;
+
+    /**
+     * The table <code>public.building_manager</code>.
+     */
+    public static final BuildingManager BUILDING_MANAGER = BuildingManager.BUILDING_MANAGER;
+
+    /**
+     * The table <code>public.conversation</code>.
+     */
+    public static final Conversation CONVERSATION = Conversation.CONVERSATION;
 
     /**
      * The table <code>public.conversation_member</code>.
@@ -54,19 +64,14 @@ public class Tables {
     public static final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
 
     /**
-     * The table <code>public.conversations</code>.
+     * The table <code>public.facility</code>.
      */
-    public static final Conversations CONVERSATIONS = Conversations.CONVERSATIONS;
+    public static final Facility FACILITY = Facility.FACILITY;
 
     /**
-     * The table <code>public.facilities</code>.
+     * The table <code>public.facility_reservation</code>.
      */
-    public static final Facilities FACILITIES = Facilities.FACILITIES;
-
-    /**
-     * The table <code>public.facilities_reservations</code>.
-     */
-    public static final FacilitiesReservations FACILITIES_RESERVATIONS = FacilitiesReservations.FACILITIES_RESERVATIONS;
+    public static final FacilityReservation FACILITY_RESERVATION = FacilityReservation.FACILITY_RESERVATION;
 
     /**
      * The table <code>public.flyway_schema_history</code>.
@@ -99,9 +104,14 @@ public class Tables {
     public static final Offering OFFERING = Offering.OFFERING;
 
     /**
-     * The table <code>public.poll_options</code>.
+     * The table <code>public.poll</code>.
      */
-    public static final PollOptions POLL_OPTIONS = PollOptions.POLL_OPTIONS;
+    public static final Poll POLL = Poll.POLL;
+
+    /**
+     * The table <code>public.poll_option</code>.
+     */
+    public static final PollOption POLL_OPTION = PollOption.POLL_OPTION;
 
     /**
      * The table <code>public.poll_result</code>.
@@ -109,9 +119,9 @@ public class Tables {
     public static final PollResult POLL_RESULT = PollResult.POLL_RESULT;
 
     /**
-     * The table <code>public.poll_votes</code>.
+     * The table <code>public.poll_vote</code>.
      */
-    public static final PollVotes POLL_VOTES = PollVotes.POLL_VOTES;
+    public static final PollVote POLL_VOTE = PollVote.POLL_VOTE;
 
     /**
      * The table <code>public.poll_winner</code>.
@@ -119,22 +129,12 @@ public class Tables {
     public static final PollWinner POLL_WINNER = PollWinner.POLL_WINNER;
 
     /**
-     * The table <code>public.polls</code>.
-     */
-    public static final Polls POLLS = Polls.POLLS;
-
-    /**
      * The table <code>public.post</code>.
      */
     public static final Post POST = Post.POST;
 
     /**
-     * The table <code>public.user_roles</code>.
+     * The table <code>public.user_role</code>.
      */
-    public static final UserRoles USER_ROLES = UserRoles.USER_ROLES;
-
-    /**
-     * The table <code>public.users</code>.
-     */
-    public static final Users USERS = Users.USERS;
+    public static final UserRole USER_ROLE = UserRole.USER_ROLE;
 }

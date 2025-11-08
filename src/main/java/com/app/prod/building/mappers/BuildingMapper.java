@@ -1,17 +1,17 @@
 package com.app.prod.building.mappers;
 
 import com.app.prod.area.dto.AreaCreateRequest;
-import org.jooq.sources.tables.records.BuildingsRecord;
+import org.jooq.sources.tables.records.BuildingRecord;
 
 import java.util.List;
 import java.util.UUID;
 
 public class BuildingMapper {
 
-    public static BuildingsRecord fromRequestToRecord(AreaCreateRequest.BuildingRequest request, UUID areaId){
+    public static BuildingRecord fromRequestToRecord(AreaCreateRequest.BuildingRequest request, UUID areaId){
         var buildingId = UUID.randomUUID();
 
-        return new BuildingsRecord(
+        return new BuildingRecord(
                 buildingId,
                 request.name(),
                 request.country(),
@@ -22,7 +22,7 @@ public class BuildingMapper {
         );
     }
 
-    public static List<BuildingsRecord> fromRequestToList(List<AreaCreateRequest.BuildingRequest> requests, UUID areaId){
+    public static List<BuildingRecord> fromRequestToList(List<AreaCreateRequest.BuildingRequest> requests, UUID areaId){
         return requests.stream()
                 .map(request -> fromRequestToRecord(request, areaId))
                 .toList();

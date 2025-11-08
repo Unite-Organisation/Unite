@@ -35,8 +35,8 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Areas.AreasPath;
-import org.jooq.sources.tables.Users.UsersPath;
+import org.jooq.sources.tables.AppUser.AppUserPath;
+import org.jooq.sources.tables.Area.AreaPath;
 import org.jooq.sources.tables.records.OfferingRecord;
 
 
@@ -188,28 +188,28 @@ public class Offering extends TableImpl<OfferingRecord> {
         return Arrays.asList(Keys.OFFERING__OFFERING_AREA_ID_FKEY, Keys.OFFERING__OFFERING_USER_PROVIDER_FKEY);
     }
 
-    private transient AreasPath _areas;
+    private transient AreaPath _area;
 
     /**
-     * Get the implicit join path to the <code>public.areas</code> table.
+     * Get the implicit join path to the <code>public.area</code> table.
      */
-    public AreasPath areas() {
-        if (_areas == null)
-            _areas = new AreasPath(this, Keys.OFFERING__OFFERING_AREA_ID_FKEY, null);
+    public AreaPath area() {
+        if (_area == null)
+            _area = new AreaPath(this, Keys.OFFERING__OFFERING_AREA_ID_FKEY, null);
 
-        return _areas;
+        return _area;
     }
 
-    private transient UsersPath _users;
+    private transient AppUserPath _appUser;
 
     /**
-     * Get the implicit join path to the <code>public.users</code> table.
+     * Get the implicit join path to the <code>public.app_user</code> table.
      */
-    public UsersPath users() {
-        if (_users == null)
-            _users = new UsersPath(this, Keys.OFFERING__OFFERING_USER_PROVIDER_FKEY, null);
+    public AppUserPath appUser() {
+        if (_appUser == null)
+            _appUser = new AppUserPath(this, Keys.OFFERING__OFFERING_USER_PROVIDER_FKEY, null);
 
-        return _users;
+        return _appUser;
     }
 
     @Override

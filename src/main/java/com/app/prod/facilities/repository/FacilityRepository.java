@@ -4,8 +4,8 @@ import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.validators.Validate;
 import org.jooq.DSLContext;
-import org.jooq.sources.tables.Facilities;
-import org.jooq.sources.tables.records.FacilitiesRecord;
+import org.jooq.sources.tables.Facility;
+import org.jooq.sources.tables.records.FacilityRecord;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,38 +14,38 @@ import java.util.UUID;
 import static org.jooq.sources.Tables.*;
 
 @Repository
-public class FacilityRepository extends BaseJooqRepository<Facilities, FacilitiesRecord, UUID> {
+public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRecord, UUID> {
     protected FacilityRepository(DSLContext dsl) {
-        super(dsl, Facilities.FACILITIES, Facilities.FACILITIES.ID);
+        super(dsl, Facility.FACILITY, Facility.FACILITY.ID);
     }
 
     public List<FacilityResponse> getFacilitiesForBuilding(UUID buildingId){
         return dslContext.select(
-                FACILITIES.ID,
-                FACILITIES.NAME,
-                FACILITIES.TYPE,
-                FACILITIES.CAPACITY,
-                FACILITIES.LOCATION,
-                FACILITIES.REQUIRES_APPROVAL
+                FACILITY.ID,
+                FACILITY.NAME,
+                FACILITY.TYPE,
+                FACILITY.CAPACITY,
+                FACILITY.LOCATION,
+                FACILITY.REQUIRES_APPROVAL
         )
-                .from(FACILITIES)
-                .where(FACILITIES.BUILDING_ID.eq(buildingId))
+                .from(FACILITY)
+                .where(FACILITY.BUILDING_ID.eq(buildingId))
                 .fetch(r -> new FacilityResponse(
-                        r.get(FACILITIES.ID),
-                        r.get(FACILITIES.NAME),
-                        r.get(FACILITIES.TYPE),
-                        r.get(FACILITIES.CAPACITY),
-                        r.get(FACILITIES.LOCATION),
-                        r.get(FACILITIES.REQUIRES_APPROVAL)
+                        r.get(FACILITY.ID),
+                        r.get(FACILITY.NAME),
+                        r.get(FACILITY.TYPE),
+                        r.get(FACILITY.CAPACITY),
+                        r.get(FACILITY.LOCATION),
+                        r.get(FACILITY.REQUIRES_APPROVAL)
                 ));
     }
 
     public UUID fetchManagerIdManagingFacility(UUID facilityId) {
-        return dslContext.select(BUILDINGS_MANAGERS.USER_ID)
-                .from(FACILITIES)
-                .leftJoin(BUILDINGS).on(FACILITIES.BUILDING_ID.eq(BUILDINGS.ID))
-                .leftJoin(BUILDINGS_MANAGERS).on(BUILDINGS.ID.eq(BUILDINGS_MANAGERS.BUILDING_ID))
-                .where(FACILITIES.ID.eq(facilityId))
-                .fetchOne(BUILDINGS_MANAGERS.USER_ID);
+        return dslContext.select(BUILDING_MANAGER.USER_ID)
+                .from(FACILITY)
+                .leftJoin(BUILDING).on(FACILITY.BUILDING_ID.eq(BUILDING.ID))
+                .leftJoin(BUILDING_MANAGER).on(BUILDING.ID.eq(BUILDING_MANAGER.BUILDING_ID))
+                .where(FACILITY.ID.eq(facilityId))
+                .fetchOne(BUILDING_MANAGER.USER_ID);
     }
 }

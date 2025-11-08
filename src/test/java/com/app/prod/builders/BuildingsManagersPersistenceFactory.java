@@ -2,7 +2,7 @@ package com.app.prod.builders;
 
 import com.app.prod.building.repository.BuildingsManagersRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.BuildingsManagersRecord;
+import org.jooq.sources.tables.records.BuildingManagerRecord;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
@@ -16,10 +16,10 @@ public class BuildingsManagersPersistenceFactory {
 
     public class Builder {
 
-        private final BuildingsManagersRecord instance;
+        private final BuildingManagerRecord instance;
 
         public Builder() {
-            instance = new BuildingsManagersRecord();
+            instance = new BuildingManagerRecord();
         }
 
         public Builder buildingId(UUID buildingId) {
@@ -32,13 +32,13 @@ public class BuildingsManagersPersistenceFactory {
             return this;
         }
 
-        public BuildingsManagersRecord build() {
+        public BuildingManagerRecord build() {
             instance.setId(UUID.randomUUID());
             return instance;
         }
 
-        public BuildingsManagersRecord buildAndSave() {
-            BuildingsManagersRecord record = build();
+        public BuildingManagerRecord buildAndSave() {
+            BuildingManagerRecord record = build();
             buildingsManagersRepository.insertOne(record);
             return record;
         }
