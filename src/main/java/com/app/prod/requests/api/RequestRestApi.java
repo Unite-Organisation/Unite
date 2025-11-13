@@ -9,6 +9,7 @@ import com.app.prod.requests.enums.RequestStatus;
 import com.app.prod.requests.service.RequestDonorService;
 import com.app.prod.requests.service.RequestOperationsService;
 import com.app.prod.requests.service.RequestService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("request")
+@Tag(name = "Item requests")
 public class RequestRestApi {
 
     private final GlobalSecurityManager globalSecurityManager;

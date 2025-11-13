@@ -44,7 +44,7 @@ With Unite, residents can:
 - Report issues or request repair services. 🟩
 - Vote in polls. 🟩
 - Post personal announcements (e.g., services offered). 🟩
-- Request items to borrow. 🟥
+- Request items to borrow. 🟩
 - Organize community events. 🟩
 
 ---
