@@ -8,7 +8,7 @@ import com.app.prod.user.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +28,7 @@ public class UserRestApi {
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> getUsers(){
-        List<UsersRecord> users = userService.getUsers();
+        List<AppUserRecord> users = userService.getUsers();
         return ResponseEntity.ok(UserMapper.fromRecordsToResponses(users));
     }
 

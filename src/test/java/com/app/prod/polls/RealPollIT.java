@@ -15,10 +15,10 @@ import com.app.prod.services.schedulers.PollScheduler;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.service.UserRoleService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.AreasRecord;
-import org.jooq.sources.tables.records.BuildingsRecord;
-import org.jooq.sources.tables.records.PollOptionsRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AreaRecord;
+import org.jooq.sources.tables.records.BuildingRecord;
+import org.jooq.sources.tables.records.PollOptionRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +59,9 @@ public class RealPollIT extends IntegrationTest {
     @Autowired
     private PollScheduler pollScheduler;
 
-    private AreasRecord area;
-    private BuildingsRecord building;
-    private UsersRecord manager;
+    private AreaRecord area;
+    private BuildingRecord building;
+    private AppUserRecord manager;
 
     // IMPORTANT: poll options should only be characters 'A' 'B' and so on. They will be sorted.
 
@@ -281,15 +281,15 @@ public class RealPollIT extends IntegrationTest {
         pollService.createPoll(request, manager.getId());
     }
 
-    private List<PollOptionsRecord> fetchSortedPollOptions(UUID pollId){
+    private List<PollOptionRecord> fetchSortedPollOptions(UUID pollId){
         return pollOptionRepository.findAll().stream()
                 .filter(r -> r.getPollId().equals(pollId))
-                .sorted(Comparator.comparing(PollOptionsRecord::getOptionText))
+                .sorted(Comparator.comparing(PollOptionRecord::getOptionText))
                 .toList();
     }
 
-    private List<UsersRecord> createVoters(int count, UUID buildingId){
-        List<UsersRecord> users = new ArrayList<>();
+    private List<AppUserRecord> createVoters(int count, UUID buildingId){
+        List<AppUserRecord> users = new ArrayList<>();
         for (int i = 0; i < count; i++){
             users.add(userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingId).build());
         }
@@ -298,7 +298,7 @@ public class RealPollIT extends IntegrationTest {
         return users;
     }
 
-    private void vote(int howMany, UUID pollId, List<UsersRecord> voters, List<PollOptionsRecord> pollOptionsRecords, List<Integer> frequencies){
+    private void vote(int howMany, UUID pollId, List<AppUserRecord> voters, List<PollOptionRecord> pollOptionsRecords, List<Integer> frequencies){
 
         Map<UUID, Integer> results = IntStream.range(0, pollOptionsRecords.size())
                 .boxed()
@@ -314,7 +314,7 @@ public class RealPollIT extends IntegrationTest {
                     throw new TestDataException("There are more votes than voters");
                 }
 
-                UsersRecord voter = voters.get(voterIndex++);
+                AppUserRecord voter = voters.get(voterIndex++);
                 if(!voter.getUserRole().equals(userRoleService.getUserRoleId(UserRole.RESIDENT))){
                     //skip managers and admins
                     continue;

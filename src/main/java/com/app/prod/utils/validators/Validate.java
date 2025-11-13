@@ -13,6 +13,8 @@ import com.app.prod.issues.repository.IssueRepository;
 import com.app.prod.issues.repository.NotificationRepository;
 import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.polls.repository.PollRepository;
+import com.app.prod.requests.repository.RequestDonorRepository;
+import com.app.prod.requests.repository.RequestRepository;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
@@ -21,8 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.*;
 import org.jooq.sources.tables.records.IssueRecord;
 import org.jooq.sources.tables.records.OfferingRecord;
-import org.jooq.sources.tables.records.UserRolesRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.UserRoleRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -44,12 +46,13 @@ public class Validate {
     private final UserRoleRepository userRoleRepository;
     private final IssueRepository issueRepository;
     private final NotificationRepository notificationRepository;
+    private final RequestRepository requestRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
             throw new EntityNotPresentException(
                     String.format("User with id: %s doesn't exist.", id),
-                    Users.class.getSimpleName()
+                    AppUser.class.getSimpleName()
             );
         }
     }
@@ -58,7 +61,7 @@ public class Validate {
         if(!conversationRepository.exists(id)){
             throw new EntityNotPresentException(
                     String.format("Conversation with id: %s doesn't exist.", id),
-                    Conversations.class.getSimpleName()
+                    Conversation.class.getSimpleName()
             );
         }
     }
@@ -76,7 +79,7 @@ public class Validate {
         if(!areaRepository.exists(id)){
             throw new EntityNotPresentException(
                     String.format("Area with id: %s doesn't exist.", id),
-                    Areas.class.getSimpleName()
+                    Area.class.getSimpleName()
             );
         }
     }
@@ -85,7 +88,7 @@ public class Validate {
         if(!facilityRepository.exists(id)){
             throw new EntityNotPresentException(
                     String.format("Facility with id: %s doesn't exist.", id),
-                    Facilities.class.getSimpleName()
+                    Facility.class.getSimpleName()
             );
         }
     }
@@ -99,7 +102,19 @@ public class Validate {
         }
     }
 
-    public void thatUserHasBuilding(UsersRecord user){
+    public void thatThisRequestBelongsToUser(AppUserRecord user, UUID requestId){
+        var request = requestRepository.findById(requestId).orElseThrow(
+                () -> new EntityNotPresentException(
+                        String.format("Request with id: %s does not exist.", requestId),
+                        Request.class.getSimpleName()
+                ));
+
+        if(!request.getUserInNeed().equals(user.getId())){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to this request", user.getId()));
+        }
+    }
+
+    public void thatUserHasBuilding(AppUserRecord user){
         if(user.getBuildingId() == null){
             throw new UnauthorizedDataAccessException(String.format("User %s does not have access to any building", user.getId()));
         }
@@ -121,7 +136,7 @@ public class Validate {
         var user = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotPresentException(
                         String.format("User with id: %s does not exist.", userId),
-                        Users.class.getSimpleName()
+                        AppUser.class.getSimpleName()
                 )
         );
         if(user.getBuildingId() != null){
@@ -133,7 +148,7 @@ public class Validate {
         if(!buildingRepository.exists(id)){
             throw new EntityNotPresentException(
                     String.format("Building with id: %s doesn't exist.", id),
-                    Buildings.class.getSimpleName()
+                    Building.class.getSimpleName()
             );
         }
     }
@@ -153,12 +168,12 @@ public class Validate {
         },
         () -> new EntityNotPresentException(
                 String.format("Poll with id %d not found", pollId),
-                Polls.class.getSimpleName()
+                Poll.class.getSimpleName()
         )
         );
     }
 
-    public void thatUserBelongsToBuilding(UsersRecord user, UUID buildingId){
+    public void thatUserBelongsToBuilding(AppUserRecord user, UUID buildingId){
         var userBuilding = user.getBuildingId();
 
         //TODO: manager should be able to access all his buildings
@@ -169,7 +184,7 @@ public class Validate {
     }
 
     //TODO: fix bug when user want to see issues in area but he cannot
-    public void thatUserBelongsToArea(UUID areaId, UsersRecord user) {
+    public void thatUserBelongsToArea(UUID areaId, AppUserRecord user) {
         thatUserHasBuilding(user);
         var building = buildingRepository.findById(user.getBuildingId()).orElseThrow();
 
@@ -178,7 +193,7 @@ public class Validate {
         }
     }
 
-    public void thatUserCanUseFacility(UsersRecord user, UUID facilityId){
+    public void thatUserCanUseFacility(AppUserRecord user, UUID facilityId){
         thatUserHasBuilding(user);
         var facility = facilityRepository.findById(facilityId).orElseThrow();
 
@@ -187,13 +202,13 @@ public class Validate {
         }
     }
 
-    public OfferingRecord andGetOffer(UUID offeringId, UsersRecord user) {
+    public OfferingRecord andGetOffer(UUID offeringId, AppUserRecord user) {
         var offering = offeringRepository.findById(offeringId).orElseThrow(() -> new EntityNotPresentException(
                 String.format("Offering with id: %s doesn't exist.", offeringId),
                 Offering.class.getSimpleName()
         ));
 
-        UserRolesRecord userRole = userRoleRepository.findById(user.getUserRole()).orElseThrow();
+        UserRoleRecord userRole = userRoleRepository.findById(user.getUserRole()).orElseThrow();
         if(UserRole.MANAGER.name().equals(userRole.getUserRole()))
             return offering;
 

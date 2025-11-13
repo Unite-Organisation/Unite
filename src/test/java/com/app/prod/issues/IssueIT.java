@@ -62,10 +62,10 @@ public class IssueIT extends IntegrationTest {
     @Autowired
     private Clock clock;
 
-    private BuildingsRecord building;
-    private UsersRecord user;
-    private UsersRecord manager;
-    private AreasRecord area;
+    private BuildingRecord building;
+    private AppUserRecord user;
+    private AppUserRecord manager;
+    private AreaRecord area;
 
     @Test
     void buildingIssueTest() throws Exception {
@@ -166,7 +166,7 @@ public class IssueIT extends IntegrationTest {
     void facilityIssueTest() throws Exception {
         createUserInBuilding();
 
-        FacilitiesRecord facility = facilityPersistanceFactory.getNewFacility()
+        FacilityRecord facility = facilityPersistanceFactory.getNewFacility()
                 .withRandomValues()
                 .buildingId(building.getId())
                 .buildAndSave();
@@ -219,7 +219,7 @@ public class IssueIT extends IntegrationTest {
     void pollIssueTest() throws Exception {
         createUserInBuilding();
 
-        PollsRecord poll = pollPersistenceFactory.getNewPoll()
+        PollRecord poll = pollPersistenceFactory.getNewPoll()
                 .withRandomValues()
                 .buildingId(building.getId())
                 .createdBy(manager.getId())

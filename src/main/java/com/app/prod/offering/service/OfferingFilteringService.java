@@ -6,7 +6,7 @@ import com.app.prod.utils.filters.OfferingFilter;
 import com.app.prod.utils.filters.PriceFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,7 +20,7 @@ public class OfferingFilteringService {
     private final Validate validate;
 
     public OfferingFilter prepareFilter(
-            UsersRecord user,
+            AppUserRecord user,
             OfferingCategory category,
             BigDecimal price,
             PriceFilter.PriceModifier modifier

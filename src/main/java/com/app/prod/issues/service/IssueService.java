@@ -9,7 +9,7 @@ import com.app.prod.user.enums.UserRole;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -25,7 +25,7 @@ public class IssueService {
     private final Validate validate;
     private final IssueStatusService issueStatusService;
 
-    public void createIssue(IssueRequest request, UsersRecord user) {
+    public void createIssue(IssueRequest request, AppUserRecord user) {
         IssueNotifyingStrategy issueStrategy = factory.chooseStrategy(new StrategyOptions(
                 request.buildingId(),
                 request.areaId(),

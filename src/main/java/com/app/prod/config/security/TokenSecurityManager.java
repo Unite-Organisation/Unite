@@ -3,7 +3,7 @@ package com.app.prod.config.security;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,7 +34,7 @@ public class TokenSecurityManager implements GlobalSecurityManager {
     }
 
     @Override
-    public UsersRecord getCurrentUser() {
+    public AppUserRecord getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return null;

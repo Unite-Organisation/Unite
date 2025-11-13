@@ -3,7 +3,7 @@ package com.app.prod.builders;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.utils.TestData;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.PollsRecord;
+import org.jooq.sources.tables.records.PollRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -23,10 +23,10 @@ public class PollPersistenceFactory {
 
     public class Builder {
 
-        private final PollsRecord instance;
+        private final PollRecord instance;
 
         public Builder() {
-            instance = new PollsRecord();
+            instance = new PollRecord();
         }
 
         public Builder id(UUID id) {
@@ -96,12 +96,12 @@ public class PollPersistenceFactory {
             return this;
         }
 
-        public PollsRecord build() {
+        public PollRecord build() {
             return instance;
         }
 
-        public PollsRecord buildAndSave() {
-            PollsRecord record = build();
+        public PollRecord buildAndSave() {
+            PollRecord record = build();
             pollRepository.insertOne(record);
             return record;
         }

@@ -7,7 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +47,7 @@ public class JwtTestHelper {
      * @throws RuntimeException if user is not found
      */
     public String generateTokenForUser(UUID userId) {
-        UsersRecord user = userRepository.findById(userId)
+        AppUserRecord user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
         
         return generateToken(user.getUsername(), getUserRole(user));
@@ -60,7 +60,7 @@ public class JwtTestHelper {
      * @param role The user's role
      * @return JWT token string
      */
-    public String generateTokenForUser(UsersRecord user, UserRole role) {
+    public String generateTokenForUser(AppUserRecord user, UserRole role) {
         return generateToken(user.getUsername(), role);
     }
 
@@ -91,7 +91,7 @@ public class JwtTestHelper {
      * @param user The user record
      * @return The user's role
      */
-    private UserRole getUserRole(UsersRecord user) {
+    private UserRole getUserRole(AppUserRecord user) {
         return userRoleRepository.findById(user.getUserRole())
                 .map(record -> UserRole.valueOf(record.getUserRole()))
                 .orElseThrow(() -> new RuntimeException("User role not found for user: " + user.getUsername()));

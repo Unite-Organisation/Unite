@@ -8,9 +8,9 @@ import com.app.prod.facilities.enums.ReservationStatus;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import com.app.prod.facilities.service.ReservationService;
-import org.jooq.sources.tables.records.FacilitiesRecord;
-import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.FacilityRecord;
+import org.jooq.sources.tables.records.FacilityReservationRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,8 +67,8 @@ public class FacilitiesReservationTests {
         when(clock.instant()).thenReturn(Instant.parse("2025-09-01T00:00:00Z"));
     }
 
-    private ReservationRequest stubFacilities(LocalDateTime start, LocalDateTime end, boolean requiresApproval, int capacity, List<FacilitiesReservationsRecord> overlappingFacilities){
-        FacilitiesRecord facilitiesRecord = new FacilitiesRecord(
+    private ReservationRequest stubFacilities(LocalDateTime start, LocalDateTime end, boolean requiresApproval, int capacity, List<FacilityReservationRecord> overlappingFacilities){
+        FacilityRecord facilitiesRecord = new FacilityRecord(
                 facilityId,
                 "Billard",
                 UUID.randomUUID(),
@@ -150,8 +150,8 @@ public class FacilitiesReservationTests {
 
         stubClock();
         var userThatReservedBeforeMe = UUID.randomUUID();
-        List<FacilitiesReservationsRecord> overlapping = List.of(
-                new FacilitiesReservationsRecord(
+        List<FacilityReservationRecord> overlapping = List.of(
+                new FacilityReservationRecord(
                     UUID.randomUUID(),
                     facilityId,
                     userThatReservedBeforeMe,

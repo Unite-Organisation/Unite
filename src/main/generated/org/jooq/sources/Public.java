@@ -10,27 +10,29 @@ import java.util.List;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
-import org.jooq.sources.tables.Areas;
-import org.jooq.sources.tables.Buildings;
-import org.jooq.sources.tables.BuildingsManagers;
+import org.jooq.sources.tables.AppUser;
+import org.jooq.sources.tables.Area;
+import org.jooq.sources.tables.Building;
+import org.jooq.sources.tables.BuildingManager;
+import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
-import org.jooq.sources.tables.Conversations;
-import org.jooq.sources.tables.Facilities;
-import org.jooq.sources.tables.FacilitiesReservations;
+import org.jooq.sources.tables.Facility;
+import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Issue;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.Notification;
 import org.jooq.sources.tables.Offering;
-import org.jooq.sources.tables.PollOptions;
+import org.jooq.sources.tables.Poll;
+import org.jooq.sources.tables.PollOption;
 import org.jooq.sources.tables.PollResult;
-import org.jooq.sources.tables.PollVotes;
+import org.jooq.sources.tables.PollVote;
 import org.jooq.sources.tables.PollWinner;
-import org.jooq.sources.tables.Polls;
 import org.jooq.sources.tables.Post;
-import org.jooq.sources.tables.UserRoles;
-import org.jooq.sources.tables.Users;
+import org.jooq.sources.tables.Request;
+import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.UserRole;
 
 
 /**
@@ -47,19 +49,29 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
-     * The table <code>public.areas</code>.
+     * The table <code>public.app_user</code>.
      */
-    public final Areas AREAS = Areas.AREAS;
+    public final AppUser APP_USER = AppUser.APP_USER;
 
     /**
-     * The table <code>public.buildings</code>.
+     * The table <code>public.area</code>.
      */
-    public final Buildings BUILDINGS = Buildings.BUILDINGS;
+    public final Area AREA = Area.AREA;
 
     /**
-     * The table <code>public.buildings_managers</code>.
+     * The table <code>public.building</code>.
      */
-    public final BuildingsManagers BUILDINGS_MANAGERS = BuildingsManagers.BUILDINGS_MANAGERS;
+    public final Building BUILDING = Building.BUILDING;
+
+    /**
+     * The table <code>public.building_manager</code>.
+     */
+    public final BuildingManager BUILDING_MANAGER = BuildingManager.BUILDING_MANAGER;
+
+    /**
+     * The table <code>public.conversation</code>.
+     */
+    public final Conversation CONVERSATION = Conversation.CONVERSATION;
 
     /**
      * The table <code>public.conversation_member</code>.
@@ -67,19 +79,14 @@ public class Public extends SchemaImpl {
     public final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
 
     /**
-     * The table <code>public.conversations</code>.
+     * The table <code>public.facility</code>.
      */
-    public final Conversations CONVERSATIONS = Conversations.CONVERSATIONS;
+    public final Facility FACILITY = Facility.FACILITY;
 
     /**
-     * The table <code>public.facilities</code>.
+     * The table <code>public.facility_reservation</code>.
      */
-    public final Facilities FACILITIES = Facilities.FACILITIES;
-
-    /**
-     * The table <code>public.facilities_reservations</code>.
-     */
-    public final FacilitiesReservations FACILITIES_RESERVATIONS = FacilitiesReservations.FACILITIES_RESERVATIONS;
+    public final FacilityReservation FACILITY_RESERVATION = FacilityReservation.FACILITY_RESERVATION;
 
     /**
      * The table <code>public.flyway_schema_history</code>.
@@ -112,9 +119,14 @@ public class Public extends SchemaImpl {
     public final Offering OFFERING = Offering.OFFERING;
 
     /**
-     * The table <code>public.poll_options</code>.
+     * The table <code>public.poll</code>.
      */
-    public final PollOptions POLL_OPTIONS = PollOptions.POLL_OPTIONS;
+    public final Poll POLL = Poll.POLL;
+
+    /**
+     * The table <code>public.poll_option</code>.
+     */
+    public final PollOption POLL_OPTION = PollOption.POLL_OPTION;
 
     /**
      * The table <code>public.poll_result</code>.
@@ -122,9 +134,9 @@ public class Public extends SchemaImpl {
     public final PollResult POLL_RESULT = PollResult.POLL_RESULT;
 
     /**
-     * The table <code>public.poll_votes</code>.
+     * The table <code>public.poll_vote</code>.
      */
-    public final PollVotes POLL_VOTES = PollVotes.POLL_VOTES;
+    public final PollVote POLL_VOTE = PollVote.POLL_VOTE;
 
     /**
      * The table <code>public.poll_winner</code>.
@@ -132,24 +144,24 @@ public class Public extends SchemaImpl {
     public final PollWinner POLL_WINNER = PollWinner.POLL_WINNER;
 
     /**
-     * The table <code>public.polls</code>.
-     */
-    public final Polls POLLS = Polls.POLLS;
-
-    /**
      * The table <code>public.post</code>.
      */
     public final Post POST = Post.POST;
 
     /**
-     * The table <code>public.user_roles</code>.
+     * The table <code>public.request</code>.
      */
-    public final UserRoles USER_ROLES = UserRoles.USER_ROLES;
+    public final Request REQUEST = Request.REQUEST;
 
     /**
-     * The table <code>public.users</code>.
+     * The table <code>public.request_donor</code>.
      */
-    public final Users USERS = Users.USERS;
+    public final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
+
+    /**
+     * The table <code>public.user_role</code>.
+     */
+    public final UserRole USER_ROLE = UserRole.USER_ROLE;
 
     /**
      * No further instances allowed
@@ -167,27 +179,29 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
-            Areas.AREAS,
-            Buildings.BUILDINGS,
-            BuildingsManagers.BUILDINGS_MANAGERS,
+            AppUser.APP_USER,
+            Area.AREA,
+            Building.BUILDING,
+            BuildingManager.BUILDING_MANAGER,
+            Conversation.CONVERSATION,
             ConversationMember.CONVERSATION_MEMBER,
-            Conversations.CONVERSATIONS,
-            Facilities.FACILITIES,
-            FacilitiesReservations.FACILITIES_RESERVATIONS,
+            Facility.FACILITY,
+            FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
             Issue.ISSUE,
             Message.MESSAGE,
             MessagesRead.MESSAGES_READ,
             Notification.NOTIFICATION,
             Offering.OFFERING,
-            PollOptions.POLL_OPTIONS,
+            Poll.POLL,
+            PollOption.POLL_OPTION,
             PollResult.POLL_RESULT,
-            PollVotes.POLL_VOTES,
+            PollVote.POLL_VOTE,
             PollWinner.POLL_WINNER,
-            Polls.POLLS,
             Post.POST,
-            UserRoles.USER_ROLES,
-            Users.USERS
+            Request.REQUEST,
+            RequestDonor.REQUEST_DONOR,
+            UserRole.USER_ROLE
         );
     }
 }

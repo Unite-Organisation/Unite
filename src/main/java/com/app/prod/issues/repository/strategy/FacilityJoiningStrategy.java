@@ -13,7 +13,7 @@ public class FacilityJoiningStrategy implements IssueJoiningStrategy{
     @Override
     public SelectConditionStep<?> joinEntity(SelectJoinStep<?> step, UUID facilityId) {
         return step
-                .leftJoin(FACILITIES).on(ISSUE.FACILITY_ID.eq(FACILITIES.ID))
-                .where(FACILITIES.ID.eq(facilityId));
+                .leftJoin(FACILITY).on(ISSUE.FACILITY_ID.eq(FACILITY.ID))
+                .where(FACILITY.ID.eq(facilityId));
     }
 }

@@ -31,8 +31,8 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.PollOptions.PollOptionsPath;
-import org.jooq.sources.tables.Polls.PollsPath;
+import org.jooq.sources.tables.Poll.PollPath;
+import org.jooq.sources.tables.PollOption.PollOptionPath;
 import org.jooq.sources.tables.records.PollWinnerRecord;
 
 
@@ -149,28 +149,28 @@ public class PollWinner extends TableImpl<PollWinnerRecord> {
         return Arrays.asList(Keys.POLL_WINNER__POLL_WINNER_OPTION_ID_FKEY, Keys.POLL_WINNER__POLL_WINNER_POLL_ID_FKEY);
     }
 
-    private transient PollOptionsPath _pollOptions;
+    private transient PollOptionPath _pollOption;
 
     /**
-     * Get the implicit join path to the <code>public.poll_options</code> table.
+     * Get the implicit join path to the <code>public.poll_option</code> table.
      */
-    public PollOptionsPath pollOptions() {
-        if (_pollOptions == null)
-            _pollOptions = new PollOptionsPath(this, Keys.POLL_WINNER__POLL_WINNER_OPTION_ID_FKEY, null);
+    public PollOptionPath pollOption() {
+        if (_pollOption == null)
+            _pollOption = new PollOptionPath(this, Keys.POLL_WINNER__POLL_WINNER_OPTION_ID_FKEY, null);
 
-        return _pollOptions;
+        return _pollOption;
     }
 
-    private transient PollsPath _polls;
+    private transient PollPath _poll;
 
     /**
-     * Get the implicit join path to the <code>public.polls</code> table.
+     * Get the implicit join path to the <code>public.poll</code> table.
      */
-    public PollsPath polls() {
-        if (_polls == null)
-            _polls = new PollsPath(this, Keys.POLL_WINNER__POLL_WINNER_POLL_ID_FKEY, null);
+    public PollPath poll() {
+        if (_poll == null)
+            _poll = new PollPath(this, Keys.POLL_WINNER__POLL_WINNER_POLL_ID_FKEY, null);
 
-        return _polls;
+        return _poll;
     }
 
     @Override

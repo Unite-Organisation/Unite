@@ -3,7 +3,7 @@ package com.app.prod.builders;
 import com.app.prod.facilities.enums.ReservationStatus;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
+import org.jooq.sources.tables.records.FacilityReservationRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -21,10 +21,10 @@ public class FacilitiesReservationnPersistanceFactory {
 
     public class Builder {
 
-        private final FacilitiesReservationsRecord instance;
+        private final FacilityReservationRecord instance;
 
         public Builder() {
-            instance = new FacilitiesReservationsRecord();
+            instance = new FacilityReservationRecord();
         }
 
         public Builder facilityId(UUID id) {
@@ -55,12 +55,12 @@ public class FacilitiesReservationnPersistanceFactory {
             return this;
         }
 
-        public FacilitiesReservationsRecord build() {
+        public FacilityReservationRecord build() {
             return instance;
         }
 
-        public FacilitiesReservationsRecord buildAndSave() {
-            FacilitiesReservationsRecord record = build();
+        public FacilityReservationRecord buildAndSave() {
+            FacilityReservationRecord record = build();
             facilityReservationsRepository.insertOne(record);
             return record;
         }

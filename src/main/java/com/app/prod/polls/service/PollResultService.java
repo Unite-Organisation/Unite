@@ -8,8 +8,8 @@ import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.PollOptionsRecord;
-import org.jooq.sources.tables.records.PollsRecord;
+import org.jooq.sources.tables.records.PollOptionRecord;
+import org.jooq.sources.tables.records.PollRecord;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,7 +28,7 @@ public class PollResultService {
     private final PollProcessingService pollProcessingService;
 
     public PollResult calculatePollResult(UUID pollId) {
-        List<PollOptionsRecord> allPollOptions = pollOptionRepository.getAllOptionsForPoll(pollId);
+        List<PollOptionRecord> allPollOptions = pollOptionRepository.getAllOptionsForPoll(pollId);
         List<PollOptionVoteCount> sortedVotes = pollVotesRepository.countVotes(pollId);
 
         includeOptionsWithNoVotes(allPollOptions, sortedVotes);
@@ -54,7 +54,7 @@ public class PollResultService {
         );
     }
 
-    private void includeOptionsWithNoVotes(List<PollOptionsRecord> allPollOptions, List<PollOptionVoteCount> sortedVotes){
+    private void includeOptionsWithNoVotes(List<PollOptionRecord> allPollOptions, List<PollOptionVoteCount> sortedVotes){
         if(allPollOptions.size() == sortedVotes.size()){
             log.info("There are no poll options with zero votes");
             return;
@@ -71,7 +71,7 @@ public class PollResultService {
         }
     }
 
-    private boolean pollOptionIsIncluded(PollOptionsRecord pollOption, List<PollOptionVoteCount> sortedVotes){
+    private boolean pollOptionIsIncluded(PollOptionRecord pollOption, List<PollOptionVoteCount> sortedVotes){
         for(var vote : sortedVotes){
             if(pollOption.getId().equals(vote.optionId())){
                 return true;
@@ -82,7 +82,7 @@ public class PollResultService {
 
     private int getEligiblePeopleCount(UUID pollId) {
         //TODO: optimization - two repository calls (validation and here)
-        PollsRecord poll = pollRepository.findById(pollId).get();
+        PollRecord poll = pollRepository.findById(pollId).get();
 
         return switch (poll.getBuildingId()){
             case null -> pollRepository.getNumberOfPeopleEligibleToVoteAreaStrategy(pollId);

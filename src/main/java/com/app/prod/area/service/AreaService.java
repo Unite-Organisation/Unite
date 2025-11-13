@@ -10,8 +10,8 @@ import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.records.BuildingsManagersRecord;
-import org.jooq.sources.tables.records.BuildingsRecord;
+import org.jooq.sources.tables.records.BuildingManagerRecord;
+import org.jooq.sources.tables.records.BuildingRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,12 +46,12 @@ public class AreaService {
 
     private void saveBuildings(List<AreaCreateRequest.BuildingRequest> buildings, UUID areaId){
         var managerId = tokenSecurityManager.getCurrentUser().getId();
-        List<BuildingsRecord> buildingRecords = BuildingMapper.fromRequestToList(buildings, areaId);
+        List<BuildingRecord> buildingRecords = BuildingMapper.fromRequestToList(buildings, areaId);
         buildingRepository.insertMany(buildingRecords);
 
         buildingsManagersRepository.insertMany(
                 buildingRecords.stream()
-                        .map(record -> new BuildingsManagersRecord(
+                        .map(record -> new BuildingManagerRecord(
                                 UUID.randomUUID(),
                                 record.getId(),
                                 managerId

@@ -3,7 +3,7 @@ package com.app.prod.builders;
 import com.app.prod.facilities.enums.FacilityType;
 import com.app.prod.facilities.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.FacilitiesRecord;
+import org.jooq.sources.tables.records.FacilityRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -20,10 +20,10 @@ public class FacilityPersistanceFactory {
 
     public class Builder {
 
-        private final FacilitiesRecord instance;
+        private final FacilityRecord instance;
 
         public Builder() {
-            instance = new FacilitiesRecord();
+            instance = new FacilityRecord();
         }
 
         public Builder buildingId(UUID id){
@@ -41,12 +41,12 @@ public class FacilityPersistanceFactory {
             return this;
         }
 
-        public FacilitiesRecord build() {
+        public FacilityRecord build() {
             return instance;
         }
 
-        public FacilitiesRecord buildAndSave() {
-            FacilitiesRecord record = build();
+        public FacilityRecord buildAndSave() {
+            FacilityRecord record = build();
             facilityRepository.insertOne(record);
             return record;
         }

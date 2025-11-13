@@ -37,30 +37,30 @@ public class NotificationRepository extends BaseJooqRepository<Notification, Not
                         ISSUE.FACILITY_ID,
                         ISSUE.POLL_ID
                 ).as("entityId"),
-                USERS.ID,
-                USERS.FIRST_NAME,
-                USERS.LAST_NAME,
-                USERS.USERNAME,
-                USER_ROLES.USER_ROLE,
+                APP_USER.ID,
+                APP_USER.FIRST_NAME,
+                APP_USER.LAST_NAME,
+                APP_USER.USERNAME,
+                USER_ROLE.USER_ROLE_,
                 ISSUE.CREATED_AT
         )
                 .from(ISSUE)
                 .leftJoin(NOTIFICATION).on(NOTIFICATION.ISSUE_ID.eq(ISSUE.ID))
-                .leftJoin(USERS).on(NOTIFICATION.RECIPIENT_ID.eq(USERS.ID))
-                .leftJoin(USER_ROLES).on(USERS.USER_ROLE.eq(USER_ROLES.ID))
-                .leftJoin(BUILDINGS).on(ISSUE.BUILDING_ID.eq(BUILDINGS.ID))
-                .leftJoin(AREAS).on(ISSUE.AREA_ID.eq(AREAS.ID))
-                .leftJoin(FACILITIES).on(ISSUE.FACILITY_ID.eq(FACILITIES.ID))
-                .leftJoin(POLLS).on(ISSUE.POLL_ID.eq(POLLS.ID))
-                .where(USERS.ID.eq(managerId))
+                .leftJoin(APP_USER).on(NOTIFICATION.RECIPIENT_ID.eq(APP_USER.ID))
+                .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
+                .leftJoin(BUILDING).on(ISSUE.BUILDING_ID.eq(BUILDING.ID))
+                .leftJoin(AREA).on(ISSUE.AREA_ID.eq(AREA.ID))
+                .leftJoin(FACILITY).on(ISSUE.FACILITY_ID.eq(FACILITY.ID))
+                .leftJoin(POLL).on(ISSUE.POLL_ID.eq(POLL.ID))
+                .where(APP_USER.ID.eq(managerId))
                 .fetch(record -> {
 
                     NotificationResponse.IssuerData issuerData = new NotificationResponse.IssuerData(
-                            record.get(USERS.ID),
-                            record.get(USERS.FIRST_NAME),
-                            record.get(USERS.LAST_NAME),
-                            record.get(USERS.USERNAME),
-                            record.get(USER_ROLES.USER_ROLE),
+                            record.get(APP_USER.ID),
+                            record.get(APP_USER.FIRST_NAME),
+                            record.get(APP_USER.LAST_NAME),
+                            record.get(APP_USER.USERNAME),
+                            record.get(USER_ROLE.USER_ROLE_),
                             record.get(ISSUE.CREATED_AT)
                     );
 

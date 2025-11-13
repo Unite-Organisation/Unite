@@ -9,7 +9,7 @@ import com.app.prod.conversation.service.ConversationService;
 import com.app.prod.messaging.service.MessageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.ConversationsRecord;
+import org.jooq.sources.tables.records.ConversationRecord;
 import org.jooq.sources.tables.records.MessageRecord;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +30,7 @@ public class ConversationRestApi {
 
     @GetMapping()
     public ResponseEntity<List<ConversationResponse>> getConversations(){
-        List<ConversationsRecord> conversations = conversationService.getConversations();
+        List<ConversationRecord> conversations = conversationService.getConversations();
         return ResponseEntity.ok(ConversationMapper.fromRecordsToResponses(conversations));
     }
 

@@ -32,12 +32,12 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Areas.AreasPath;
-import org.jooq.sources.tables.Buildings.BuildingsPath;
-import org.jooq.sources.tables.Facilities.FacilitiesPath;
+import org.jooq.sources.tables.AppUser.AppUserPath;
+import org.jooq.sources.tables.Area.AreaPath;
+import org.jooq.sources.tables.Building.BuildingPath;
+import org.jooq.sources.tables.Facility.FacilityPath;
 import org.jooq.sources.tables.Notification.NotificationPath;
-import org.jooq.sources.tables.Polls.PollsPath;
-import org.jooq.sources.tables.Users.UsersPath;
+import org.jooq.sources.tables.Poll.PollPath;
 import org.jooq.sources.tables.records.IssueRecord;
 
 
@@ -204,64 +204,64 @@ public class Issue extends TableImpl<IssueRecord> {
         return Arrays.asList(Keys.ISSUE__ISSUE_AREA_ID_FKEY, Keys.ISSUE__ISSUE_BUILDING_ID_FKEY, Keys.ISSUE__ISSUE_CREATED_BY_FKEY, Keys.ISSUE__ISSUE_FACILITY_ID_FKEY, Keys.ISSUE__ISSUE_POLL_ID_FKEY);
     }
 
-    private transient AreasPath _areas;
+    private transient AreaPath _area;
 
     /**
-     * Get the implicit join path to the <code>public.areas</code> table.
+     * Get the implicit join path to the <code>public.area</code> table.
      */
-    public AreasPath areas() {
-        if (_areas == null)
-            _areas = new AreasPath(this, Keys.ISSUE__ISSUE_AREA_ID_FKEY, null);
+    public AreaPath area() {
+        if (_area == null)
+            _area = new AreaPath(this, Keys.ISSUE__ISSUE_AREA_ID_FKEY, null);
 
-        return _areas;
+        return _area;
     }
 
-    private transient BuildingsPath _buildings;
+    private transient BuildingPath _building;
 
     /**
-     * Get the implicit join path to the <code>public.buildings</code> table.
+     * Get the implicit join path to the <code>public.building</code> table.
      */
-    public BuildingsPath buildings() {
-        if (_buildings == null)
-            _buildings = new BuildingsPath(this, Keys.ISSUE__ISSUE_BUILDING_ID_FKEY, null);
+    public BuildingPath building() {
+        if (_building == null)
+            _building = new BuildingPath(this, Keys.ISSUE__ISSUE_BUILDING_ID_FKEY, null);
 
-        return _buildings;
+        return _building;
     }
 
-    private transient UsersPath _users;
+    private transient AppUserPath _appUser;
 
     /**
-     * Get the implicit join path to the <code>public.users</code> table.
+     * Get the implicit join path to the <code>public.app_user</code> table.
      */
-    public UsersPath users() {
-        if (_users == null)
-            _users = new UsersPath(this, Keys.ISSUE__ISSUE_CREATED_BY_FKEY, null);
+    public AppUserPath appUser() {
+        if (_appUser == null)
+            _appUser = new AppUserPath(this, Keys.ISSUE__ISSUE_CREATED_BY_FKEY, null);
 
-        return _users;
+        return _appUser;
     }
 
-    private transient FacilitiesPath _facilities;
+    private transient FacilityPath _facility;
 
     /**
-     * Get the implicit join path to the <code>public.facilities</code> table.
+     * Get the implicit join path to the <code>public.facility</code> table.
      */
-    public FacilitiesPath facilities() {
-        if (_facilities == null)
-            _facilities = new FacilitiesPath(this, Keys.ISSUE__ISSUE_FACILITY_ID_FKEY, null);
+    public FacilityPath facility() {
+        if (_facility == null)
+            _facility = new FacilityPath(this, Keys.ISSUE__ISSUE_FACILITY_ID_FKEY, null);
 
-        return _facilities;
+        return _facility;
     }
 
-    private transient PollsPath _polls;
+    private transient PollPath _poll;
 
     /**
-     * Get the implicit join path to the <code>public.polls</code> table.
+     * Get the implicit join path to the <code>public.poll</code> table.
      */
-    public PollsPath polls() {
-        if (_polls == null)
-            _polls = new PollsPath(this, Keys.ISSUE__ISSUE_POLL_ID_FKEY, null);
+    public PollPath poll() {
+        if (_poll == null)
+            _poll = new PollPath(this, Keys.ISSUE__ISSUE_POLL_ID_FKEY, null);
 
-        return _polls;
+        return _poll;
     }
 
     private transient NotificationPath _notification;

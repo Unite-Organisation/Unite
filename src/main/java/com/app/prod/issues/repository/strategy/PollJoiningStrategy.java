@@ -13,7 +13,7 @@ public class PollJoiningStrategy implements IssueJoiningStrategy{
     @Override
     public SelectConditionStep<?> joinEntity(SelectJoinStep<?> step, UUID pollId) {
         return step
-                .leftJoin(POLLS).on(ISSUE.POLL_ID.eq(POLLS.ID))
-                .where(POLLS.ID.eq(pollId));
+                .leftJoin(POLL).on(ISSUE.POLL_ID.eq(POLL.ID))
+                .where(POLL.ID.eq(pollId));
     }
 }

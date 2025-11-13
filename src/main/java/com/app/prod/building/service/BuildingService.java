@@ -9,8 +9,8 @@ import com.app.prod.user.service.UserService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.Buildings;
-import org.jooq.sources.tables.records.BuildingsRecord;
+import org.jooq.sources.tables.Building;
+import org.jooq.sources.tables.records.BuildingRecord;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,11 +37,11 @@ public class BuildingService {
         return String.format("Added user %s to building %s", userId, buildingId);
     }
 
-    public BuildingsRecord findById(UUID buildingId){
+    public BuildingRecord findById(UUID buildingId){
         return buildingRepository.findById(buildingId).orElseThrow(
                 () -> new EntityNotPresentException(
                         String.format("Building with id: %s does not exist", buildingId),
-                        Buildings.class.getSimpleName()
+                        Building.class.getSimpleName()
                 )
         );
     }

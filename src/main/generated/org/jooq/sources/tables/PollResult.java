@@ -31,7 +31,7 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Polls.PollsPath;
+import org.jooq.sources.tables.Poll.PollPath;
 import org.jooq.sources.tables.records.PollResultRecord;
 
 
@@ -153,16 +153,16 @@ public class PollResult extends TableImpl<PollResultRecord> {
         return Arrays.asList(Keys.POLL_RESULT__POLL_RESULT_POLL_ID_FKEY);
     }
 
-    private transient PollsPath _polls;
+    private transient PollPath _poll;
 
     /**
-     * Get the implicit join path to the <code>public.polls</code> table.
+     * Get the implicit join path to the <code>public.poll</code> table.
      */
-    public PollsPath polls() {
-        if (_polls == null)
-            _polls = new PollsPath(this, Keys.POLL_RESULT__POLL_RESULT_POLL_ID_FKEY, null);
+    public PollPath poll() {
+        if (_poll == null)
+            _poll = new PollPath(this, Keys.POLL_RESULT__POLL_RESULT_POLL_ID_FKEY, null);
 
-        return _polls;
+        return _poll;
     }
 
     @Override

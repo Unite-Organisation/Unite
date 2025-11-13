@@ -2,7 +2,7 @@ package com.app.prod.builders;
 
 import com.app.prod.building.repository.BuildingRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.BuildingsRecord;
+import org.jooq.sources.tables.records.BuildingRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -21,10 +21,10 @@ public class BuildingPersistenceFactory {
 
     public class Builder {
 
-        private final BuildingsRecord instance;
+        private final BuildingRecord instance;
 
         public Builder() {
-            instance = new BuildingsRecord();
+            instance = new BuildingRecord();
         }
 
         public Builder id(UUID id) {
@@ -72,12 +72,12 @@ public class BuildingPersistenceFactory {
             return this;
         }
 
-        public BuildingsRecord build() {
+        public BuildingRecord build() {
             return instance;
         }
 
-        public BuildingsRecord buildAndSave() {
-            BuildingsRecord record = build();
+        public BuildingRecord buildAndSave() {
+            BuildingRecord record = build();
             buildingRepository.insertOne(record);
             return record;
         }

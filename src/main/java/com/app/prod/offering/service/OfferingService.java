@@ -11,7 +11,7 @@ import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.OfferingRecord;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -29,7 +29,7 @@ public class OfferingService {
     private final Validate validate;
     private final Clock clock;
 
-    public void createOffering(OfferingRequest request, UsersRecord usersRecord){
+    public void createOffering(OfferingRequest request, AppUserRecord usersRecord){
         validate.thatUserHasBuilding(usersRecord);
         var areaId = buildingService.getAreaId(usersRecord.getBuildingId());
         var now = LocalDateTime.now(clock);
@@ -42,7 +42,7 @@ public class OfferingService {
         return offeringRepository.getOfferings(filter);
     }
 
-    public void cancelOffering(UsersRecord user, UUID offeringId) {
+    public void cancelOffering(AppUserRecord user, UUID offeringId) {
         OfferingRecord offering = validate.andGetOffer(offeringId, user);
 
         if(!offering.getIsActive()){

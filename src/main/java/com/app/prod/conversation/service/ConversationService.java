@@ -12,7 +12,7 @@ import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
-import org.jooq.sources.tables.records.ConversationsRecord;
+import org.jooq.sources.tables.records.ConversationRecord;
 import org.jooq.sources.tables.records.MessageRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class ConversationService {
     private final Clock clock;
     private final Validate validate;
 
-    public List<ConversationsRecord> getConversations() {
+    public List<ConversationRecord> getConversations() {
         return conversationRepository.findAll();
     }
 

@@ -6,7 +6,7 @@ import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.service.UserRoleService;
 import com.app.prod.utils.TestData;
 import lombok.RequiredArgsConstructor;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -26,10 +26,10 @@ public class UserPersistanceFactory {
 
     public class Builder {
 
-        private final UsersRecord instance;
+        private final AppUserRecord instance;
 
         public Builder() {
-            instance = new UsersRecord();
+            instance = new AppUserRecord();
         }
 
         public Builder firstName(String firstName) {
@@ -95,18 +95,18 @@ public class UserPersistanceFactory {
             return this;
         }
 
-        public UsersRecord build() {
+        public AppUserRecord build() {
             return instance;
         }
 
-        public UsersRecord buildAndSave() {
-            UsersRecord record = build();
+        public AppUserRecord buildAndSave() {
+            AppUserRecord record = build();
             userRepository.insertOne(record);
             return record;
         }
     }
 
-    public void batchBuildAndSave(List<UsersRecord> users){
+    public void batchBuildAndSave(List<AppUserRecord> users){
         userRepository.insertMany(users);
     }
 

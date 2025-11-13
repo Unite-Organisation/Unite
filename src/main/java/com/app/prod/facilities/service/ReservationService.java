@@ -12,7 +12,7 @@ import com.app.prod.facilities.repository.FacilityReservationsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.meta.derby.sys.Sys;
-import org.jooq.sources.tables.records.FacilitiesReservationsRecord;
+import org.jooq.sources.tables.records.FacilityReservationRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -44,7 +44,7 @@ public class ReservationService {
 
         validateTimePeriods(startTime, endTime);
 
-        List<FacilitiesReservationsRecord> overlappingReservations =
+        List<FacilityReservationRecord> overlappingReservations =
                 facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, startTime, endTime);
 
         if(!overlappingReservations.isEmpty()){
@@ -58,7 +58,7 @@ public class ReservationService {
         }
 
         ReservationStatus status = determineReservationStatusFromFacility(facilityId);
-        var recordToBeInserted = new FacilitiesReservationsRecord(
+        var recordToBeInserted = new FacilityReservationRecord(
                 UUID.randomUUID(),
                 facilityId,
                 userId,

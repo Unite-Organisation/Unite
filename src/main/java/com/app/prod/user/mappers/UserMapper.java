@@ -3,7 +3,7 @@ package com.app.prod.user.mappers;
 import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.dto.UserResponse;
 import com.app.prod.user.enums.UserStatus;
-import org.jooq.sources.tables.records.UsersRecord;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -15,7 +15,7 @@ import static com.app.prod.config.Constants.BCRYPT_PASSWORD_ENCODER_STRENGTH;
 
 public class UserMapper {
 
-    public static UserResponse fromRecordToResponse(UsersRecord usersRecord){
+    public static UserResponse fromRecordToResponse(AppUserRecord usersRecord){
         return new UserResponse(
                 usersRecord.getId(),
                 usersRecord.getFirstName(),
@@ -27,7 +27,7 @@ public class UserMapper {
         );
     }
 
-    public static List<UserResponse> fromRecordsToResponses(List<UsersRecord> users){
+    public static List<UserResponse> fromRecordsToResponses(List<AppUserRecord> users){
         List<UserResponse> response = new ArrayList<>();
         for(var user : users){
             response.add(fromRecordToResponse(user));
@@ -35,8 +35,8 @@ public class UserMapper {
         return response;
     }
 
-    public static UsersRecord fromRequestToRecord(UserRegisterRequest request, UUID id, LocalDateTime now, UUID selectedRole, BCryptPasswordEncoder encoder){
-        return new UsersRecord(
+    public static AppUserRecord fromRequestToRecord(UserRegisterRequest request, UUID id, LocalDateTime now, UUID selectedRole, BCryptPasswordEncoder encoder){
+        return new AppUserRecord(
                 id,
                 request.firstName(),
                 request.lastName(),

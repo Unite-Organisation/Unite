@@ -8,8 +8,8 @@ import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.impl.DSL;
-import org.jooq.sources.tables.Polls;
-import org.jooq.sources.tables.records.PollsRecord;
+import org.jooq.sources.tables.Poll;
+import org.jooq.sources.tables.records.PollRecord;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -22,69 +22,69 @@ import static org.jooq.impl.DSL.select;
 import static org.jooq.sources.Tables.*;
 
 @Repository
-public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID> {
+public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
     protected PollRepository(DSLContext dsl) {
-        super(dsl, Polls.POLLS, Polls.POLLS.ID);
+        super(dsl, Poll.POLL, Poll.POLL.ID);
     }
 
     public List<PollResponse> getPolls(UUID userId, Pagination pagination) {
-        var subQuery = dslContext.select(POLLS.ID)
-                .from(POLLS)
-                .join(BUILDINGS).on(
-                        BUILDINGS.ID.eq(POLLS.BUILDING_ID).or(POLLS.AREA_ID.eq(BUILDINGS.AREA_ID))
+        var subQuery = dslContext.select(POLL.ID)
+                .from(POLL)
+                .join(BUILDING).on(
+                        BUILDING.ID.eq(POLL.BUILDING_ID).or(POLL.AREA_ID.eq(BUILDING.AREA_ID))
                 )
-                .join(USERS).on(USERS.BUILDING_ID.eq(BUILDINGS.ID))
-                .where(USERS.ID.eq(userId));
+                .join(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                .where(APP_USER.ID.eq(userId));
 
         return dslContext.select(
-            POLLS.ID,
-            POLLS.TITLE,
-            POLLS.DESCRIPTION,
-            USERS.FIRST_NAME,
-            USERS.LAST_NAME,
-            USER_ROLES.USER_ROLE,
-            POLLS.ANONYMOUS,
-            POLLS.BUILDING_ID,
-            POLLS.AREA_ID,
-            POLLS.START_TIME,
-            POLLS.END_TIME,
+            POLL.ID,
+            POLL.TITLE,
+            POLL.DESCRIPTION,
+            APP_USER.FIRST_NAME,
+            APP_USER.LAST_NAME,
+            USER_ROLE.USER_ROLE_,
+            POLL.ANONYMOUS,
+            POLL.BUILDING_ID,
+            POLL.AREA_ID,
+            POLL.START_TIME,
+            POLL.END_TIME,
             multiset(
-                select(POLL_OPTIONS.ID, POLL_OPTIONS.OPTION_TEXT)
-                      .from(POLL_OPTIONS)
-                      .where(POLL_OPTIONS.POLL_ID.eq(POLLS.ID))
+                select(POLL_OPTION.ID, POLL_OPTION.OPTION_TEXT)
+                      .from(POLL_OPTION)
+                      .where(POLL_OPTION.POLL_ID.eq(POLL.ID))
                 ).as("options")
                         .convertFrom(r -> r.map(rec ->
                                 new PollOptionResponse(
-                                        rec.get(POLL_OPTIONS.ID),
-                                        rec.get(POLL_OPTIONS.OPTION_TEXT)
+                                        rec.get(POLL_OPTION.ID),
+                                        rec.get(POLL_OPTION.OPTION_TEXT)
                                 )
                         )))
-                .from(POLLS)
-                .join(USERS).on(USERS.ID.eq(POLLS.CREATED_BY))
-                .join(USER_ROLES).on(USERS.USER_ROLE.eq(USER_ROLES.ID))
-                .where(POLLS.ID.in(subQuery))
-                .orderBy(POLLS.END_TIME)
+                .from(POLL)
+                .join(APP_USER).on(APP_USER.ID.eq(POLL.CREATED_BY))
+                .join(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
+                .where(POLL.ID.in(subQuery))
+                .orderBy(POLL.END_TIME)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
                 .fetch(record -> {
 
-                            String firstName = record.get(USERS.FIRST_NAME);
-                            String lastName = record.get(USERS.LAST_NAME);
+                            String firstName = record.get(APP_USER.FIRST_NAME);
+                            String lastName = record.get(APP_USER.LAST_NAME);
                             String fullName = firstName + " " + lastName;
 
-                            var areaId = record.get(POLLS.AREA_ID);
+                            var areaId = record.get(POLL.AREA_ID);
                             PollTarget target = (areaId != null) ? PollTarget.AREA : PollTarget.BUILDING;
 
                             return new PollResponse(
-                                    record.get(POLLS.ID),
-                                    record.get(POLLS.TITLE),
-                                    record.get(POLLS.DESCRIPTION),
+                                    record.get(POLL.ID),
+                                    record.get(POLL.TITLE),
+                                    record.get(POLL.DESCRIPTION),
                                     fullName,
-                                    record.get(USER_ROLES.USER_ROLE),
-                                    record.get(POLLS.ANONYMOUS),
+                                    record.get(USER_ROLE.USER_ROLE_),
+                                    record.get(POLL.ANONYMOUS),
                                     target,
-                                    record.get(POLLS.START_TIME),
-                                    record.get(POLLS.END_TIME),
+                                    record.get(POLL.START_TIME),
+                                    record.get(POLL.END_TIME),
                                     record.get("options", List.class)
                             );
                         }
@@ -92,11 +92,11 @@ public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID>
 
     }
 
-    public List<PollsRecord> getUnfinishedPollsAndFinishThem(LocalDateTime now){
-        return dslContext.update(POLLS)
-                .set(POLLS.FINISHED, true)
-                .where(POLLS.FINISHED.eq(false))
-                .and(POLLS.END_TIME.lt(now))
+    public List<PollRecord> getUnfinishedPollsAndFinishThem(LocalDateTime now){
+        return dslContext.update(POLL)
+                .set(POLL.FINISHED, true)
+                .where(POLL.FINISHED.eq(false))
+                .and(POLL.END_TIME.lt(now))
                 .returning()
                 .fetch();
     }
@@ -104,10 +104,10 @@ public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID>
     public int getNumberOfPeopleEligibleToVoteBuildingStrategy(UUID pollId) {
         return Optional.ofNullable(
                 dslContext.selectCount()
-                        .from(POLLS)
-                        .join(BUILDINGS).on(BUILDINGS.ID.eq(POLLS.BUILDING_ID))
-                        .join(USERS).on(USERS.BUILDING_ID.eq(BUILDINGS.ID))
-                        .where(POLLS.ID.eq(pollId))
+                        .from(POLL)
+                        .join(BUILDING).on(BUILDING.ID.eq(POLL.BUILDING_ID))
+                        .join(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                        .where(POLL.ID.eq(pollId))
                         .fetchOneInto(Integer.class)
         ).orElse(0);
     }
@@ -115,11 +115,11 @@ public class PollRepository extends BaseJooqRepository<Polls, PollsRecord, UUID>
     public int getNumberOfPeopleEligibleToVoteAreaStrategy(UUID pollId) {
         return Optional.ofNullable(
                 dslContext.selectCount()
-                        .from(POLLS)
-                        .join(AREAS).on(AREAS.ID.eq(POLLS.AREA_ID))
-                        .join(BUILDINGS).on(BUILDINGS.AREA_ID.eq(AREAS.ID))
-                        .join(USERS).on(USERS.BUILDING_ID.eq(BUILDINGS.ID))
-                        .where(POLLS.ID.eq(pollId))
+                        .from(POLL)
+                        .join(AREA).on(AREA.ID.eq(POLL.AREA_ID))
+                        .join(BUILDING).on(BUILDING.AREA_ID.eq(AREA.ID))
+                        .join(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                        .where(POLL.ID.eq(pollId))
                         .fetchOneInto(Integer.class)
         ).orElse(0);
     }
