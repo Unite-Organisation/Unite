@@ -28,10 +28,10 @@ public class RequestRestApi {
         requestService.cancelRequest(requestId, user);
     }
 
-    @PostMapping("/{requestId}/help")
-    public void helpWithRequest(){
-        var user = globalSecurityManager.getCurrentUser();
-        requestService.helpWithRequest(requestId, user);
-    }
+//    @PostMapping("/{requestId}/help")
+//    public void helpWithRequest(){
+//        var user = globalSecurityManager.getCurrentUser();
+//        requestService.helpWithRequest(requestId, user);
+//    }
 
 }
