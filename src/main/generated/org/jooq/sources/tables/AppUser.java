@@ -44,6 +44,8 @@ import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.Poll.PollPath;
 import org.jooq.sources.tables.PollVote.PollVotePath;
 import org.jooq.sources.tables.Post.PostPath;
+import org.jooq.sources.tables.Request.RequestPath;
+import org.jooq.sources.tables.RequestDonor.RequestDonorPath;
 import org.jooq.sources.tables.UserRole.UserRolePath;
 import org.jooq.sources.tables.records.AppUserRecord;
 
@@ -363,6 +365,32 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _post = new PostPath(this, null, Keys.POST__POST_CREATED_BY_FKEY.getInverseKey());
 
         return _post;
+    }
+
+    private transient RequestDonorPath _requestDonor;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.request_donor</code> table
+     */
+    public RequestDonorPath requestDonor() {
+        if (_requestDonor == null)
+            _requestDonor = new RequestDonorPath(this, null, Keys.REQUEST_DONOR__REQUEST_DONOR_DONOR_ID_FKEY.getInverseKey());
+
+        return _requestDonor;
+    }
+
+    private transient RequestPath _request;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.request</code>
+     * table
+     */
+    public RequestPath request() {
+        if (_request == null)
+            _request = new RequestPath(this, null, Keys.REQUEST__REQUEST_USER_IN_NEED_FKEY.getInverseKey());
+
+        return _request;
     }
 
     @Override

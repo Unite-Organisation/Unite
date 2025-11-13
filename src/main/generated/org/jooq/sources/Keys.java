@@ -29,6 +29,8 @@ import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVote;
 import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Post;
+import org.jooq.sources.tables.Request;
+import org.jooq.sources.tables.RequestDonor;
 import org.jooq.sources.tables.UserRole;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.AreaRecord;
@@ -50,6 +52,8 @@ import org.jooq.sources.tables.records.PollResultRecord;
 import org.jooq.sources.tables.records.PollVoteRecord;
 import org.jooq.sources.tables.records.PollWinnerRecord;
 import org.jooq.sources.tables.records.PostRecord;
+import org.jooq.sources.tables.records.RequestDonorRecord;
+import org.jooq.sources.tables.records.RequestRecord;
 import org.jooq.sources.tables.records.UserRoleRecord;
 
 
@@ -89,6 +93,8 @@ public class Keys {
     public static final UniqueKey<PollVoteRecord> POLL_VOTE_POLL_ID_USER_ID_KEY = Internal.createUniqueKey(PollVote.POLL_VOTE, DSL.name("poll_vote_poll_id_user_id_key"), new TableField[] { PollVote.POLL_VOTE.POLL_ID, PollVote.POLL_VOTE.USER_ID }, true);
     public static final UniqueKey<PollWinnerRecord> POLL_WINNER_PKEY = Internal.createUniqueKey(PollWinner.POLL_WINNER, DSL.name("poll_winner_pkey"), new TableField[] { PollWinner.POLL_WINNER.ID }, true);
     public static final UniqueKey<PostRecord> POST_PKEY = Internal.createUniqueKey(Post.POST, DSL.name("post_pkey"), new TableField[] { Post.POST.ID }, true);
+    public static final UniqueKey<RequestRecord> REQUEST_PKEY = Internal.createUniqueKey(Request.REQUEST, DSL.name("request_pkey"), new TableField[] { Request.REQUEST.ID }, true);
+    public static final UniqueKey<RequestDonorRecord> REQUEST_DONOR_PKEY = Internal.createUniqueKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_pkey"), new TableField[] { RequestDonor.REQUEST_DONOR.ID }, true);
     public static final UniqueKey<UserRoleRecord> USER_ROLE_PKEY = Internal.createUniqueKey(UserRole.USER_ROLE, DSL.name("user_role_pkey"), new TableField[] { UserRole.USER_ROLE.ID }, true);
 
     // -------------------------------------------------------------------------
@@ -131,4 +137,8 @@ public class Keys {
     public static final ForeignKey<PostRecord, AreaRecord> POST__POST_AREA_ID_FKEY = Internal.createForeignKey(Post.POST, DSL.name("post_area_id_fkey"), new TableField[] { Post.POST.AREA_ID }, Keys.AREA_PKEY, new TableField[] { Area.AREA.ID }, true);
     public static final ForeignKey<PostRecord, BuildingRecord> POST__POST_BUILDING_ID_FKEY = Internal.createForeignKey(Post.POST, DSL.name("post_building_id_fkey"), new TableField[] { Post.POST.BUILDING_ID }, Keys.BUILDING_PKEY, new TableField[] { Building.BUILDING.ID }, true);
     public static final ForeignKey<PostRecord, AppUserRecord> POST__POST_CREATED_BY_FKEY = Internal.createForeignKey(Post.POST, DSL.name("post_created_by_fkey"), new TableField[] { Post.POST.CREATED_BY }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<RequestRecord, AreaRecord> REQUEST__REQUEST_AREA_ID_FKEY = Internal.createForeignKey(Request.REQUEST, DSL.name("request_area_id_fkey"), new TableField[] { Request.REQUEST.AREA_ID }, Keys.AREA_PKEY, new TableField[] { Area.AREA.ID }, true);
+    public static final ForeignKey<RequestRecord, AppUserRecord> REQUEST__REQUEST_USER_IN_NEED_FKEY = Internal.createForeignKey(Request.REQUEST, DSL.name("request_user_in_need_fkey"), new TableField[] { Request.REQUEST.USER_IN_NEED }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<RequestDonorRecord, AppUserRecord> REQUEST_DONOR__REQUEST_DONOR_DONOR_ID_FKEY = Internal.createForeignKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_donor_id_fkey"), new TableField[] { RequestDonor.REQUEST_DONOR.DONOR_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<RequestDonorRecord, RequestRecord> REQUEST_DONOR__REQUEST_DONOR_REQUEST_ID_FKEY = Internal.createForeignKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_request_id_fkey"), new TableField[] { RequestDonor.REQUEST_DONOR.REQUEST_ID }, Keys.REQUEST_PKEY, new TableField[] { Request.REQUEST.ID }, true);
 }

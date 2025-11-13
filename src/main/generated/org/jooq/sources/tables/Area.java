@@ -35,6 +35,7 @@ import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.Poll.PollPath;
 import org.jooq.sources.tables.Post.PostPath;
+import org.jooq.sources.tables.Request.RequestPath;
 import org.jooq.sources.tables.records.AreaRecord;
 
 
@@ -221,6 +222,19 @@ public class Area extends TableImpl<AreaRecord> {
             _post = new PostPath(this, null, Keys.POST__POST_AREA_ID_FKEY.getInverseKey());
 
         return _post;
+    }
+
+    private transient RequestPath _request;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.request</code>
+     * table
+     */
+    public RequestPath request() {
+        if (_request == null)
+            _request = new RequestPath(this, null, Keys.REQUEST__REQUEST_AREA_ID_FKEY.getInverseKey());
+
+        return _request;
     }
 
     @Override

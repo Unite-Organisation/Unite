@@ -13,6 +13,8 @@ import com.app.prod.issues.repository.IssueRepository;
 import com.app.prod.issues.repository.NotificationRepository;
 import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.polls.repository.PollRepository;
+import com.app.prod.requests.repository.RequestDonorRepository;
+import com.app.prod.requests.repository.RequestRepository;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
@@ -44,6 +46,7 @@ public class Validate {
     private final UserRoleRepository userRoleRepository;
     private final IssueRepository issueRepository;
     private final NotificationRepository notificationRepository;
+    private final RequestRepository requestRepository;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -96,6 +99,18 @@ public class Validate {
                     String.format("Notification with id: %s doesn't exist.", id),
                     Notification.class.getSimpleName()
             );
+        }
+    }
+
+    public void thatThisRequestBelongsToUser(AppUserRecord user, UUID requestId){
+        var request = requestRepository.findById(requestId).orElseThrow(
+                () -> new EntityNotPresentException(
+                        String.format("Request with id: %s does not exist.", requestId),
+                        Request.class.getSimpleName()
+                ));
+
+        if(!request.getUserInNeed().equals(user.getId())){
+            throw new UnauthorizedDataAccessException(String.format("User %s does not have access to this request", user.getId()));
         }
     }
 

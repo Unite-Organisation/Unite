@@ -30,6 +30,8 @@ import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVote;
 import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Post;
+import org.jooq.sources.tables.Request;
+import org.jooq.sources.tables.RequestDonor;
 import org.jooq.sources.tables.UserRole;
 
 
@@ -147,6 +149,16 @@ public class Public extends SchemaImpl {
     public final Post POST = Post.POST;
 
     /**
+     * The table <code>public.request</code>.
+     */
+    public final Request REQUEST = Request.REQUEST;
+
+    /**
+     * The table <code>public.request_donor</code>.
+     */
+    public final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
+
+    /**
      * The table <code>public.user_role</code>.
      */
     public final UserRole USER_ROLE = UserRole.USER_ROLE;
@@ -187,6 +199,8 @@ public class Public extends SchemaImpl {
             PollVote.POLL_VOTE,
             PollWinner.POLL_WINNER,
             Post.POST,
+            Request.REQUEST,
+            RequestDonor.REQUEST_DONOR,
             UserRole.USER_ROLE
         );
     }

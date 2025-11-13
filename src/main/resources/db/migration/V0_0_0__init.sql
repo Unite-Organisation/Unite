@@ -193,6 +193,25 @@ CREATE TABLE offering (
     created_at TIMESTAMP NOT NULL
 );
 
+CREATE TABLE request (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    area_id UUID NOT NULL REFERENCES area(id) ON DELETE CASCADE,
+    user_in_need UUID NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE request_donor (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_id UUID NOT NULL REFERENCES request(id) ON DELETE CASCADE,
+    donor_id UUID NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+    approved_at TIMESTAMP NOT NULL,
+    deadline_at TIMESTAMP
+);
+
  --messaging section
 CREATE TABLE conversation
 (
