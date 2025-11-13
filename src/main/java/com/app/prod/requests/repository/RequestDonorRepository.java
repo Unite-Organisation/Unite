@@ -14,4 +14,13 @@ public class RequestDonorRepository extends BaseJooqRepository<RequestDonor, Req
     protected RequestDonorRepository(DSLContext dsl) {
         super(dsl, REQUEST_DONOR, REQUEST_DONOR.ID);
     }
+
+    public boolean userIsDonorForRequest(UUID userId, UUID requestId) {
+        return dslContext.selectOne()
+                .from(REQUEST_DONOR)
+                .where(REQUEST_DONOR.DONOR_ID.eq(userId))
+                .and(REQUEST_DONOR.REQUEST_ID.eq(requestId))
+                .fetch()
+                .isNotEmpty();
+    }
 }

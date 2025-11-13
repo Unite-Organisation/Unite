@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("message")
 @RequiredArgsConstructor
-@Deprecated
 @Tag(name = "Messages")
 public class MessageResiApi {
 

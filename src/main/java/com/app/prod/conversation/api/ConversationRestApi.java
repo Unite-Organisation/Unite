@@ -22,7 +22,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("conversation")
 @RequiredArgsConstructor
-@Deprecated
 @Tag(name = "Conversations")
 public class ConversationRestApi {
 

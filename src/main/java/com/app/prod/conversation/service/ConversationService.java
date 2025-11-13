@@ -11,6 +11,8 @@ import com.app.prod.user.repository.UserRepository;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.Conversation;
+import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
 import org.jooq.sources.tables.records.ConversationRecord;
 import org.jooq.sources.tables.records.MessageRecord;
@@ -69,11 +71,20 @@ public class ConversationService {
         conversationMemberRepository.insertMany(batch);
     }
 
-    public List<MessageRecord> getConversationContent(UUID conversationid) {
-        validate.conversation(conversationid);
-        List<MessageRecord> messages = messageRepository.findByConversationId(conversationid);
+    public List<MessageRecord> getConversationContent(UUID conversationId) {
+        validate.conversation(conversationId);
+        List<MessageRecord> messages = messageRepository.findByConversationId(conversationId);
 
-        log.info("Fetched {} messages in conversation: {}", messages.size(), conversationid);
+        log.info("Fetched {} messages in conversation: {}", messages.size(), conversationId);
         return messages;
+    }
+
+    public UUID getConversationId(UUID user1Id, UUID user2Id){
+        return conversationRepository.findDirectConversationForUsers(user1Id, user2Id)
+                .orElseThrow(() -> new EntityNotPresentException(
+                        String.format("Conversation for %s and %s not found", user1Id, user2Id),
+                        Conversation.class.getSimpleName()
+                ));
+
     }
 }
