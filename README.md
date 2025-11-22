@@ -38,8 +38,8 @@ With Unite, residents can:
 - Create polls and voting (e.g., for repairs or decisions). 🟩
 
 ### User (Resident)
-- Chat with other residents. 🟥
-- Create private chats and neighbor groups. 🟥
+- Chat with other residents. 🟩
+- Create private chats and neighbor groups. 🟩
 - Book shared spaces. 🟩
 - Report issues or request repair services. 🟩
 - Vote in polls. 🟩
