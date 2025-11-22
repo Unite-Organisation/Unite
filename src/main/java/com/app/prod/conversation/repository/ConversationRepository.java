@@ -1,6 +1,7 @@
 package com.app.prod.conversation.repository;
 
 import com.app.prod.utils.BaseJooqRepository;
+import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.sources.tables.Conversation;
@@ -29,5 +30,18 @@ public class ConversationRepository extends BaseJooqRepository<Conversation, Con
                 .groupBy(CONVERSATION.ID)
                 .having(DSL.countDistinct(CONVERSATION_MEMBER.USER_ID).eq(2))
                 .fetchOptional(CONVERSATION.ID);
+    }
+
+    public List<ConversationRecord> findConversationForUser(UUID userId, Pagination pagination){
+        return dslContext.select(
+                CONVERSATION.asterisk()
+        )
+                .from(CONVERSATION_MEMBER)
+                .leftJoin(CONVERSATION).on(CONVERSATION_MEMBER.CONVERSATION_ID.eq(CONVERSATION.ID))
+                .where(CONVERSATION_MEMBER.USER_ID.eq(userId))
+                .orderBy(CONVERSATION.UPDATED_AT)
+                .offset(pagination.getOffset())
+                .limit(pagination.pageSize())
+                .fetchInto(ConversationRecord.class);
     }
 }

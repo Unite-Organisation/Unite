@@ -218,7 +218,8 @@ CREATE TABLE conversation
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     is_group BOOLEAN NOT NULL,
     name VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE conversation_member

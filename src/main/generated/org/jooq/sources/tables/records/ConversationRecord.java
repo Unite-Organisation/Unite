@@ -76,6 +76,20 @@ public class ConversationRecord extends UpdatableRecordImpl<ConversationRecord> 
         return (LocalDateTime) get(3);
     }
 
+    /**
+     * Setter for <code>public.conversation.updated_at</code>.
+     */
+    public void setUpdatedAt(LocalDateTime value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>public.conversation.updated_at</code>.
+     */
+    public LocalDateTime getUpdatedAt() {
+        return (LocalDateTime) get(4);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -99,13 +113,14 @@ public class ConversationRecord extends UpdatableRecordImpl<ConversationRecord> 
     /**
      * Create a detached, initialised ConversationRecord
      */
-    public ConversationRecord(UUID id, Boolean isGroup, String name, LocalDateTime createdAt) {
+    public ConversationRecord(UUID id, Boolean isGroup, String name, LocalDateTime createdAt, LocalDateTime updatedAt) {
         super(Conversation.CONVERSATION);
 
         setId(id);
         setIsGroup(isGroup);
         setName(name);
         setCreatedAt(createdAt);
+        setUpdatedAt(updatedAt);
         resetChangedOnNotNull();
     }
 }

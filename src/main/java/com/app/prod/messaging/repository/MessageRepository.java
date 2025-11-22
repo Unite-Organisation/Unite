@@ -1,6 +1,7 @@
 package com.app.prod.messaging.repository;
 
 import com.app.prod.utils.BaseJooqRepository;
+import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
 import org.jooq.TableField;
 import org.jooq.sources.tables.Message;
@@ -16,10 +17,12 @@ public class MessageRepository extends BaseJooqRepository<Message, MessageRecord
         super(dsl, Message.MESSAGE, Message.MESSAGE.ID);
     }
 
-    public List<MessageRecord> findByConversationId(UUID conversationid) {
+    public List<MessageRecord> findByConversationId(UUID conversationid, Pagination pagination) {
         return dslContext.selectFrom(table)
                 .where(table.CONVERSATION_ID.eq(conversationid))
                 .orderBy(table.SEND_AT)
+                .offset(pagination.getOffset())
+                .limit(pagination.pageSize())
                 .fetch();
 
     }

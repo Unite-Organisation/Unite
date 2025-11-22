@@ -5,6 +5,7 @@ import com.app.prod.messaging.repository.MessageRepository;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.MessageRecord;
 import org.springframework.stereotype.Service;
 
@@ -20,22 +21,19 @@ public class MessageService {
     private final Clock clock;
     private final Validate validate;
 
-    public String createMessage(CreateMessageRequest request) {
-        validate.user(request.senderId());
+    public void createMessage(CreateMessageRequest request, AppUserRecord user) {
+        validate.user(user.getId());
         validate.conversation(request.conversationId());
 
         LocalDateTime now = LocalDateTime.now(clock);
 
         MessageRecord record = new MessageRecord();
-        record.setSenderId(request.senderId());
+        record.setSenderId(user.getId());
         record.setConversationId(request.conversationId());
         record.setSendAt(now);
         record.setContent(request.content());
 
         messageRepository.insertOne(record);
-
-        String response = String.format("Created one message by %s, on %s", request.senderId(), now);
-        log.info(response);
-        return response;
+        log.info("Created one message by {}, on {}", user.getId(), now);
     }
 }

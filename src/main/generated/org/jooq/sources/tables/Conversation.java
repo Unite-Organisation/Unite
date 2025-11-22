@@ -76,6 +76,11 @@ public class Conversation extends TableImpl<ConversationRecord> {
      */
     public final TableField<ConversationRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
 
+    /**
+     * The column <code>public.conversation.updated_at</code>.
+     */
+    public final TableField<ConversationRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
+
     private Conversation(Name alias, Table<ConversationRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

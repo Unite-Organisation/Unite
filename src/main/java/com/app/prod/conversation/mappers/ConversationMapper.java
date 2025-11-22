@@ -17,7 +17,8 @@ public class ConversationMapper {
                 conversationsRecord.getId(),
                 conversationsRecord.getIsGroup(),
                 conversationsRecord.getName(),
-                conversationsRecord.getCreatedAt()
+                conversationsRecord.getCreatedAt(),
+                conversationsRecord.getUpdatedAt()
         );
     }
 
@@ -34,6 +35,7 @@ public class ConversationMapper {
                 id,
                 request.isGroup(),
                 request.name(),
+                now,
                 now
         );
     }

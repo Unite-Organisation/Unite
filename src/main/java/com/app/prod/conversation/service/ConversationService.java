@@ -1,18 +1,22 @@
 package com.app.prod.conversation.service;
 
 import com.app.prod.conversation.dto.AddMembersRequest;
+import com.app.prod.conversation.dto.ConversationContentResponse;
 import com.app.prod.conversation.dto.ConversationRequest;
+import com.app.prod.conversation.dto.ConversationResponse;
 import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.messaging.repository.MessageRepository;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.utils.Pagination;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.Request;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
 import org.jooq.sources.tables.records.ConversationRecord;
 import org.jooq.sources.tables.records.MessageRecord;
@@ -36,8 +40,12 @@ public class ConversationService {
     private final Clock clock;
     private final Validate validate;
 
-    public List<ConversationRecord> getConversations() {
-        return conversationRepository.findAll();
+    public List<ConversationResponse> getConversations(AppUserRecord user, Pagination pagination) {
+        List<ConversationRecord> conversations = conversationRepository.findConversationForUser(user.getId(), pagination);
+        log.info("Found {} conversations for user {}", conversations.size(), user.getId());
+        return conversations.stream()
+                .map(ConversationMapper::fromRecordToResponse)
+                .toList();
     }
 
     public void createConversation(ConversationRequest request) {
@@ -71,12 +79,13 @@ public class ConversationService {
         conversationMemberRepository.insertMany(batch);
     }
 
-    public List<MessageRecord> getConversationContent(UUID conversationId) {
+    public ConversationContentResponse getConversationContent(UUID conversationId, Pagination pagination) {
         validate.conversation(conversationId);
-        List<MessageRecord> messages = messageRepository.findByConversationId(conversationId);
-
+        List<MessageRecord> messages = messageRepository.findByConversationId(conversationId, pagination);
         log.info("Fetched {} messages in conversation: {}", messages.size(), conversationId);
-        return messages;
+
+
+        return ConversationContentResponse.fromListOfMessagesToResponse(messages);
     }
 
     public UUID getConversationId(UUID user1Id, UUID user2Id){

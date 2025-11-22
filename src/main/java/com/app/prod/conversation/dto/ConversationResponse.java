@@ -7,6 +7,7 @@ public record ConversationResponse(
         UUID id,
         Boolean isGroup,
         String name,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }
