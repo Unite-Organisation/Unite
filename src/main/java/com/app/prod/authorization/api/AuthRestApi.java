@@ -1,5 +1,6 @@
 package com.app.prod.authorization.api;
 
+import com.app.prod.authorization.dto.TokenResponse;
 import com.app.prod.user.dto.UserActivateRequest;
 import com.app.prod.user.dto.UserLoginRequest;
 import com.app.prod.user.dto.UserRegisterRequest;
@@ -25,14 +26,16 @@ public class AuthRestApi {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<TokenResponse> login(@RequestBody UserLoginRequest request) {
         String token = userService.login(request);
-        return ResponseEntity.ok(String.format("Token: %s", token));
+        var tokenResponse = new TokenResponse(token);
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PutMapping("/activate")
-    public ResponseEntity<String> activate(@RequestBody UserActivateRequest request){
+    public ResponseEntity<TokenResponse> activate(@RequestBody UserActivateRequest request){
         String token = userService.activate(request);
-        return ResponseEntity.ok(String.format("User activated. Token: %s", token));
+        var tokenResponse = new TokenResponse(token);
+        return ResponseEntity.ok(tokenResponse);
     }
 }

@@ -1,11 +1,13 @@
 package com.app.prod.user.api;
 
-import com.app.prod.user.dto.BulkCreationRequest;
-import com.app.prod.user.dto.BulkCreationResponse;
-import com.app.prod.user.dto.UserResponse;
+import com.app.prod.config.security.GlobalSecurityManager;
+import com.app.prod.user.dto.*;
 import com.app.prod.user.mappers.UserMapper;
+import com.app.prod.user.service.UserCommunityService;
 import com.app.prod.user.service.UserService;
+import com.app.prod.utils.Pagination;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.AppUserRecord;
@@ -15,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("user")
@@ -24,12 +27,21 @@ import java.util.List;
 public class UserRestApi {
 
     private final UserService userService;
+    private final UserCommunityService userCommunityService;
+    private final GlobalSecurityManager globalSecurityManager;
 
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> getUsers(){
         List<AppUserRecord> users = userService.getUsers();
         return ResponseEntity.ok(UserMapper.fromRecordsToResponses(users));
+    }
+
+    @GetMapping("/in-area")
+    public List<PotentialContactResponse> getUsersInMyArea(
+            @Valid @ModelAttribute Pagination pagination){
+        var user = globalSecurityManager.getCurrentUser();
+        return userCommunityService.getAllUsersInArea(user, pagination);
     }
 
     @PostMapping("/bulk-creation")
