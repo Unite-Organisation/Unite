@@ -6,6 +6,7 @@ import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.facilities.dto.BuildingFacilitiesResponse;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.service.FacilityService;
+import com.app.prod.utils.SimpleResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,12 @@ public class BuildingRestApi {
     private final GlobalSecurityManager globalSecurityManager;
 
     @PutMapping("/{buildingId}/user/{userId}")
-    public ResponseEntity<String> addUserToBuilding(
+    public ResponseEntity<SimpleResponse> addUserToBuilding(
             @PathVariable UUID buildingId,
             @PathVariable UUID userId){
 
         String message = buildingService.addUser(userId, buildingId);
-        return ResponseEntity.ok(message);
+        return ResponseEntity.ok(new SimpleResponse(message));
     }
 
     @GetMapping()
@@ -44,10 +45,10 @@ public class BuildingRestApi {
 
     @PostMapping("/facilities")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<String> addFacilities(@Valid @RequestBody FacilityRequest request){
+    public ResponseEntity<SimpleResponse> addFacilities(@Valid @RequestBody FacilityRequest request){
         var userId = globalSecurityManager.getCurrentUser().getId();
         String message = facilityService.addFacilities(request, userId);
-        return ResponseEntity.ok(message);
+        return ResponseEntity.ok(new SimpleResponse(message));
     }
 
     @GetMapping("/{buildingId}/facilities")

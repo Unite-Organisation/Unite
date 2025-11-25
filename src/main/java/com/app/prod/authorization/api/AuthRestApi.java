@@ -5,6 +5,7 @@ import com.app.prod.user.dto.UserActivateRequest;
 import com.app.prod.user.dto.UserLoginRequest;
 import com.app.prod.user.dto.UserRegisterRequest;
 import com.app.prod.user.service.UserService;
+import com.app.prod.utils.SimpleResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,9 @@ public class AuthRestApi {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UserRegisterRequest request) {
+    public ResponseEntity<SimpleResponse> register(@RequestBody UserRegisterRequest request) {
         userService.register(request);
-        return ResponseEntity.ok().body("User registered");
+        return ResponseEntity.ok().body(new SimpleResponse("User registered"));
     }
 
     @PostMapping("/login")
