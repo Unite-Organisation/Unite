@@ -49,7 +49,7 @@ public class UserService {
 
     public String register(UserRegisterRequest request) {
         validate.thatUsernameIsFree(request.username());
-
+        //TODO: NO CHECK IF EMAIL IS THE SAME WHAT LEEDS TO DB EXCEPTION
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
         UUID selectedRoleId = userRoleService.getUserRoleId(request.role());

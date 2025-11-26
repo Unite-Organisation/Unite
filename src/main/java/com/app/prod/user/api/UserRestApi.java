@@ -1,5 +1,6 @@
 package com.app.prod.user.api;
 
+import com.app.prod.building.dto.HomePageResponse;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.user.dto.*;
 import com.app.prod.user.mappers.UserMapper;
@@ -29,6 +30,12 @@ public class UserRestApi {
     private final UserService userService;
     private final UserCommunityService userCommunityService;
     private final GlobalSecurityManager globalSecurityManager;
+
+    @GetMapping("/my-data")
+    public HomePageResponse getUserData(){
+        var user = globalSecurityManager.getCurrentUser();
+        return userCommunityService.getData(user);
+    }
 
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")

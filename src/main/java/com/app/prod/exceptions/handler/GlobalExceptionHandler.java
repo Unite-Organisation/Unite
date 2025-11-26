@@ -1,6 +1,7 @@
 package com.app.prod.exceptions.handler;
 
 import com.app.prod.config.security.TokenSecurityManager;
+import com.app.prod.exceptions.ErrorResponse;
 import com.app.prod.exceptions.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,18 @@ public class GlobalExceptionHandler {
         this.tokenSecurityManager = tokenSecurityManager;
     }
 
+    @ExceptionHandler(DataAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleException(DataAlreadyExistsException e){
+        log.info("Data already exists in database. Exception content: {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT, e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<String> handleException(AuthenticationException e){
+    public ResponseEntity<ErrorResponse> handleException(AuthenticationException e){
         log.info("Wrong credentials. Exception content: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     @ExceptionHandler(BadRequestException.class)

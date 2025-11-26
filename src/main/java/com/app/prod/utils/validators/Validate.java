@@ -1,5 +1,6 @@
 package com.app.prod.utils.validators;
 
+import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.repository.BuildingRepository;
@@ -120,6 +121,12 @@ public class Validate {
         }
     }
 
+    public void thatUserHasBuildingAssigned(AppUserRecord user){
+        if(user.getBuildingId() == null){
+            throw new BadRequestException(String.format("User %s is not assigned to any building yet.", user.getId()));
+        }
+    }
+
     public void thatUserBelongsToConversation(UUID userId, UUID conversationId){
         if(!conversationMemberRepository.userBelongToConversation(userId, conversationId)){
             throw new BadRequestException(String.format("User: %s does not belong to conversation: %s", userId, conversationId));
@@ -128,7 +135,7 @@ public class Validate {
 
     public void thatUsernameIsFree(String username){
         if(userRepository.findByUsername(username).isPresent()){
-            throw new BadRequestException("This username is already taken.");
+            throw new DataAlreadyExistsException("This username is already taken.");
         }
     }
 

@@ -1,7 +1,10 @@
 package com.app.prod.user.repository;
 
+import com.app.prod.area.enums.AreaType;
+import com.app.prod.building.dto.HomePageResponse;
 import com.app.prod.user.dto.BasicUserData;
 import com.app.prod.user.dto.PotentialContactResponse;
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
@@ -85,5 +88,42 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                       record.get(BUILDING.NAME)
                     );
                 });
+    }
+
+    public HomePageResponse getUsersData(UUID id) {
+        return dslContext.select(
+                APP_USER.ID,
+                APP_USER.USERNAME,
+                USER_ROLE.USER_ROLE_,
+                APP_USER.STATUS,
+                AREA.ID,
+                AREA.NAME,
+                AREA.TYPE,
+                BUILDING.ID,
+                BUILDING.NAME,
+                BUILDING.COUNTRY,
+                BUILDING.STREET,
+                BUILDING.NUMBER
+        )
+                .from(APP_USER)
+                .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
+                .leftJoin(BUILDING).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                .leftJoin(AREA).on(BUILDING.AREA_ID.eq(AREA.ID))
+                .where(APP_USER.ID.eq(id))
+                .fetchOne(record -> new HomePageResponse(
+                        record.get(APP_USER.ID),
+                        record.get(APP_USER.USERNAME),
+                        UserRole.valueOf(record.get(USER_ROLE.USER_ROLE_)),
+                        UserStatus.valueOf(record.get(APP_USER.STATUS)),
+                        record.get(AREA.ID),
+                        record.get(AREA.NAME),
+                        AreaType.valueOf(record.get(AREA.TYPE)),
+                        record.get(BUILDING.ID),
+                        record.get(BUILDING.NAME),
+                        record.get(BUILDING.COUNTRY),
+                        record.get(BUILDING.STREET),
+                        record.get(BUILDING.NUMBER)
+                ));
+
     }
 }
