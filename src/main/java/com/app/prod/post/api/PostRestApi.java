@@ -74,8 +74,8 @@ public class PostRestApi {
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
     public void createEvent(@RequestBody EventRequest request){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        eventService.createEvent(request, userId);
+        var user = globalSecurityManager.getCurrentUser();
+        eventService.createEvent(request, user);
     }
 
 }

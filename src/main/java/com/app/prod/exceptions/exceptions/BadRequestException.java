@@ -2,6 +2,6 @@ package com.app.prod.exceptions.exceptions;
 
 public class BadRequestException extends RuntimeException {
     public BadRequestException(String message) {
-        super("[BAD REQUEST]: " + message);
+        super(message);
     }
 }

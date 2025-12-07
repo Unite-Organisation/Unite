@@ -27,10 +27,10 @@ public class BuildingRestApi {
     private final FacilityService facilityService;
     private final GlobalSecurityManager globalSecurityManager;
 
-    @PutMapping("/{buildingId}/user/{userId}")
+    @PutMapping("/user")
     public ResponseEntity<SimpleResponse> addUserToBuilding(
-            @PathVariable UUID buildingId,
-            @PathVariable UUID userId){
+            @RequestParam UUID buildingId,
+            @RequestParam UUID userId){
 
         String message = buildingService.addUser(userId, buildingId);
         return ResponseEntity.ok(new SimpleResponse(message));

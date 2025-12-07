@@ -134,4 +134,8 @@ public class UserService {
                 personToBeCreated.buildingId()
         );
     }
+
+    public List<ResidentToAdd> getUsersWithoutBuilding() {
+        return userRepository.getUsersWithoutBuilding();
+    }
 }

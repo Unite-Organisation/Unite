@@ -29,11 +29,11 @@ public class AnnouncementMapper {
         );
     }
 
-    public static PostRecord fromRequestToRecordEvent(EventRequest request, UUID userId, LocalDateTime now, UUID id){
+    public static PostRecord fromRequestToRecordEvent(EventRequest request, UUID userId, LocalDateTime now, UUID id, UUID areaId){
         return new PostRecord(
                 id,
                 request.name(),
-                request.areaId(),
+                areaId,
                 request.buildingId(),
                 userId,
                 now,

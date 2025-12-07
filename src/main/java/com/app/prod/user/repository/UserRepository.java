@@ -4,6 +4,7 @@ import com.app.prod.area.enums.AreaType;
 import com.app.prod.building.dto.HomePageResponse;
 import com.app.prod.user.dto.BasicUserData;
 import com.app.prod.user.dto.PotentialContactResponse;
+import com.app.prod.user.dto.ResidentToAdd;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.utils.BaseJooqRepository;
@@ -125,5 +126,22 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                         record.get(BUILDING.NUMBER)
                 ));
 
+    }
+
+    public List<ResidentToAdd> getUsersWithoutBuilding() {
+        return dslContext.select(
+                APP_USER.FIRST_NAME,
+                APP_USER.LAST_NAME,
+                APP_USER.ID
+        )
+                .from(APP_USER)
+                .leftJoin(USER_ROLE).on(USER_ROLE.ID.eq(APP_USER.USER_ROLE))
+                .where(APP_USER.BUILDING_ID.isNull())
+                .and(USER_ROLE.USER_ROLE_.eq(UserRole.RESIDENT.name()))
+                .fetch(record -> new ResidentToAdd(
+                        record.get(APP_USER.FIRST_NAME),
+                        record.get(APP_USER.LAST_NAME),
+                        record.get(APP_USER.ID)
+                ));
     }
 }

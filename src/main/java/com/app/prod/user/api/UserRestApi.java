@@ -51,6 +51,12 @@ public class UserRestApi {
         return userCommunityService.getAllUsersInArea(user, pagination);
     }
 
+    @GetMapping("/to-add")
+    @PreAuthorize("hasRole('MANAGER')")
+    public List<ResidentToAdd> getAllUsersWithoutBuildings(){
+        return userService.getUsersWithoutBuilding();
+    }
+
     @PostMapping("/bulk-creation")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<BulkCreationResponse> bulkCreation(@RequestBody BulkCreationRequest request){

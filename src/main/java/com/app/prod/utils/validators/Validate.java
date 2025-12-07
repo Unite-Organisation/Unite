@@ -123,7 +123,7 @@ public class Validate {
 
     public void thatUserHasBuildingAssigned(AppUserRecord user){
         if(user.getBuildingId() == null){
-            throw new BadRequestException(String.format("User %s is not assigned to any building yet.", user.getId()));
+            throw new BadRequestException("You don't have access to any building");
         }
     }
 

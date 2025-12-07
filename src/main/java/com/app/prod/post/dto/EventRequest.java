@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public record EventRequest(
         String name,
-        UUID areaId,
         UUID buildingId,
         String content,
         LocalDateTime relatedDate,

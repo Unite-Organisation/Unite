@@ -2,6 +2,7 @@ package com.app.prod.area.api;
 
 import com.app.prod.area.dto.AreaCreateRequest;
 import com.app.prod.area.service.AreaService;
+import com.app.prod.config.security.GlobalSecurityManager;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

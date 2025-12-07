@@ -7,9 +7,12 @@ import com.app.prod.building.mappers.BuildingMapper;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.repository.BuildingsManagersRepository;
 import com.app.prod.config.security.TokenSecurityManager;
+import com.app.prod.user.enums.UserRole;
+import com.app.prod.user.service.UserRoleService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.BuildingManagerRecord;
 import org.jooq.sources.tables.records.BuildingRecord;
 import org.springframework.stereotype.Service;
@@ -30,7 +33,7 @@ public class AreaService {
     private final BuildingsManagersRepository buildingsManagersRepository;
     private final Clock clock;
     private final TokenSecurityManager tokenSecurityManager;
-    private final Validate validate;
+    private final UserRoleService userRoleService;
 
     @Transactional
     public String createArea(AreaCreateRequest request){
@@ -58,5 +61,22 @@ public class AreaService {
                         ))
                         .toList()
         );
+    }
+
+    public UUID getUserArea(AppUserRecord user){
+        UserRole role = userRoleService.getUserRoleFromId(user.getId());
+        return switch (role){
+            case RESIDENT -> getResidentArea(user);
+            case MANAGER -> getManagersArea(user);
+            case ADMIN -> null;
+        };
+    }
+
+    private UUID getManagersArea(AppUserRecord user) {
+        return areaRepository.getManagersArea(user.getId());
+    }
+
+    private UUID getResidentArea(AppUserRecord user) {
+        return areaRepository.getResidentArea(user.getId());
     }
 }
