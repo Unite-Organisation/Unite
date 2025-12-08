@@ -10,6 +10,7 @@ import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollResultRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.PollFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,8 +70,8 @@ public class PollService {
         ));
     }
 
-    public List<PollResponse> getPolls(UUID userId, Pagination pagination) {
-        return pollRepository.getPolls(userId, pagination);
+    public List<PollResponse> getPolls(UUID userId, Pagination pagination, PollFilter pollFilter) {
+        return pollRepository.getPolls(userId, pagination, pollFilter);
     }
 
     @Transactional

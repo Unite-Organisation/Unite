@@ -1,10 +1,10 @@
 package com.app.prod.post.service;
 
 import com.app.prod.area.service.AreaService;
-import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.dto.EventRequest;
 import com.app.prod.post.mappers.AnnouncementMapper;
 import com.app.prod.post.repository.PostRepository;
+import com.app.prod.utils.shared.EntityCreatedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.AppUserRecord;
@@ -23,7 +23,7 @@ public class EventService {
     private final Clock clock;
     private final AreaService areaService;
 
-    public void createEvent(EventRequest request, AppUserRecord user) {
+    public EntityCreatedResponse createEvent(EventRequest request, AppUserRecord user) {
         //TODO: check if manager or user can post events for building or area
         UUID areaId = null;
         if (request.buildingId() == null){
@@ -35,5 +35,6 @@ public class EventService {
         postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, user.getId(), now, id, areaId));
 
         log.info("Created announcement with name: {}", request.name());
+        return new EntityCreatedResponse(id);
     }
 }

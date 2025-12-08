@@ -5,7 +5,9 @@ import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.enums.PollTarget;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.PollFilter;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.impl.DSL;
 import org.jooq.sources.tables.Poll;
@@ -17,8 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.jooq.impl.DSL.multiset;
-import static org.jooq.impl.DSL.select;
+import static org.jooq.impl.DSL.*;
 import static org.jooq.sources.Tables.*;
 
 @Repository
@@ -27,7 +28,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
         super(dsl, Poll.POLL, Poll.POLL.ID);
     }
 
-    public List<PollResponse> getPolls(UUID userId, Pagination pagination) {
+    public List<PollResponse> getPolls(UUID userId, Pagination pagination, PollFilter pollFilter) {
         var subQuery = dslContext.select(POLL.ID)
                 .from(POLL)
                 .join(BUILDING).on(
@@ -35,6 +36,15 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
                 )
                 .join(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
                 .where(APP_USER.ID.eq(userId));
+
+        Field<Boolean> userVotedField = field(
+                DSL.exists(
+                        selectOne()
+                                .from(POLL_VOTE)
+                                .where(POLL_VOTE.POLL_ID.eq(POLL.ID))
+                                .and(POLL_VOTE.USER_ID.eq(userId))
+                )
+        ).as("user_voted");
 
         return dslContext.select(
             POLL.ID,
@@ -48,6 +58,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
             POLL.AREA_ID,
             POLL.START_TIME,
             POLL.END_TIME,
+            userVotedField,
             multiset(
                 select(POLL_OPTION.ID, POLL_OPTION.OPTION_TEXT)
                       .from(POLL_OPTION)
@@ -63,6 +74,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
                 .join(APP_USER).on(APP_USER.ID.eq(POLL.CREATED_BY))
                 .join(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
                 .where(POLL.ID.in(subQuery))
+                .and(pollFilter.parseFilterAnd())
                 .orderBy(POLL.END_TIME)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
@@ -74,6 +86,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
 
                             var areaId = record.get(POLL.AREA_ID);
                             PollTarget target = (areaId != null) ? PollTarget.AREA : PollTarget.BUILDING;
+                            Boolean userVoted = record.get(userVotedField);
 
                             return new PollResponse(
                                     record.get(POLL.ID),
@@ -85,6 +98,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
                                     target,
                                     record.get(POLL.START_TIME),
                                     record.get(POLL.END_TIME),
+                                    userVoted,
                                     record.get("options", List.class)
                             );
                         }

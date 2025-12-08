@@ -37,7 +37,8 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         POST.END_DATE_TIME,
                         POST.LOCATION_NAME,
                         POST.ONLINE_URL,
-                        POST.MAX_ATTENDEES
+                        POST.MAX_ATTENDEES,
+                        POST.IMAGE_REFERENCE
                 )
                 .from(APP_USER)
                 .join(BUILDING).on(BUILDING.ID.eq(APP_USER.BUILDING_ID))
@@ -51,7 +52,11 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetch(record -> new PostResponse(
+                .fetch(record -> {
+                    String imageRef = record.get(POST.IMAGE_REFERENCE);
+                    Boolean imagePresent = imageRef != null && !imageRef.isBlank();
+
+                    return new PostResponse(
                         record.get(POST.ID),
                         record.get(POST.NAME),
                         record.get(POST.AREA_ID),
@@ -65,8 +70,10 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         record.get(POST.END_DATE_TIME),
                         record.get(POST.LOCATION_NAME),
                         record.get(POST.ONLINE_URL),
-                        record.get(POST.MAX_ATTENDEES)
-                ));
+                        record.get(POST.MAX_ATTENDEES),
+                        imagePresent
+                    );
+                });
     }
 
     public void updatePhotoPath(UUID id, String path){

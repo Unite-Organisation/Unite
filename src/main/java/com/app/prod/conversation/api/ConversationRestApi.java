@@ -7,6 +7,7 @@ import com.app.prod.conversation.dto.ConversationRequest;
 import com.app.prod.conversation.dto.ConversationResponse;
 import com.app.prod.conversation.service.ConversationService;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.shared.EntityCreatedResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +36,14 @@ public class ConversationRestApi {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createConversation(@RequestBody ConversationRequest conversationRequest){
-        conversationService.createConversation(conversationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public EntityCreatedResponse createConversation(@RequestBody ConversationRequest conversationRequest){
+        return conversationService.createConversation(conversationRequest);
     }
 
     @PostMapping("/add-members")
-    public ResponseEntity<Void> addMemberToConversation(@RequestBody AddMembersRequest request){
-        conversationService.addMembersToConversation(request);
-        return ResponseEntity.ok().build();
+    public void addMemberToConversation(@Valid @RequestBody AddMembersRequest request){
+        var user = globalSecurityManager.getCurrentUser();
+        conversationService.addMembersToConversation(request, user);
     }
 
     @GetMapping("/{id}")

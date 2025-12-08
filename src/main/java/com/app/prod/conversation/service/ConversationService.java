@@ -7,10 +7,12 @@ import com.app.prod.conversation.dto.ConversationResponse;
 import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.messaging.repository.MessageRepository;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.shared.EntityCreatedResponse;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,15 +50,16 @@ public class ConversationService {
                 .toList();
     }
 
-    public void createConversation(ConversationRequest request) {
+    public EntityCreatedResponse createConversation(ConversationRequest request) {
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
         conversationRepository.insertOne(ConversationMapper.fromRequestToRecord(request, id, now));
+        return new EntityCreatedResponse(id);
     }
 
     @Transactional
-    public void addMembersToConversation(AddMembersRequest request) {
-
+    public void addMembersToConversation(AddMembersRequest request, AppUserRecord user) {
+        checkNoDoubleConversationWithTheSameContact(request.ids(), user);
         UUID conversationId = request.conversationId();
         validate.conversation(conversationId);
 
@@ -77,6 +80,16 @@ public class ConversationService {
 
         log.info("Adding {} users into conversation with id: {}", batch.size(), conversationId);
         conversationMemberRepository.insertMany(batch);
+    }
+
+    private void checkNoDoubleConversationWithTheSameContact(List<UUID> membersToAdd, AppUserRecord user){
+        // If list of members to add is greater than one than we are creating group - not 1to1 chat
+        if(membersToAdd.size() > 1 )
+            return;
+
+        if(conversationMemberRepository.existsPrivateConversationBetweenContacts(user.getId(), membersToAdd.getFirst())){
+            throw new BadRequestException("You have already this private chat");
+        }
     }
 
     public ConversationContentResponse getConversationContent(UUID conversationId, Pagination pagination) {

@@ -3,6 +3,7 @@ package com.app.prod.post.service;
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.mappers.AnnouncementMapper;
 import com.app.prod.post.repository.PostRepository;
+import com.app.prod.utils.shared.EntityCreatedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class AnnouncementService {
     private final PostRepository postRepository;
     private final Clock clock;
 
-    public void createAnnouncement(AnnouncementRequest request, UUID userId) {
+    public EntityCreatedResponse createAnnouncement(AnnouncementRequest request, UUID userId) {
         //TODO: check if manager can post announcements for building or area
 
         var now = LocalDateTime.now(clock);
@@ -27,6 +28,7 @@ public class AnnouncementService {
         postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, userId, now, id));
 
         log.info("Created announcement with name: {}", request.name());
+        return new EntityCreatedResponse(id);
     }
 
 }

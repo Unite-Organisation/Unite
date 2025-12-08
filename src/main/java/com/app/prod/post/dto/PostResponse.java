@@ -19,6 +19,7 @@ public record PostResponse(
         LocalDateTime endDate,
         String locationName,
         String onlineUrl,
-        Integer maxAttendees
+        Integer maxAttendees,
+        Boolean photoPresent
 ) {
 }

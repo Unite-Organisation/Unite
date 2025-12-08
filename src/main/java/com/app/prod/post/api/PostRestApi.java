@@ -11,6 +11,7 @@ import com.app.prod.post.service.PostService;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
+import com.app.prod.utils.shared.EntityCreatedResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -65,17 +66,17 @@ public class PostRestApi {
     /* Announcements */
     @PostMapping("/announcement")
     @PreAuthorize("hasRole('MANAGER')")
-    public void createAnnouncement(@RequestBody AnnouncementRequest request){
+    public EntityCreatedResponse createAnnouncement(@RequestBody AnnouncementRequest request){
         var userId = globalSecurityManager.getCurrentUser().getId();
-        announcementService.createAnnouncement(request, userId);
+        return announcementService.createAnnouncement(request, userId);
     }
 
     /* Events */
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
-    public void createEvent(@RequestBody EventRequest request){
+    public EntityCreatedResponse createEvent(@RequestBody EventRequest request){
         var user = globalSecurityManager.getCurrentUser();
-        eventService.createEvent(request, user);
+        return eventService.createEvent(request, user);
     }
 
 }
