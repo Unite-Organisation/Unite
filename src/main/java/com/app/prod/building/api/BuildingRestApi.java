@@ -37,9 +37,10 @@ public class BuildingRestApi {
     }
 
     @GetMapping()
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<List<BuildingResponse>> getManagerBuildings(){
-        List<BuildingResponse> buildings = buildingService.getManagerBuildings();
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGER')")
+    public ResponseEntity<List<BuildingResponse>> getUsersBuildings(){
+        var user = globalSecurityManager.getCurrentUser();
+        List<BuildingResponse> buildings = buildingService.getUsersBuildings(user);
         return ResponseEntity.ok(buildings);
     }
 

@@ -64,7 +64,7 @@ public class AreaService {
     }
 
     public UUID getUserArea(AppUserRecord user){
-        UserRole role = userRoleService.getUserRoleFromId(user.getId());
+        UserRole role = userRoleService.getUserRoleFromId(user.getUserRole());
         return switch (role){
             case RESIDENT -> getResidentArea(user);
             case MANAGER -> getManagersArea(user);

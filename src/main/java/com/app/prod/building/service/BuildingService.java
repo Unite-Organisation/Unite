@@ -5,11 +5,14 @@ import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.repository.BuildingsManagersRepository;
 import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.user.enums.UserRole;
+import com.app.prod.user.service.UserRoleService;
 import com.app.prod.user.service.UserService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.Building;
+import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.BuildingRecord;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +27,7 @@ public class BuildingService {
     private final UserService userService;
     private final BuildingRepository buildingRepository;
     private final BuildingsManagersRepository buildingsManagersRepository;
-    private final TokenSecurityManager tokenSecurityManager;
+    private final UserRoleService userRoleService;
     private final Validate validate;
 
     public String addUser(UUID userId, UUID buildingId) {
@@ -46,9 +49,13 @@ public class BuildingService {
         );
     }
 
-    public List<BuildingResponse> getManagerBuildings() {
-        var user = tokenSecurityManager.getCurrentUser();
-        return buildingsManagersRepository.getManagersBuildings(user.getId());
+    public List<BuildingResponse> getUsersBuildings(AppUserRecord user) {
+        UserRole role = userRoleService.getUserRoleFromId(user.getUserRole());
+        return switch (role){
+            case RESIDENT -> buildingRepository.getResidentsBuilding(user.getBuildingId());
+            case MANAGER -> buildingsManagersRepository.getManagersBuildings(user.getId());
+            case ADMIN -> List.of();
+        };
     }
 
     public UUID getAreaId(UUID buildingId){
