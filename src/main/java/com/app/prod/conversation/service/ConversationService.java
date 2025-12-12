@@ -1,9 +1,6 @@
 package com.app.prod.conversation.service;
 
-import com.app.prod.conversation.dto.AddMembersRequest;
-import com.app.prod.conversation.dto.ConversationContentResponse;
-import com.app.prod.conversation.dto.ConversationRequest;
-import com.app.prod.conversation.dto.ConversationResponse;
+import com.app.prod.conversation.dto.*;
 import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
@@ -92,13 +89,11 @@ public class ConversationService {
         }
     }
 
-    public ConversationContentResponse getConversationContent(UUID conversationId, Pagination pagination) {
+    public List<ConversationMessageResponse> getConversationContent(UUID conversationId, Pagination pagination) {
         validate.conversation(conversationId);
-        List<MessageRecord> messages = messageRepository.findByConversationId(conversationId, pagination);
+        List<ConversationMessageResponse> messages = messageRepository.findByConversationId(conversationId, pagination);
         log.info("Fetched {} messages in conversation: {}", messages.size(), conversationId);
-
-
-        return ConversationContentResponse.fromListOfMessagesToResponse(messages);
+        return messages;
     }
 
     public UUID getConversationId(UUID user1Id, UUID user2Id){

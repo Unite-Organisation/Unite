@@ -1,10 +1,7 @@
 package com.app.prod.conversation.api;
 
 import com.app.prod.config.security.GlobalSecurityManager;
-import com.app.prod.conversation.dto.AddMembersRequest;
-import com.app.prod.conversation.dto.ConversationContentResponse;
-import com.app.prod.conversation.dto.ConversationRequest;
-import com.app.prod.conversation.dto.ConversationResponse;
+import com.app.prod.conversation.dto.*;
 import com.app.prod.conversation.service.ConversationService;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.shared.EntityCreatedResponse;
@@ -47,12 +44,11 @@ public class ConversationRestApi {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ConversationContentResponse> getConversationContent(
+    public List<ConversationMessageResponse> getConversationContent(
             @PathVariable UUID id,
             @Valid @ModelAttribute Pagination pagination
     ){
-        ConversationContentResponse messages = conversationService.getConversationContent(id, pagination);
-        return ResponseEntity.ok(messages);
+        return conversationService.getConversationContent(id, pagination);
     }
 
 }
