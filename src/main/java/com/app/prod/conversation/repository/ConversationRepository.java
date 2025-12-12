@@ -1,5 +1,6 @@
 package com.app.prod.conversation.repository;
 
+import com.app.prod.conversation.dto.ConversationResponse;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
@@ -12,8 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.jooq.sources.Tables.CONVERSATION;
-import static org.jooq.sources.Tables.CONVERSATION_MEMBER;
+import static org.jooq.impl.DSL.*;
+import static org.jooq.sources.Tables.*;
 
 @Repository
 public class ConversationRepository extends BaseJooqRepository<Conversation, ConversationRecord, UUID> {
@@ -32,16 +33,35 @@ public class ConversationRepository extends BaseJooqRepository<Conversation, Con
                 .fetchOptional(CONVERSATION.ID);
     }
 
-    public List<ConversationRecord> findConversationForUser(UUID userId, Pagination pagination){
+    public List<ConversationResponse> findConversationForUser(UUID userId, Pagination pagination) {
+        var c = CONVERSATION;
+        var myCm = CONVERSATION_MEMBER.as("my_cm");
+        var otherCm = CONVERSATION_MEMBER.as("other_cm");
+        var otherUser = APP_USER.as("other_user");
+
+        var nameField = when(c.IS_GROUP.isTrue(), c.NAME)
+                .otherwise(concat(otherUser.FIRST_NAME, inline(" "), otherUser.LAST_NAME))
+                .as("name");
+
         return dslContext.select(
-                CONVERSATION.asterisk()
-        )
-                .from(CONVERSATION_MEMBER)
-                .leftJoin(CONVERSATION).on(CONVERSATION_MEMBER.CONVERSATION_ID.eq(CONVERSATION.ID))
-                .where(CONVERSATION_MEMBER.USER_ID.eq(userId))
-                .orderBy(CONVERSATION.UPDATED_AT)
+                        c.ID,
+                        c.IS_GROUP,
+                        nameField,
+                        c.CREATED_AT,
+                        c.UPDATED_AT
+                )
+                .from(myCm)
+                .join(c).on(myCm.CONVERSATION_ID.eq(c.ID))
+                .leftJoin(otherCm).on(
+                        c.ID.eq(otherCm.CONVERSATION_ID)
+                                .and(otherCm.USER_ID.notEqual(userId))
+                                .and(c.IS_GROUP.isFalse())
+                )
+                .leftJoin(otherUser).on(otherCm.USER_ID.eq(otherUser.ID))
+                .where(myCm.USER_ID.eq(userId))
+                .orderBy(c.UPDATED_AT.desc())
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetchInto(ConversationRecord.class);
+                .fetchInto(ConversationResponse.class);
     }
 }

@@ -144,4 +144,13 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                         record.get(APP_USER.ID)
                 ));
     }
+
+    public List<UUID> getAllUsersInArea(UUID areaId){
+        return dslContext.select(APP_USER.ID)
+                .from(AREA)
+                .leftJoin(BUILDING).on(BUILDING.AREA_ID.eq(AREA.ID))
+                .leftJoin(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                .where(AREA.ID.eq(areaId))
+                .fetchInto(UUID.class);
+    }
 }

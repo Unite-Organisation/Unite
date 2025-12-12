@@ -138,4 +138,8 @@ public class UserService {
     public List<ResidentToAdd> getUsersWithoutBuilding() {
         return userRepository.getUsersWithoutBuilding();
     }
+
+    public List<UUID> getAllUsersInAreaWithoutUser(UUID userId, UUID areaId){
+        return userRepository.getAllUsersInArea(areaId).stream().filter(u -> !u.equals(userId)).toList();
+    }
 }

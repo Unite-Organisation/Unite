@@ -8,6 +8,7 @@ import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.messaging.repository.MessageRepository;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.user.service.UserService;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.shared.EntityCreatedResponse;
 import com.app.prod.utils.validators.Validate;
@@ -38,13 +39,12 @@ public class ConversationService {
     private final MessageRepository messageRepository;
     private final Clock clock;
     private final Validate validate;
+    private final UserService userService;
 
     public List<ConversationResponse> getConversations(AppUserRecord user, Pagination pagination) {
-        List<ConversationRecord> conversations = conversationRepository.findConversationForUser(user.getId(), pagination);
+        List<ConversationResponse> conversations = conversationRepository.findConversationForUser(user.getId(), pagination);
         log.info("Found {} conversations for user {}", conversations.size(), user.getId());
-        return conversations.stream()
-                .map(ConversationMapper::fromRecordToResponse)
-                .toList();
+        return conversations;
     }
 
     public EntityCreatedResponse createConversation(ConversationRequest request) {
@@ -55,8 +55,7 @@ public class ConversationService {
     }
 
     @Transactional
-    public void addMembersToConversation(AddMembersRequest request, AppUserRecord user) {
-        checkNoDoubleConversationWithTheSameContact(request.ids(), user);
+    public void addMembersToConversation(AddMembersRequest request, AppUserRecord user) {checkNoDoubleConversationWithTheSameContact(request.ids(), user);
         UUID conversationId = request.conversationId();
         validate.conversation(conversationId);
 
@@ -103,5 +102,26 @@ public class ConversationService {
                         Conversation.class.getSimpleName()
                 ));
 
+    }
+
+    @Transactional
+    public void createConversationsWithAllMembers(UUID userId, UUID areaId){
+        List<UUID> usersInArea = userService.getAllUsersInAreaWithoutUser(userId, areaId);
+
+        List<ConversationRecord> conversationRecords = new ArrayList<>();
+        List<ConversationMemberRecord> conversationMemberRecords = new ArrayList<>();
+        for(UUID contactId : usersInArea){
+            var conversationId = UUID.randomUUID();
+            var now = LocalDateTime.now(clock);
+
+            conversationRecords.add(new ConversationRecord(conversationId, false, null, now, now));
+
+            conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), userId, conversationId, now));
+            conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), contactId, conversationId, now));
+
+        }
+
+        conversationRepository.insertMany(conversationRecords);
+        conversationMemberRepository.insertMany(conversationMemberRecords);
     }
 }
