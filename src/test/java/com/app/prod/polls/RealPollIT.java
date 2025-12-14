@@ -278,7 +278,7 @@ public class RealPollIT extends IntegrationTest {
 
     private void createPoll(List<String> pollOptions, String pollName){
         PollRequest request = createPollRequest(building.getId(), pollOptions, pollName);
-        pollService.createPoll(request, manager.getId());
+        pollService.createPoll(request, manager);
     }
 
     private List<PollOptionRecord> fetchSortedPollOptions(UUID pollId){

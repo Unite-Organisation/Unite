@@ -17,6 +17,7 @@ public record PollResponse(
         PollTarget target,
         LocalDateTime pollStartTime,
         LocalDateTime pollEndTime,
+        Boolean finished,
         Boolean userVoted,
         List<PollOptionResponse> options
 ) {

@@ -29,13 +29,20 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
     }
 
     public List<PollResponse> getPolls(UUID userId, Pagination pagination, PollFilter pollFilter) {
-        var subQuery = dslContext.select(POLL.ID)
+        var subQuery1 = dslContext.select(POLL.ID)
                 .from(POLL)
                 .join(BUILDING).on(
                         BUILDING.ID.eq(POLL.BUILDING_ID).or(POLL.AREA_ID.eq(BUILDING.AREA_ID))
                 )
                 .join(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
                 .where(APP_USER.ID.eq(userId));
+
+        //managers include
+        var subQuery2 = dslContext.select(POLL.ID)
+                .from(POLL)
+                .where(POLL.CREATED_BY.eq(userId));
+
+        var subQuery = subQuery1.union(subQuery2);
 
         Field<Boolean> userVotedField = field(
                 DSL.exists(
@@ -58,6 +65,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
             POLL.AREA_ID,
             POLL.START_TIME,
             POLL.END_TIME,
+            POLL.FINISHED,
             userVotedField,
             multiset(
                 select(POLL_OPTION.ID, POLL_OPTION.OPTION_TEXT)
@@ -98,6 +106,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
                                     target,
                                     record.get(POLL.START_TIME),
                                     record.get(POLL.END_TIME),
+                                    record.get(POLL.FINISHED),
                                     userVoted,
                                     record.get("options", List.class)
                             );

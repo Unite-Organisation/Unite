@@ -1,5 +1,6 @@
 package com.app.prod.polls.service;
 
+import com.app.prod.area.service.AreaService;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResponse;
@@ -36,20 +37,25 @@ public class PollService {
     private final Validate validate;
     private final PollResultRepository pollResultRepository;
     private final PollResultService pollResultService;
+    private final AreaService areaService;
 
     @Transactional
-    public void createPoll(PollRequest request, UUID userId) {
+    public void createPoll(PollRequest request, AppUserRecord user) {
         //TODO: check if manager can create polls for this building or area
+        UUID areaId = null;
+        if (request.buildingId() == null){
+            areaId = areaService.getUserArea(user);
+        }
 
         var now = LocalDateTime.now(clock);
         var pollId = UUID.randomUUID();
 
-        createPollData(request, userId, now, pollId);
-        log.info("User {} created poll: {}", userId, request.title());
+        createPollData(request, user.getId(), now, pollId, areaId);
+        log.info("User {} created poll: {}", user.getId(), request.title());
     }
 
-    private void createPollData(PollRequest request, UUID userId, LocalDateTime now, UUID pollId) {
-        pollRepository.insertOne(PollMapper.fromRequestToRecord(request, userId, now, pollId));
+    private void createPollData(PollRequest request, UUID userId, LocalDateTime now, UUID pollId, UUID areaId) {
+        pollRepository.insertOne(PollMapper.fromRequestToRecord(request, userId, now, pollId, areaId));
 
         List<PollOptionRecord> records = request.options().stream()
                 .map(option -> new PollOptionRecord(

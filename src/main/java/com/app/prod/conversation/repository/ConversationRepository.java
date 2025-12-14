@@ -34,32 +34,31 @@ public class ConversationRepository extends BaseJooqRepository<Conversation, Con
     }
 
     public List<ConversationResponse> findConversationForUser(UUID userId, Pagination pagination) {
-        var c = CONVERSATION;
         var myCm = CONVERSATION_MEMBER.as("my_cm");
         var otherCm = CONVERSATION_MEMBER.as("other_cm");
         var otherUser = APP_USER.as("other_user");
 
-        var nameField = when(c.IS_GROUP.isTrue(), c.NAME)
+        var nameField = when(CONVERSATION.IS_GROUP.isTrue(), CONVERSATION.NAME)
                 .otherwise(concat(otherUser.FIRST_NAME, inline(" "), otherUser.LAST_NAME))
                 .as("name");
 
         return dslContext.select(
-                        c.ID,
-                        c.IS_GROUP,
+                        CONVERSATION.ID,
+                        CONVERSATION.IS_GROUP,
                         nameField,
-                        c.CREATED_AT,
-                        c.UPDATED_AT
+                        CONVERSATION.CREATED_AT,
+                        CONVERSATION.UPDATED_AT
                 )
                 .from(myCm)
-                .join(c).on(myCm.CONVERSATION_ID.eq(c.ID))
+                .join(CONVERSATION).on(myCm.CONVERSATION_ID.eq(CONVERSATION.ID))
                 .leftJoin(otherCm).on(
-                        c.ID.eq(otherCm.CONVERSATION_ID)
+                        CONVERSATION.ID.eq(otherCm.CONVERSATION_ID)
                                 .and(otherCm.USER_ID.notEqual(userId))
-                                .and(c.IS_GROUP.isFalse())
+                                .and(CONVERSATION.IS_GROUP.isFalse())
                 )
                 .leftJoin(otherUser).on(otherCm.USER_ID.eq(otherUser.ID))
                 .where(myCm.USER_ID.eq(userId))
-                .orderBy(c.UPDATED_AT.desc())
+                .orderBy(CONVERSATION.UPDATED_AT.desc())
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
                 .fetchInto(ConversationResponse.class);

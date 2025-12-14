@@ -12,12 +12,12 @@ import java.util.UUID;
 
 public class PollMapper {
 
-    public static PollRecord fromRequestToRecord(PollRequest request, UUID userId, LocalDateTime now, UUID pollId){
+    public static PollRecord fromRequestToRecord(PollRequest request, UUID userId, LocalDateTime now, UUID pollId, UUID areaId){
         return new PollRecord(
                 pollId,
                 request.title(),
                 request.description(),
-                request.areaId(),
+                areaId,
                 request.buildingId(),
                 userId,
                 request.startTime(),

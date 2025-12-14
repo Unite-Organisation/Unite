@@ -34,12 +34,12 @@ public class PollRestApi {
     @PostMapping()
     @PreAuthorize("hasRole('MANAGER')")
     public void createPoll(@Valid @RequestBody PollRequest request){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        pollService.createPoll(request, userId);
+        var user = globalSecurityManager.getCurrentUser();
+        pollService.createPoll(request, user);
     }
 
     @GetMapping()
-    @PreAuthorize("hasRole('RESIDENT')")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGER')")
     public List<PollResponse> getPolls(
             @Valid @ModelAttribute Pagination pagination,
             @RequestParam(required = false) PollStatus pollStatus

@@ -14,7 +14,6 @@ public record PollRequest(
         String title,
 
         String description,
-        UUID areaId,
         UUID buildingId,
 
         @NotNull
