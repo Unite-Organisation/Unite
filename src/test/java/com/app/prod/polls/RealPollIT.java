@@ -332,7 +332,6 @@ public class RealPollIT extends IntegrationTest {
         return new PollRequest(
                 pollName,
                 "description",
-                null,
                 buildingId,
                 true,
                 startPoll,
