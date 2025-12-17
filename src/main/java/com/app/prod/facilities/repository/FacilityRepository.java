@@ -19,7 +19,7 @@ public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRec
         super(dsl, Facility.FACILITY, Facility.FACILITY.ID);
     }
 
-    public List<FacilityResponse> getFacilitiesForBuilding(UUID buildingId){
+    public List<FacilityResponse> getFacilities(UUID userId){
         return dslContext.select(
                 FACILITY.ID,
                 FACILITY.NAME,
@@ -28,8 +28,14 @@ public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRec
                 FACILITY.LOCATION,
                 FACILITY.REQUIRES_APPROVAL
         )
-                .from(FACILITY)
-                .where(FACILITY.BUILDING_ID.eq(buildingId))
+                .from(APP_USER)
+                .leftJoin(BUILDING_MANAGER).on(APP_USER.ID.eq(BUILDING_MANAGER.USER_ID))
+                .innerJoin(BUILDING).on(
+                        BUILDING.ID.eq(APP_USER.BUILDING_ID)
+                                .or(BUILDING.ID.eq(BUILDING_MANAGER.BUILDING_ID))
+                )
+                .join(FACILITY).on(BUILDING.ID.eq(FACILITY.BUILDING_ID))
+                .where(APP_USER.ID.eq(userId))
                 .fetch(r -> new FacilityResponse(
                         r.get(FACILITY.ID),
                         r.get(FACILITY.NAME),

@@ -34,7 +34,7 @@ public class FacilityPersistanceFactory {
         public Builder withRandomValues(){
             instance.setId(UUID.randomUUID());
             instance.setName("Pool");
-            instance.setType(FacilityType.BASIC.name());
+            instance.setType(FacilityType.RECREATION.name());
             instance.setCapacity(10);
             instance.setLocation("Basement");
             instance.setRequiresApproval(false);

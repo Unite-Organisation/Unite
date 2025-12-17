@@ -76,7 +76,7 @@ public class Facility extends TableImpl<FacilityRecord> {
     /**
      * The column <code>public.facility.type</code>.
      */
-    public final TableField<FacilityRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(50).nullable(false), this, "");
+    public final TableField<FacilityRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(50), this, "");
 
     /**
      * The column <code>public.facility.capacity</code>.

@@ -1,9 +1,11 @@
 package com.app.prod.facilities.api;
 
 import com.app.prod.config.security.GlobalSecurityManager;
+import com.app.prod.facilities.dto.BuildingFacilitiesResponse;
 import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
 import com.app.prod.facilities.dto.ReserveResponse;
+import com.app.prod.facilities.service.FacilityService;
 import com.app.prod.facilities.service.ReservationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class FacilitiyRestApi {
 
     private final ReservationService reservationService;
     private final GlobalSecurityManager globalSecurityManager;
+    private final FacilityService facilityService;
 
     @GetMapping("/{facilityId}")
     public ResponseEntity<List<FacilityReservation>> getAvailability(@PathVariable UUID facilityId){
@@ -41,6 +44,12 @@ public class FacilitiyRestApi {
         else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+    }
+
+    @GetMapping()
+    public BuildingFacilitiesResponse getFacilities(){
+        var user = globalSecurityManager.getCurrentUser();
+        return facilityService.getFacilities(user);
     }
 
 }

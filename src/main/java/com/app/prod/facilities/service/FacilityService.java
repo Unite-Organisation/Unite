@@ -6,6 +6,8 @@ import com.app.prod.facilities.dto.BuildingFacilitiesResponse;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.facilities.repository.FacilityRepository;
+import com.app.prod.user.enums.UserRole;
+import com.app.prod.user.service.UserRoleService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +51,7 @@ public class FacilityService {
         return String.format("Added %s facilities.", records.size());
     }
 
-    public BuildingFacilitiesResponse getFacilitiesForBuilding(UUID buildingId, AppUserRecord user) {
-        validate.thatUserBelongsToBuilding(user, buildingId);
-        return new BuildingFacilitiesResponse(facilityRepository.getFacilitiesForBuilding(buildingId));
+    public BuildingFacilitiesResponse getFacilities(AppUserRecord user) {
+        return new BuildingFacilitiesResponse(facilityRepository.getFacilities(user.getId()));
     }
 }

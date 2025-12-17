@@ -1,0 +1,2 @@
+ALTER TABLE facility
+    ALTER COLUMN type DROP NOT NULL;

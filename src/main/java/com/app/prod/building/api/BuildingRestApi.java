@@ -52,10 +52,4 @@ public class BuildingRestApi {
         return ResponseEntity.ok(new SimpleResponse(message));
     }
 
-    @GetMapping("/{buildingId}/facilities")
-    public BuildingFacilitiesResponse getFacilities(@PathVariable UUID buildingId){
-        var user = globalSecurityManager.getCurrentUser();
-        return facilityService.getFacilitiesForBuilding(buildingId, user);
-    }
-
 }
