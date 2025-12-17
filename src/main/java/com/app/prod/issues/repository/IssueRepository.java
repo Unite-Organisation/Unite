@@ -44,8 +44,19 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
 
         var finalQuery = joiningStrategy.joinEntity(baseQuery, entityId);
 
-        return finalQuery.orderBy(ISSUE.CREATED_AT)
+        var r = finalQuery.orderBy(ISSUE.CREATED_AT)
                 .fetch(record -> {
+
+                        var q = record.get(APP_USER.FIRST_NAME);
+                        var q2 = record.get(APP_USER.LAST_NAME);
+                        var q3 = record.get(USER_ROLE.USER_ROLE_);
+                        var q4 = record.get(ISSUE.ID);
+                        var q5 = record.get(ISSUE.TITLE);
+                        var q6 = record.get(ISSUE.DESCRIPTION);
+                        var q7 = record.get(ISSUE.STATUS);
+                        var q8 = record.get(ISSUE.PRIORITY);
+                        var q9= record.get(NOTIFICATION.SEEN_AT);
+
                         var recipientInfo = new IssueResponse.IssueRecipientInfo(
                                 record.get(APP_USER.FIRST_NAME),
                                 record.get(APP_USER.LAST_NAME),
@@ -63,6 +74,7 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
                         );
                 });
 
+        return r;
     }
 
     public void updateStatus(UUID issueId, IssueProcessingStatus updatedStatus) {

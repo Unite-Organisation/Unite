@@ -79,4 +79,8 @@ public class AreaService {
     private UUID getResidentArea(AppUserRecord user) {
         return areaRepository.getResidentArea(user.getId());
     }
+
+    public UUID getAreaManager(UUID areaId){
+        return areaRepository.getAreaManager(areaId);
+    }
 }

@@ -38,4 +38,15 @@ public class AreaRepository extends BaseJooqRepository<Area, AreaRecord, UUID> {
                 .where(APP_USER.ID.eq(id))
                 .fetchAny(record -> record.get(AREA.ID));
     }
+
+    public UUID getAreaManager(UUID areaId) {
+        return dslContext.select(
+                BUILDING_MANAGER.USER_ID
+        )
+                .from(AREA)
+                .leftJoin(BUILDING).on(BUILDING.AREA_ID.eq(AREA.ID))
+                .leftJoin(BUILDING_MANAGER).on(BUILDING_MANAGER.BUILDING_ID.eq(BUILDING.ID))
+                .where(AREA.ID.eq(areaId))
+                .fetchAny(record -> record.get(BUILDING_MANAGER.USER_ID));
+    }
 }

@@ -1,5 +1,6 @@
 package com.app.prod.issues.service;
 
+import com.app.prod.area.service.AreaService;
 import com.app.prod.building.repository.BuildingsManagersRepository;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.issues.dto.NotificationResponse;
@@ -35,9 +36,15 @@ public class NotificationService {
     private final PollService pollService;
     private final Clock clock;
     private final Validate validate;
+    private final AreaService areaService;
 
     public void notifyManagerAboutBuildingIssue(IssueRecord issue){
         var managerId = fetchManagerIdForBuilding(issue.getBuildingId());
+        persistNotification(issue, managerId);
+    }
+
+    public void notifyManagerAboutAreaIssue(IssueRecord issue){
+        var managerId = fetchManagerIdForArea(issue.getAreaId());
         persistNotification(issue, managerId);
     }
 
@@ -62,6 +69,10 @@ public class NotificationService {
 
     private UUID fetchManagerIdForBuilding(UUID buildingId){
         return buildingsManagersRepository.fetchManagerIdForBuilding(buildingId);
+    }
+
+    private UUID fetchManagerIdForArea(UUID areaId){
+        return areaService.getAreaManager(areaId);
     }
 
     private UUID fetchManagerIdForFacility(UUID facilityId){
