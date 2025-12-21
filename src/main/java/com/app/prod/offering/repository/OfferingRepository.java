@@ -20,7 +20,7 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
         super(dsl, OFFERING, OFFERING.ID);
     }
 
-    public List<OfferingResponse> getOfferings(OfferingFilter filter) {
+    public List<OfferingResponse> getOfferings(OfferingFilter filter, UUID userId) {
         return dslContext.select(
                 OFFERING.ID,
                 OFFERING.TITLE,
@@ -30,6 +30,7 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                 OFFERING.PRICE,
                 OFFERING.END_DATE,
                 OFFERING.CREATED_AT,
+                OFFERING.USER_PROVIDER,
                 APP_USER.ID,
                 APP_USER.FIRST_NAME,
                 APP_USER.LAST_NAME,
@@ -40,7 +41,10 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                 .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
                 .where(filter.parseFilterAnd())
                 .and(OFFERING.IS_ACTIVE.eq(Boolean.TRUE))
-                .fetch(record -> new OfferingResponse(
+                .fetch(record -> {
+                    boolean createByUser = record.get(OFFERING.USER_PROVIDER).equals(userId);
+
+                    return new OfferingResponse(
                         record.get(OFFERING.ID),
                         record.get(OFFERING.TITLE),
                         record.get(OFFERING.DESCRIPTION),
@@ -49,13 +53,15 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                         record.get(OFFERING.PRICE),
                         record.get(OFFERING.END_DATE),
                         record.get(OFFERING.CREATED_AT),
+                        createByUser,
                         new BasicUserData(
                                 record.get(APP_USER.ID),
                                 record.get(APP_USER.FIRST_NAME),
                                 record.get(APP_USER.LAST_NAME),
                                 record.get(USER_ROLE.USER_ROLE_)
-                        )
-                ));
+                        ));
+
+                });
 
     }
 

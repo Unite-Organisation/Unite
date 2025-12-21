@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record NotificationResponse(
+        UUID notificationId,
         UUID issueId,
         String issueTitle,
         String issueDescription,

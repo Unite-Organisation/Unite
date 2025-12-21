@@ -25,6 +25,7 @@ public class NotificationRepository extends BaseJooqRepository<Notification, Not
 
     public List<NotificationResponse> getNotifications(UUID managerId) {
         return dslContext.select(
+                NOTIFICATION.ID,
                 ISSUE.ID,
                 ISSUE.TITLE,
                 ISSUE.DESCRIPTION,
@@ -65,6 +66,7 @@ public class NotificationRepository extends BaseJooqRepository<Notification, Not
                     );
 
                     return new NotificationResponse(
+                            record.get(NOTIFICATION.ID),
                             record.get(ISSUE.ID),
                             record.get(ISSUE.TITLE),
                             record.get(ISSUE.DESCRIPTION),

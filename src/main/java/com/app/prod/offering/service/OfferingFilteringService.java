@@ -1,5 +1,6 @@
 package com.app.prod.offering.service;
 
+import com.app.prod.area.service.AreaService;
 import com.app.prod.building.service.BuildingService;
 import com.app.prod.offering.enums.OfferingCategory;
 import com.app.prod.utils.filters.OfferingFilter;
@@ -16,8 +17,7 @@ import java.util.Optional;
 @Service
 public class OfferingFilteringService {
 
-    private final BuildingService buildingService;
-    private final Validate validate;
+    private final AreaService areaService;
 
     public OfferingFilter prepareFilter(
             AppUserRecord user,
@@ -26,9 +26,7 @@ public class OfferingFilteringService {
             PriceFilter.PriceModifier modifier
     ) {
 
-        validate.thatUserHasBuilding(user);
-        var areaId = buildingService.getAreaId(user.getBuildingId());
-
+        var areaId = areaService.getUserArea(user);
         PriceFilter priceFilter = PriceFilter.builder()
                 .price(Optional.ofNullable(price))
                 .priceModifier(modifier)

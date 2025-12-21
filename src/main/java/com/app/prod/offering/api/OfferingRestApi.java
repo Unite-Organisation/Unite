@@ -38,7 +38,7 @@ public class OfferingRestApi {
     }
 
     @GetMapping()
-    @PreAuthorize("hasRole('RESIDENT')")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGER')")
     public List<OfferingResponse> getOfferings(
             @RequestParam(required = false) OfferingCategory category,
             @RequestParam(required = true) BigDecimal price,
@@ -46,7 +46,7 @@ public class OfferingRestApi {
             ){
         var user = globalSecurityManager.getCurrentUser();
         OfferingFilter filter = offeringFilteringService.prepareFilter(user, category, price, modifier);
-        return offeringService.getOfferings(filter);
+        return offeringService.getOfferings(filter, user.getId());
     }
 
     @PatchMapping("/{offeringId}/cancel")

@@ -6,6 +6,7 @@ import com.app.prod.issues.enums.IssueProcessingStatus;
 import com.app.prod.issues.repository.IssueRepository;
 import com.app.prod.issues.strategy.IssueNotifyingStrategy;
 import com.app.prod.user.enums.UserRole;
+import com.app.prod.user.service.UserRoleService;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class IssueService {
     private final IssueRepository issueRepository;
     private final Validate validate;
     private final IssueStatusService issueStatusService;
+    private final UserRoleService userRoleService;
 
     public void createIssue(IssueRequest request, AppUserRecord user) {
         IssueNotifyingStrategy issueStrategy = factory.chooseStrategy(new StrategyOptions(
@@ -38,8 +40,9 @@ public class IssueService {
         issueStrategy.notifyAboutIssue(issue);
     }
 
-    public void updateIssueStatus(UUID issueId, IssueProcessingStatus updatedStatus, UserRole userRole){
+    public void updateIssueStatus(UUID issueId, IssueProcessingStatus updatedStatus, AppUserRecord user){
         var issue = validate.andGetIssue(issueId);
+        var userRole = userRoleService.getUserRoleFromId(user.getUserRole());
         issueStatusService.checkIfStatusUpdateIsPossible(IssueProcessingStatus.valueOf(issue.getStatus()), updatedStatus, userRole);
         issueRepository.updateStatus(issueId, updatedStatus);
     }

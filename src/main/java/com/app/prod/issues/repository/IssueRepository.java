@@ -1,6 +1,7 @@
 package com.app.prod.issues.repository;
 
 import com.app.prod.issues.dto.IssueResponse;
+import com.app.prod.issues.dto.IssueSimpleResponse;
 import com.app.prod.issues.enums.IssuePriority;
 import com.app.prod.issues.enums.IssueProcessingStatus;
 import com.app.prod.issues.repository.strategy.IssueJoiningStrategy;
@@ -26,55 +27,7 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
     }
 
     public List<IssueResponse> getEntityIssues(UUID entityId, IssueJoiningStrategy joiningStrategy) {
-        var baseQuery = dslContext.select(
-                ISSUE.ID,
-                ISSUE.TITLE,
-                ISSUE.DESCRIPTION,
-                ISSUE.STATUS,
-                ISSUE.PRIORITY,
-                NOTIFICATION.SEEN_AT,
-                APP_USER.FIRST_NAME,
-                APP_USER.LAST_NAME,
-                USER_ROLE.USER_ROLE_
-        )
-                .from(ISSUE)
-                .leftJoin(NOTIFICATION).on(NOTIFICATION.ISSUE_ID.eq(ISSUE.ID))
-                .leftJoin(APP_USER).on(APP_USER.ID.eq(NOTIFICATION.RECIPIENT_ID))
-                .leftJoin(USER_ROLE).on(USER_ROLE.ID.eq(APP_USER.USER_ROLE));
-
-        var finalQuery = joiningStrategy.joinEntity(baseQuery, entityId);
-
-        var r = finalQuery.orderBy(ISSUE.CREATED_AT)
-                .fetch(record -> {
-
-                        var q = record.get(APP_USER.FIRST_NAME);
-                        var q2 = record.get(APP_USER.LAST_NAME);
-                        var q3 = record.get(USER_ROLE.USER_ROLE_);
-                        var q4 = record.get(ISSUE.ID);
-                        var q5 = record.get(ISSUE.TITLE);
-                        var q6 = record.get(ISSUE.DESCRIPTION);
-                        var q7 = record.get(ISSUE.STATUS);
-                        var q8 = record.get(ISSUE.PRIORITY);
-                        var q9= record.get(NOTIFICATION.SEEN_AT);
-
-                        var recipientInfo = new IssueResponse.IssueRecipientInfo(
-                                record.get(APP_USER.FIRST_NAME),
-                                record.get(APP_USER.LAST_NAME),
-                                UserRole.valueOf(record.get(USER_ROLE.USER_ROLE_))
-                        );
-
-                        return new IssueResponse(
-                                record.get(ISSUE.ID),
-                                record.get(ISSUE.TITLE),
-                                record.get(ISSUE.DESCRIPTION),
-                                IssueProcessingStatus.valueOf(record.get(ISSUE.STATUS)),
-                                IssuePriority.valueOf(record.get(ISSUE.PRIORITY)),
-                                record.get(NOTIFICATION.SEEN_AT),
-                                recipientInfo
-                        );
-                });
-
-        return r;
+        return null;
     }
 
     public void updateStatus(UUID issueId, IssueProcessingStatus updatedStatus) {
@@ -83,5 +36,24 @@ public class IssueRepository extends BaseJooqRepository<Issue, IssueRecord, UUID
                 .where(ISSUE.ID.eq(issueId))
                 .execute();
 
+    }
+
+    public List<IssueSimpleResponse> getIssues(UUID id) {
+        return dslContext.select(
+                ISSUE.ID,
+                ISSUE.TITLE,
+                ISSUE.DESCRIPTION,
+                ISSUE.STATUS,
+                ISSUE.PRIORITY
+        )
+                .from(ISSUE)
+                .where(ISSUE.CREATED_BY.eq(id))
+                .fetch(record -> new IssueSimpleResponse(
+                        record.get(ISSUE.ID),
+                        record.get(ISSUE.TITLE),
+                        record.get(ISSUE.DESCRIPTION),
+                        IssueProcessingStatus.valueOf(record.get(ISSUE.STATUS)),
+                        IssuePriority.valueOf(record.get(ISSUE.PRIORITY))
+                ));
     }
 }

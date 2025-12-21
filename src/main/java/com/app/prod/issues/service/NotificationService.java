@@ -55,9 +55,7 @@ public class NotificationService {
 
     public void notifyManagerAboutPollIssue(IssueRecord issue) {
         var managerId = fetchManagerIdForPoll(issue.getPollId());
-
         // in future - notify administrator
-
         persistNotification(issue, managerId);
     }
 

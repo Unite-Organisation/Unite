@@ -15,6 +15,7 @@ public record OfferingResponse(
         BigDecimal price,
         LocalDateTime endDate,
         LocalDateTime createdAt,
+        boolean createdByUser,
         BasicUserData providerData
 ) {
 }

@@ -1,6 +1,7 @@
 package com.app.prod.issues.service;
 
 import com.app.prod.issues.dto.IssueResponse;
+import com.app.prod.issues.dto.IssueSimpleResponse;
 import com.app.prod.issues.repository.IssueRepository;
 import com.app.prod.issues.repository.strategy.AreaJoiningStrategy;
 import com.app.prod.issues.repository.strategy.BuildingJoiningStrategy;
@@ -46,5 +47,9 @@ public class IssueFetchingService {
     public List<IssueResponse> getPollIssues(UUID pollId, AppUserRecord user) {
         validate.thatUserCanVote(user.getId(), pollId);
         return issueRepository.getEntityIssues(pollId, pollJoiningStrategy);
+    }
+
+    public List<IssueSimpleResponse> getIssues(AppUserRecord user) {
+        return issueRepository.getIssues(user.getId());
     }
 }

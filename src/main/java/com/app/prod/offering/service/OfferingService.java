@@ -38,8 +38,8 @@ public class OfferingService {
         offeringRepository.insertOne(OfferingMapper.fromRequestToRecord(request, usersRecord.getId(), now, areaId));
     }
 
-    public List<OfferingResponse> getOfferings(OfferingFilter filter) {
-        return offeringRepository.getOfferings(filter);
+    public List<OfferingResponse> getOfferings(OfferingFilter filter, UUID userId) {
+        return offeringRepository.getOfferings(filter, userId);
     }
 
     public void cancelOffering(AppUserRecord user, UUID offeringId) {

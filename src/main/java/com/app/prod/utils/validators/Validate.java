@@ -180,6 +180,13 @@ public class Validate {
         );
     }
 
+    public void pollIssueCreation(UUID pollId) {
+        pollRepository.findById(pollId).orElseThrow(() -> new EntityNotPresentException(
+                String.format("Poll with id %d not found", pollId),
+                Poll.class.getSimpleName()
+        ));
+    }
+
     public void thatUserBelongsToBuilding(AppUserRecord user, UUID buildingId){
         var userBuilding = user.getBuildingId();
 
