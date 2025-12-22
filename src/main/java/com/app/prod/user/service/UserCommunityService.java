@@ -25,10 +25,8 @@ public class UserCommunityService {
     private final Validate validate;
 
     public List<PotentialContactResponse> getAllUsersInArea(AppUserRecord userRecord, Pagination pagination){
-        //TODO: return only users with who i dont have conversation yet
-
         var areaId = buildingService.getAreaId(userRecord.getBuildingId());
-        return userRepository.getAllUsersInArea(areaId, pagination);
+        return userRepository.getAllUsersInArea(areaId, userRecord.getId(), pagination);
     }
 
     public HomePageResponse getData(AppUserRecord user) {

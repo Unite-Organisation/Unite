@@ -14,8 +14,14 @@ public record IssueResponse(
         IssueProcessingStatus status,
         IssuePriority priority,
         LocalDateTime seenByRecipientAt,
-        IssueRecipientInfo recipient
+        IssueRecipientInfo recipient,
+        IssueIssuerInfo issuer
 ) {
+    public record IssueIssuerInfo(
+            String firstName,
+            String lastName
+    ){}
+
     public record IssueRecipientInfo(
        String firstName,
        String lastName,

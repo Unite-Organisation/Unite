@@ -51,4 +51,10 @@ public class ConversationRestApi {
         return conversationService.getConversationContent(id, pagination);
     }
 
+    @PostMapping("/group")
+    public void createGroupConversation(@RequestBody GroupConversationRequest request){
+        var user = globalSecurityManager.getCurrentUser();
+        conversationService.createGroupConversation(request, user);
+    }
+
 }

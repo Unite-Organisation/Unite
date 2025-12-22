@@ -55,7 +55,9 @@ public class ConversationService {
     }
 
     @Transactional
-    public void addMembersToConversation(AddMembersRequest request, AppUserRecord user) {checkNoDoubleConversationWithTheSameContact(request.ids(), user);
+    public void addMembersToConversation(AddMembersRequest request, AppUserRecord user) {
+        checkNoDoubleConversationWithTheSameContact(request.ids(), user);
+
         UUID conversationId = request.conversationId();
         validate.conversation(conversationId);
 
@@ -123,5 +125,19 @@ public class ConversationService {
 
         conversationRepository.insertMany(conversationRecords);
         conversationMemberRepository.insertMany(conversationMemberRecords);
+    }
+
+    @Transactional
+    public void createGroupConversation(GroupConversationRequest request, AppUserRecord user) {
+        var conversationRequest = new ConversationRequest(true, request.name());
+        var conversationId = createConversation(conversationRequest).entityId();
+        var addMembersRequest = new AddMembersRequest(conversationId, request.members());
+        addMembersToConversation(addMembersRequest, user);
+        addUserToConversation(user.getId(), conversationId);
+    }
+
+    private void addUserToConversation(UUID userId, UUID conversationId){
+        var now = LocalDateTime.now(clock);
+        conversationMemberRepository.insertOne(new ConversationMemberRecord(UUID.randomUUID(), userId, conversationId, now));
     }
 }

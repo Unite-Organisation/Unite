@@ -58,7 +58,7 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .execute();
     }
 
-    public List<PotentialContactResponse> getAllUsersInArea(UUID areaId, Pagination pagination) {
+    public List<PotentialContactResponse> getAllUsersInArea(UUID areaId, UUID userId, Pagination pagination) {
         return dslContext.select(
                 APP_USER.ID,
                 APP_USER.FIRST_NAME,
@@ -72,6 +72,7 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .leftJoin(AREA).on(BUILDING.AREA_ID.eq(areaId))
                 .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
                 .where(AREA.ID.eq(areaId))
+                .and(APP_USER.ID.ne(userId))
                 .and(APP_USER.STATUS.eq(ACTIVE.name()))
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
