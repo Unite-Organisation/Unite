@@ -32,7 +32,8 @@ public class BuildingRestApi {
             @RequestParam UUID buildingId,
             @RequestParam UUID userId){
 
-        String message = buildingService.addUser(userId, buildingId);
+        var manager = globalSecurityManager.getCurrentUser();
+        String message = buildingService.addUser(userId, buildingId, manager);
         return ResponseEntity.ok(new SimpleResponse(message));
     }
 

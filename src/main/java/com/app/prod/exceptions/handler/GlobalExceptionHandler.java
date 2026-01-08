@@ -44,48 +44,53 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> handleException(AccessDeniedException e){
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException e){
         log.error("Access denied: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                e.getMessage() + "User: " + tokenSecurityManager.getCurrentUser().getUsername() +
-                        "has role: " + tokenSecurityManager.getCurrentUser().getUserRole()
-                );
+        String message = e.getMessage() + "Unsufficient roles for  " + tokenSecurityManager.getCurrentUser().getUsername();
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, message);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(EntityNotPresentException.class)
-    public ResponseEntity<String> handleException(EntityNotPresentException e){
+    public ResponseEntity<ErrorResponse> handleException(EntityNotPresentException e){
         log.error("Entity was not present {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(UnauthorizedDataAccessException.class)
-    public ResponseEntity<String> handleException(UnauthorizedDataAccessException e){
+    public ResponseEntity<ErrorResponse> handleException(UnauthorizedDataAccessException e){
         log.error("Unauthorized access to resource. {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(EmptyFileException.class)
-    public ResponseEntity<String> handleException(EmptyFileException e){
+    public ResponseEntity<ErrorResponse> handleException(EmptyFileException e){
         log.error("Bad request - file empty. Exception content: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(FileNotFoundException.class)
-    public ResponseEntity<String> handleException(FileNotFoundException e){
+    public ResponseEntity<ErrorResponse> handleException(FileNotFoundException e){
         log.error("File with path saved in database does not exist. Exception content: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     @ExceptionHandler(InvalidFileExtensionException.class)
-    public ResponseEntity<String> handleException(InvalidFileExtensionException e){
+    public ResponseEntity<ErrorResponse> handleException(InvalidFileExtensionException e){
         log.error("Invalid file extension. Exception content: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
         log.error("Unhandled exception, returning status code 500. Exception content: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
 }
