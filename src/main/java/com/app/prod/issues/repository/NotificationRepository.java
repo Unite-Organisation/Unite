@@ -6,7 +6,9 @@ import com.app.prod.issues.enums.IssuePriority;
 import com.app.prod.issues.enums.IssueProcessingStatus;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
+import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Notification;
+import org.jooq.sources.tables.UserRole;
 import org.jooq.sources.tables.records.NotificationRecord;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +26,10 @@ public class NotificationRepository extends BaseJooqRepository<Notification, Not
     }
 
     public List<NotificationResponse> getNotifications(UUID managerId) {
+        AppUser RECIPIENT = APP_USER.as("recipient");
+        AppUser ISSUER = APP_USER.as("issuer");
+        UserRole ISSUER_ROLE = USER_ROLE.as("issuer_role");
+
         return dslContext.select(
                 NOTIFICATION.ID,
                 ISSUE.ID,
@@ -38,30 +44,31 @@ public class NotificationRepository extends BaseJooqRepository<Notification, Not
                         ISSUE.FACILITY_ID,
                         ISSUE.POLL_ID
                 ).as("entityId"),
-                APP_USER.ID,
-                APP_USER.FIRST_NAME,
-                APP_USER.LAST_NAME,
-                APP_USER.USERNAME,
-                USER_ROLE.USER_ROLE_,
+                ISSUER.ID,
+                ISSUER.FIRST_NAME,
+                ISSUER.LAST_NAME,
+                ISSUER.USERNAME,
+                ISSUER_ROLE.USER_ROLE_,
                 ISSUE.CREATED_AT
         )
                 .from(ISSUE)
                 .leftJoin(NOTIFICATION).on(NOTIFICATION.ISSUE_ID.eq(ISSUE.ID))
-                .leftJoin(APP_USER).on(NOTIFICATION.RECIPIENT_ID.eq(APP_USER.ID))
-                .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
+                .leftJoin(RECIPIENT).on(NOTIFICATION.RECIPIENT_ID.eq(RECIPIENT.ID))
+                .leftJoin(ISSUER).on(ISSUE.CREATED_BY.eq(ISSUER.ID))
+                .leftJoin(ISSUER_ROLE).on(ISSUER.USER_ROLE.eq(ISSUER_ROLE.ID))
                 .leftJoin(BUILDING).on(ISSUE.BUILDING_ID.eq(BUILDING.ID))
                 .leftJoin(AREA).on(ISSUE.AREA_ID.eq(AREA.ID))
                 .leftJoin(FACILITY).on(ISSUE.FACILITY_ID.eq(FACILITY.ID))
                 .leftJoin(POLL).on(ISSUE.POLL_ID.eq(POLL.ID))
-                .where(APP_USER.ID.eq(managerId))
+                .where(RECIPIENT.ID.eq(managerId))
                 .fetch(record -> {
 
                     NotificationResponse.IssuerData issuerData = new NotificationResponse.IssuerData(
-                            record.get(APP_USER.ID),
-                            record.get(APP_USER.FIRST_NAME),
-                            record.get(APP_USER.LAST_NAME),
-                            record.get(APP_USER.USERNAME),
-                            record.get(USER_ROLE.USER_ROLE_),
+                            record.get(ISSUER.ID),
+                            record.get(ISSUER.FIRST_NAME),
+                            record.get(ISSUER.LAST_NAME),
+                            record.get(ISSUER.USERNAME),
+                            record.get(ISSUER_ROLE.USER_ROLE_),
                             record.get(ISSUE.CREATED_AT)
                     );
 

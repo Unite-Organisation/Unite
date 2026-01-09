@@ -5,6 +5,7 @@ import com.app.prod.building.dto.HomePageResponse;
 import com.app.prod.user.dto.BasicUserData;
 import com.app.prod.user.dto.PotentialContactResponse;
 import com.app.prod.user.dto.ResidentToAdd;
+import com.app.prod.user.dto.UserMetaInfo;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.utils.BaseJooqRepository;
@@ -153,5 +154,18 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .leftJoin(APP_USER).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
                 .where(AREA.ID.eq(areaId))
                 .fetchInto(UUID.class);
+    }
+
+    public UserMetaInfo getUserMetaData(UUID userId) {
+        return dslContext.select(
+                APP_USER.ID,
+                BUILDING.ID,
+                AREA.ID
+        )
+                .from(APP_USER)
+                .leftJoin(BUILDING).on(BUILDING.ID.eq(APP_USER.BUILDING_ID))
+                .leftJoin(AREA).on(AREA.ID.eq(BUILDING.AREA_ID))
+                .where(APP_USER.ID.eq(userId))
+                .fetchOneInto(UserMetaInfo.class);
     }
 }

@@ -142,4 +142,8 @@ public class UserService {
     public List<UUID> getAllUsersInAreaWithoutUser(UUID userId, UUID areaId){
         return userRepository.getAllUsersInArea(areaId).stream().filter(u -> !u.equals(userId)).toList();
     }
+
+    public UserMetaInfo getUserMetadata(AppUserRecord user) {
+        return userRepository.getUserMetaData(user.getId());
+    }
 }
