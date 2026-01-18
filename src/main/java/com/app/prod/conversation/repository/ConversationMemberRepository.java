@@ -2,7 +2,6 @@ package com.app.prod.conversation.repository;
 
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
-import org.jooq.TableField;
 import org.jooq.sources.tables.ConversationMember;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
 import org.springframework.stereotype.Repository;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.iif;
 import static org.jooq.sources.Tables.CONVERSATION;
 import static org.jooq.sources.Tables.CONVERSATION_MEMBER;
 

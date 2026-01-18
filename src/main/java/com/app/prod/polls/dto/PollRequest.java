@@ -9,16 +9,10 @@ import java.util.List;
 import java.util.UUID;
 
 public record PollRequest(
-        @NotNull
-        @NotEmpty
-        String title,
-
+        @NotNull @NotEmpty String title,
         String description,
         UUID buildingId,
-
-        @NotNull
-        boolean anonymous,
-
+        @NotNull boolean anonymous,
         LocalDateTime startTime,
         LocalDateTime endTime,
 
@@ -26,3 +20,6 @@ public record PollRequest(
         List<String> options
 ) {
 }
+
+
+

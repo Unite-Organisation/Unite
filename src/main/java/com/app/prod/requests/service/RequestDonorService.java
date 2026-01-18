@@ -51,7 +51,7 @@ public class RequestDonorService {
 
     private void checkIfRequestIsActive(RequestRecord request){
         boolean active = request.getIsActive();
-        boolean statusCondition = request.getStatus().equals(RequestStatus.CREATED);
+        boolean statusCondition = request.getStatus().equals(RequestStatus.CREATED.name());
 
         if(!(active && statusCondition)){
             throw new BadRequestException(String.format("Request %s is already handled", request.getId()));

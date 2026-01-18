@@ -27,3 +27,4 @@ public abstract class IntegrationTest {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 }
+
