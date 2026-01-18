@@ -32,7 +32,7 @@ public class BuildingService {
     private final Validate validate;
     private final ConversationService conversationService;
 
-    public String addUser(UUID userId, UUID buildingId) {
+    public String addUser(UUID userId, UUID buildingId, AppUserRecord manager) {
         validate.user(userId);
         validate.building(buildingId);
         validate.thatUserIsNotInAnyBuildingYet(userId);
@@ -41,7 +41,7 @@ public class BuildingService {
         var areaId = getAreaId(buildingId);
 
         //TODO: should be asynchronous
-        conversationService.createConversationsWithAllMembers(userId, areaId);
+        conversationService.createConversationsWithAllMembers(userId, areaId, manager);
 
         log.info("Added user {} to building {}", userId, buildingId);
         return String.format("Added user %s to building %s", userId, buildingId);

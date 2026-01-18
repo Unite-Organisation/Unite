@@ -14,8 +14,6 @@ public record AreaCreateRequest(
 
     public record BuildingRequest(
             String name,
-            String country,
-            String city,
             String street,
             String number
     ){}

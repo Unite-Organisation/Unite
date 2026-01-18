@@ -31,6 +31,12 @@ public class UserRestApi {
     private final UserCommunityService userCommunityService;
     private final GlobalSecurityManager globalSecurityManager;
 
+    @GetMapping("meta-info")
+    public UserMetaInfo getUserMetaData() {
+        var user = globalSecurityManager.getCurrentUser();
+        return userService.getUserMetadata(user);
+    }
+
     @GetMapping("/my-data")
     public HomePageResponse getUserData(){
         var user = globalSecurityManager.getCurrentUser();

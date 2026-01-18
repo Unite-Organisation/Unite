@@ -41,15 +41,15 @@ public class AreaService {
         UUID areaId = UUID.randomUUID();
 
         areaRepository.insertOne(AreaMapper.fromRequestToRecord(request, areaId, now));
-        saveBuildings(request.buildings(), areaId);
+        saveBuildings(request, areaId);
 
         log.info("Created area: {}", request.name());
         return String.format("Area with id: %s has been created.", areaId);
     }
 
-    private void saveBuildings(List<AreaCreateRequest.BuildingRequest> buildings, UUID areaId){
+    private void saveBuildings(AreaCreateRequest request, UUID areaId){
         var managerId = tokenSecurityManager.getCurrentUser().getId();
-        List<BuildingRecord> buildingRecords = BuildingMapper.fromRequestToList(buildings, areaId);
+        List<BuildingRecord> buildingRecords = BuildingMapper.fromRequestToList(request, areaId);
         buildingRepository.insertMany(buildingRecords);
 
         buildingsManagersRepository.insertMany(
