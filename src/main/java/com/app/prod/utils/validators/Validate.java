@@ -19,6 +19,7 @@ import com.app.prod.requests.repository.RequestRepository;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
+import com.app.prod.user.service.UserRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.*;
@@ -48,6 +49,7 @@ public class Validate {
     private final IssueRepository issueRepository;
     private final NotificationRepository notificationRepository;
     private final RequestRepository requestRepository;
+    private final UserRoleService userRoleService;
 
     public void user(UUID id){
         if(!userRepository.exists(id)){
@@ -160,8 +162,14 @@ public class Validate {
         }
     }
 
-    public void thatUserCanVote(UUID userId, UUID poll) {
-        //TODO: add logic
+    public void thatUserCanVote(AppUserRecord user, UUID poll) {
+        UserRole userRole = userRoleService.getUserRoleFromId(user.getUserRole());
+
+        if (!UserRole.RESIDENT.equals(userRole)) {
+            throw new BadRequestException("Manager can't vote.");
+        }
+
+        //TODO: add logic so users from another area's or buildings can not vote
     }
 
     public void poll(UUID pollId) {

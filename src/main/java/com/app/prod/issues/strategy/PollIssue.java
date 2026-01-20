@@ -18,7 +18,7 @@ public class PollIssue implements IssueNotifyingStrategy {
     @Override
     public void validateAbilityToReportIssue(AppUserRecord user, IssueRequest request) {
         validate.pollIssueCreation(request.pollId());
-        validate.thatUserCanVote(user.getId(), request.pollId());
+        validate.thatUserCanVote(user, request.pollId());
     }
 
     @Override

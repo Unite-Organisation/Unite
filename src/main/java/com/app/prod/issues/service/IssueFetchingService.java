@@ -45,7 +45,7 @@ public class IssueFetchingService {
     }
 
     public List<IssueResponse> getPollIssues(UUID pollId, AppUserRecord user) {
-        validate.thatUserCanVote(user.getId(), pollId);
+        validate.thatUserCanVote(user, pollId);
         return issueRepository.getEntityIssues(pollId, pollJoiningStrategy);
     }
 

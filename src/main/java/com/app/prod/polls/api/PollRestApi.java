@@ -51,12 +51,9 @@ public class PollRestApi {
 
     @PutMapping("/vote")
     @PreAuthorize("hasRole('RESIDENT')")
-    public void vote(
-            @RequestParam UUID poll,
-            @RequestParam UUID vote
-    ){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        pollService.vote(userId, poll, vote);
+    public void vote(@RequestParam UUID poll, @RequestParam UUID vote){
+        var user = globalSecurityManager.getCurrentUser();
+        pollService.vote(user, poll, vote);
     }
 
     @GetMapping("/result")

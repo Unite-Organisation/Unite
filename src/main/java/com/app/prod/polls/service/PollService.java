@@ -81,8 +81,8 @@ public class PollService {
     }
 
     @Transactional
-    public void vote(UUID userId, UUID pollId, UUID vote) {
-        validate.thatUserCanVote(userId, pollId);
+    public void vote(AppUserRecord user, UUID pollId, UUID vote) {
+        validate.thatUserCanVote(user, pollId);
 
         var now = LocalDateTime.now(clock);
 
@@ -90,13 +90,13 @@ public class PollService {
                 UUID.randomUUID(),
                 pollId,
                 vote,
-                userId,
+                user.getId(),
                 now
         ));
 
         pollOptionRepository.addVoteForOption(vote);
 
-        log.info("User {} voted for {} at {}", userId, vote, now);
+        log.info("User {} voted for {} at {}", user.getId(), vote, now);
     }
 
     public PollResult getPollResult(UUID pollId) {

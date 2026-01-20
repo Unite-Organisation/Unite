@@ -320,7 +320,7 @@ public class RealPollIT extends IntegrationTest {
                     continue;
                 }
 
-                pollService.vote(voter.getId(), pollId, entry.getKey());
+                pollService.vote(voter, pollId, entry.getKey());
             }
         }
     }

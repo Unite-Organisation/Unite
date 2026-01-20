@@ -6,11 +6,10 @@ import com.app.prod.exceptions.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.nio.file.AccessDeniedException;
 
 @RestControllerAdvice
 @Slf4j
@@ -46,7 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleException(AccessDeniedException e){
         log.error("Access denied: {}", e.getMessage());
-        String message = e.getMessage() + "Unsufficient roles for  " + tokenSecurityManager.getCurrentUser().getUsername();
+        String message = "Access denied - illegal operation";
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, message);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
@@ -54,6 +53,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotPresentException.class)
     public ResponseEntity<ErrorResponse> handleException(EntityNotPresentException e){
         log.error("Entity was not present {}", e.getMessage());
+
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
