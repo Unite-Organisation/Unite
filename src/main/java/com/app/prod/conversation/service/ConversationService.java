@@ -106,8 +106,7 @@ public class ConversationService {
 
     }
 
-    @Transactional
-    public void createConversationsWithAllMembers(UUID userId, UUID areaId, AppUserRecord manager){
+    public void createConversationsWithAllMembers(UUID userId, UUID areaId, UUID managerId){
         List<UUID> usersInArea = userService.getAllUsersInAreaWithoutUser(userId, areaId);
 
         List<ConversationRecord> conversationRecords = new ArrayList<>();
@@ -129,7 +128,7 @@ public class ConversationService {
         var conversationId = UUID.randomUUID();
         conversationRecords.add(new ConversationRecord(conversationId, false, null, now, now));
         conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), userId, conversationId, now));
-        conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), manager.getId(), conversationId, now));
+        conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), managerId, conversationId, now));
 
         conversationRepository.insertMany(conversationRecords);
         conversationMemberRepository.insertMany(conversationMemberRecords);

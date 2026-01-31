@@ -1,11 +1,12 @@
 package com.app.prod.building.service;
 
+import com.app.prod.job.async.AsyncJobRunner;
 import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.repository.BuildingRepository;
 import com.app.prod.building.repository.BuildingsManagersRepository;
-import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.conversation.service.ConversationService;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.job.jobs.ConversationsCreateJob;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.service.UserRoleService;
 import com.app.prod.user.service.UserService;
@@ -31,6 +32,7 @@ public class BuildingService {
     private final UserRoleService userRoleService;
     private final Validate validate;
     private final ConversationService conversationService;
+    private final AsyncJobRunner asyncJobRunner;
 
     public String addUser(UUID userId, UUID buildingId, AppUserRecord manager) {
         validate.user(userId);
@@ -40,12 +42,13 @@ public class BuildingService {
 
         var areaId = getAreaId(buildingId);
 
-        //TODO: should be asynchronous
-        conversationService.createConversationsWithAllMembers(userId, areaId, manager);
+        ConversationsCreateJob job = new ConversationsCreateJob(userId, areaId, manager.getId());
+        asyncJobRunner.execute(job);
 
         log.info("Added user {} to building {}", userId, buildingId);
         return String.format("Added user %s to building %s", userId, buildingId);
     }
+
 
     public BuildingRecord findById(UUID buildingId){
         return buildingRepository.findById(buildingId).orElseThrow(

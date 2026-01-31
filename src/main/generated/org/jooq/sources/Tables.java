@@ -14,6 +14,7 @@ import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Issue;
+import org.jooq.sources.tables.JobError;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.Notification;
@@ -84,6 +85,11 @@ public class Tables {
      * The table <code>public.issue</code>.
      */
     public static final Issue ISSUE = Issue.ISSUE;
+
+    /**
+     * The table <code>public.job_error</code>.
+     */
+    public static final JobError JOB_ERROR = JobError.JOB_ERROR;
 
     /**
      * The table <code>public.message</code>.
