@@ -20,6 +20,7 @@ import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Issue;
+import org.jooq.sources.tables.JobError;
 import org.jooq.sources.tables.Message;
 import org.jooq.sources.tables.MessagesRead;
 import org.jooq.sources.tables.Notification;
@@ -97,6 +98,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.issue</code>.
      */
     public final Issue ISSUE = Issue.ISSUE;
+
+    /**
+     * The table <code>public.job_error</code>.
+     */
+    public final JobError JOB_ERROR = JobError.JOB_ERROR;
 
     /**
      * The table <code>public.message</code>.
@@ -189,6 +195,7 @@ public class Public extends SchemaImpl {
             FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
             Issue.ISSUE,
+            JobError.JOB_ERROR,
             Message.MESSAGE,
             MessagesRead.MESSAGES_READ,
             Notification.NOTIFICATION,
