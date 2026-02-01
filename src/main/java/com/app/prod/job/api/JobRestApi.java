@@ -4,7 +4,7 @@ import com.app.prod.job.dtos.JobResponse;
 import com.app.prod.job.enums.JobStatus;
 import com.app.prod.job.service.JobErrorService;
 import com.app.prod.job.service.JobRerunService;
-import com.app.prod.services.schedulers.FailedJobsScheduler;
+import com.app.prod.schedulers.FailedJobsScheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

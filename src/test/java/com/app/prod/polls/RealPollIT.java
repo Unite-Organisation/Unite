@@ -11,7 +11,7 @@ import com.app.prod.polls.dto.PollResult;
 import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.service.PollService;
-import com.app.prod.services.schedulers.PollScheduler;
+import com.app.prod.schedulers.PollScheduler;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.service.UserRoleService;
 import lombok.extern.slf4j.Slf4j;

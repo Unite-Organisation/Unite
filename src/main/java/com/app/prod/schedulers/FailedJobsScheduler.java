@@ -1,4 +1,4 @@
-package com.app.prod.services.schedulers;
+package com.app.prod.schedulers;
 
 import com.app.prod.job.JobContext;
 import com.app.prod.job.service.JobRerunService;

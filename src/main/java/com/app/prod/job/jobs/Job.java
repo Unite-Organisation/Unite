@@ -1,5 +1,7 @@
 package com.app.prod.job.jobs;
 
+import com.app.prod.config.SpringContextHolder;
+import com.app.prod.job.JobRegistry;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -13,4 +15,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         // add here more jobs in future
 })
 public interface Job extends Runnable{
+    JobRegistry jobRegistry = SpringContextHolder.getBean(JobRegistry.class);
 }
