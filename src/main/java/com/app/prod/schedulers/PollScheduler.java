@@ -1,4 +1,4 @@
-package com.app.prod.services.schedulers;
+package com.app.prod.schedulers;
 
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.service.PollProcessingService;

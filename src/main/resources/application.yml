@@ -9,6 +9,7 @@ spring:
 server:
   servlet:
     context-path: /v1/api
+  port: 8080
 
 jwt:
   secret: nx4bak6442nojjhf83smacno9j31jcch87h=c2ee2ybc2yegce
@@ -17,3 +18,8 @@ jwt:
 springdoc:
   swagger-ui:
     enabled: true
+
+services:
+  chatting:
+    url: http://localhost:8081/v1/api
+    apikey: vV3KptV5DpX

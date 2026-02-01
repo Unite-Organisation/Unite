@@ -35,14 +35,14 @@ public class UserMapper {
         return response;
     }
 
-    public static AppUserRecord fromRequestToRecord(UserRegisterRequest request, UUID id, LocalDateTime now, UUID selectedRole, BCryptPasswordEncoder encoder){
+    public static AppUserRecord fromRequestToRecord(UserRegisterRequest request, UUID id, LocalDateTime now, UUID selectedRole, String encodedPassword){
         return new AppUserRecord(
                 id,
                 request.firstName(),
                 request.lastName(),
                 request.email(),
                 request.username(),
-                encoder.encode(request.password()),
+                encodedPassword,
                 selectedRole,
                 UserStatus.ACTIVE.name(),
                 now,
