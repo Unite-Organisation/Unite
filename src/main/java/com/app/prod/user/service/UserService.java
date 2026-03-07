@@ -59,17 +59,17 @@ public class UserService {
         String encodedPassword = encoder.encode(request.password());
         userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, selectedRoleId, encodedPassword));
 
-        chattingServiceClient.syncUser(new UserDto(
-                id,
-                request.firstName(),
-                request.lastName(),
-                request.email(),
-                request.username(),
-                encodedPassword,
-                selectedRoleId,
-                UserStatus.CREATED,
-                now
-        ));
+//        chattingServiceClient.syncUser(new UserDto(
+//                id,
+//                request.firstName(),
+//                request.lastName(),
+//                request.email(),
+//                request.username(),
+//                encodedPassword,
+//                selectedRoleId,
+//                UserStatus.CREATED,
+//                now
+//        ));
 
         log.info("Created user: {}", id);
         return String.format("User with id: %s has been created.", id);
