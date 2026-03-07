@@ -1,5 +1,3 @@
-DROP TABLE job_error;
-
 CREATE TABLE job_error (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     job_name VARCHAR(100) NOT NULL,

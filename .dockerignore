@@ -1,0 +1,6 @@
+.env
+.env.properties
+target/
+.git/
+.idea/
+*.iml

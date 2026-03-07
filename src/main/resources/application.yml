@@ -9,17 +9,13 @@ spring:
 server:
   servlet:
     context-path: /v1/api
-  port: 8080
+  port: ${PORT:8080}
 
 jwt:
-  secret: nx4bak6442nojjhf83smacno9j31jcch87h=c2ee2ybc2yegce
-  expiration-ms: 3600000
-
-springdoc:
-  swagger-ui:
-    enabled: true
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_TIME}
 
 services:
   chatting:
-    url: http://localhost:8081/v1/api
-    apikey: vV3KptV5DpX
+    url: ${CHATTING_SERVICE_URL}
+    apikey: ${CHATTING_API_KEY}

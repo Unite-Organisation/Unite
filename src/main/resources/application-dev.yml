@@ -4,3 +4,7 @@ security:
 spring:
   flyway:
     locations: classpath:db/migration,classpath:db/test-data
+
+springdoc:
+  swagger-ui:
+    enabled: true
