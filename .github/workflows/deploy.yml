@@ -25,7 +25,7 @@ jobs:
 
       - name: Build and Push Container
         run: |-
-          gcloud builds submit --tag gcr.io/${{ env.PROJECT_ID }}/unite-app .
+          gcloud builds submit --tag gcr.io/${{ env.PROJECT_ID }}/unite-app . --suppress-logs
 
       - name: Deploy to Cloud Run
         run: |-
