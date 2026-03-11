@@ -1,14 +1,14 @@
 # Unite API
 
 **Author:** Dorian Guz  
-**Year:** 2025  
+**Year:** 2026  
 **© All rights reserved**
 
 ---
 
 ## Project
 
-**Unite** is a web application (soon mobile too) that connects residents of a building, neighborhood, or community. It works well for modern buildings but can also be used in older ones.
+**Unite** is a web and mobile application that connects residents of a building, neighborhood, or community. It works well for modern buildings but can also be used in older ones.
 
 With Unite, residents can:
 - Join groups by building, neighborhood, or area.
@@ -20,32 +20,27 @@ With Unite, residents can:
 - Organize community events (barbecues, runs, etc.).
 - Report issues or request repairs.
 - Exchange services.
-- Pay rent or other fees.
 
 ---
 
 ## Features
 
-- 🟥 not implemented
-- 🟦 implemented but should be tested more
-- 🟩 implemented and should work :)
-
 ### Admin (Developer / Manager)
-- Create accounts and add residents. 🟩
-- Manage user accounts. 🟥
-- Assign residents to groups. 🟩
-- Post announcements on a shared board. 🟩
-- Create polls and voting (e.g., for repairs or decisions). 🟩
+- Create accounts and add residents.
+- Manage user accounts.
+- Assign residents to groups.
+- Post announcements on a shared board.
+- Create polls and voting (e.g., for repairs or decisions).
 
 ### User (Resident)
-- Chat with other residents. 🟩
-- Create private chats and neighbor groups. 🟩
-- Book shared spaces. 🟩
-- Report issues or request repair services. 🟩
-- Vote in polls. 🟩
-- Post personal announcements (e.g., services offered). 🟩
-- Request items to borrow. 🟩
-- Organize community events. 🟩
+- Chat with other residents.
+- Create private chats and neighbor groups.
+- Book shared spaces.
+- Report issues or request repair services.
+- Vote in polls.
+- Post personal announcements (e.g., services offered).
+- Request items to borrow.
+- Organize community events.
 
 ---
 
