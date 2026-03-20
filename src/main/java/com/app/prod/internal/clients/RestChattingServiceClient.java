@@ -1,5 +1,6 @@
 package com.app.prod.internal.clients;
 
+import com.app.prod.internal.dtos.ConversationBulkActionDto;
 import com.app.prod.internal.dtos.UserDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,5 +36,18 @@ public class RestChattingServiceClient implements ChattingServiceClient{
                 .toBodilessEntity();
 
         log.info("Sent notification about new user: {}", userCreatedDto.id());
+    }
+
+    @Override
+    public void createConversationsForNewUser(ConversationBulkActionDto dto) {
+        restClient.post()
+                .uri("/internal/bulk-conversation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(dto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, ERROR_HANDLER)
+                .toBodilessEntity();
+
+        log.info("Sent action - bulk conversation");
     }
 }

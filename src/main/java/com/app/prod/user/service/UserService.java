@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -59,17 +60,17 @@ public class UserService {
         String encodedPassword = encoder.encode(request.password());
         userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, selectedRoleId, encodedPassword));
 
-//        chattingServiceClient.syncUser(new UserDto(
-//                id,
-//                request.firstName(),
-//                request.lastName(),
-//                request.email(),
-//                request.username(),
-//                encodedPassword,
-//                selectedRoleId,
-//                UserStatus.CREATED,
-//                now
-//        ));
+        chattingServiceClient.syncUser(new UserDto(
+                id,
+                request.firstName(),
+                request.lastName(),
+                request.email(),
+                request.username(),
+                encodedPassword,
+                selectedRoleId,
+                UserStatus.CREATED,
+                now
+        ));
 
         log.info("Created user: {}", id);
         return String.format("User with id: %s has been created.", id);
@@ -156,7 +157,9 @@ public class UserService {
     }
 
     public List<UUID> getAllUsersInAreaWithoutUser(UUID userId, UUID areaId){
-        return userRepository.getAllUsersInArea(areaId).stream().filter(u -> !u.equals(userId)).toList();
+        return userRepository.getAllUsersInArea(areaId).stream()
+                .filter(u -> !u.equals(userId))
+                .collect(Collectors.toList());
     }
 
     public UserMetaInfo getUserMetadata(AppUserRecord user) {
