@@ -44,6 +44,7 @@ import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.Poll.PollPath;
 import org.jooq.sources.tables.PollVote.PollVotePath;
 import org.jooq.sources.tables.Post.PostPath;
+import org.jooq.sources.tables.RefreshToken.RefreshTokenPath;
 import org.jooq.sources.tables.Request.RequestPath;
 import org.jooq.sources.tables.RequestDonor.RequestDonorPath;
 import org.jooq.sources.tables.UserRole.UserRolePath;
@@ -365,6 +366,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _post = new PostPath(this, null, Keys.POST__POST_CREATED_BY_FKEY.getInverseKey());
 
         return _post;
+    }
+
+    private transient RefreshTokenPath _refreshToken;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.refresh_token</code> table
+     */
+    public RefreshTokenPath refreshToken() {
+        if (_refreshToken == null)
+            _refreshToken = new RefreshTokenPath(this, null, Keys.REFRESH_TOKEN__REFRESH_TOKEN_USER_ID_FKEY.getInverseKey());
+
+        return _refreshToken;
     }
 
     private transient RequestDonorPath _requestDonor;
