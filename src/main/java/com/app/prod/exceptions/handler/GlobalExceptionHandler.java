@@ -1,8 +1,8 @@
 package com.app.prod.exceptions.handler;
 
-import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.ErrorResponse;
 import com.app.prod.exceptions.exceptions.*;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +14,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-
-    private final TokenSecurityManager tokenSecurityManager;
-
-    public GlobalExceptionHandler(TokenSecurityManager tokenSecurityManager) {
-        this.tokenSecurityManager = tokenSecurityManager;
-    }
 
     @ExceptionHandler(DataAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleException(DataAlreadyExistsException e){
@@ -42,6 +36,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse> handleException(ExpiredJwtException e){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleException(AccessDeniedException e){
         log.error("Access denied: {}", e.getMessage());
@@ -53,7 +53,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotPresentException.class)
     public ResponseEntity<ErrorResponse> handleException(EntityNotPresentException e){
         log.error("Entity was not present {}", e.getMessage());
-
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -84,6 +83,13 @@ public class GlobalExceptionHandler {
         log.error("Invalid file extension. Exception content: {}", e.getMessage());
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(IllegalApplicationStateException.class)
+    public ResponseEntity<ErrorResponse> handleException(IllegalApplicationStateException e) {
+        log.error("Invalid application state. Exception content: {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)

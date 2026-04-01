@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 /* table, record, keyType */
-public abstract class BaseJooqRepository<T extends Table<R>, R extends TableRecord<R>, K> {
+public abstract class BaseJooqRepository<T extends Table<R>, R extends UpdatableRecord<R>, K> {
 
     protected DSLContext dslContext;
     protected final T table;
@@ -29,6 +29,10 @@ public abstract class BaseJooqRepository<T extends Table<R>, R extends TableReco
 
     public void insertMany(List<R> records){
         dslContext.batchInsert(records).execute();
+    }
+
+    public void update(R record) {
+        record.store();
     }
 
     public boolean exists(K recordId){

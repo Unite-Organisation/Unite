@@ -25,6 +25,7 @@ import org.jooq.sources.tables.PollResult;
 import org.jooq.sources.tables.PollVote;
 import org.jooq.sources.tables.PollWinner;
 import org.jooq.sources.tables.Post;
+import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
 import org.jooq.sources.tables.UserRole;
@@ -140,6 +141,11 @@ public class Tables {
      * The table <code>public.post</code>.
      */
     public static final Post POST = Post.POST;
+
+    /**
+     * The table <code>public.refresh_token</code>.
+     */
+    public static final RefreshToken REFRESH_TOKEN = RefreshToken.REFRESH_TOKEN;
 
     /**
      * The table <code>public.request</code>.
