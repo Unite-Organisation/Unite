@@ -49,7 +49,7 @@ public class AuthRestApi {
     }
 
     @PostMapping("logout")
-    public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken") String refreshToken, HttpServletRequest httpRequest) {
+    public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletRequest httpRequest) {
         authenticationService.deactivateRefreshToken(refreshToken);
         ResponseCookie cookie = prepareRefreshTokenCookie("", Duration.ZERO);
 
