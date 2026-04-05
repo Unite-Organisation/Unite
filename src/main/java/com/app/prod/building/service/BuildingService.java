@@ -34,24 +34,20 @@ public class BuildingService {
     private final UserRoleService userRoleService;
     private final Validate validate;
     private final AsyncJobRunner asyncJobRunner;
-    private final ChattingServiceClient client;
 
     public String addUser(UUID userId, UUID buildingId, AppUserRecord manager) {
-//        validate.user(userId);
-//        validate.building(buildingId);
-//        validate.thatUserIsNotInAnyBuildingYet(userId);
+        validate.user(userId);
+        validate.building(buildingId);
+        validate.thatUserIsNotInAnyBuildingYet(userId);
         userService.addUsersBuilding(userId, buildingId);
         var areaId = getAreaId(buildingId);
-
-//        ConversationsCreateJob job = new ConversationsCreateJob(userId, areaId, manager.getId());
-//        asyncJobRunner.execute(job);
 
         List<UUID> contacts = userService.getAllUsersInAreaWithoutUser(userId, areaId);
         UUID managerId = manager.getId();
         contacts.add(managerId);
 
-
-        client.createConversationsForNewUser(new ConversationBulkActionDto(userId, contacts));
+        ConversationsCreateJob job = new ConversationsCreateJob(new ConversationBulkActionDto(userId, contacts));
+        asyncJobRunner.execute(job);
 
         log.info("Added user {} to building {}", userId, buildingId);
         return String.format("Added user %s to building %s", userId, buildingId);

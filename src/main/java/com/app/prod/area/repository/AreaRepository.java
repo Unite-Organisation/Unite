@@ -1,13 +1,18 @@
 package com.app.prod.area.repository;
 
+import com.app.prod.area.dto.AreaInfoResponse;
+import com.app.prod.area.enums.AreaType;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.records.AreaRecord;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
+import static org.jooq.Records.mapping;
+import static org.jooq.impl.DSL.*;
 import static org.jooq.sources.Tables.*;
 
 @Repository
@@ -48,5 +53,39 @@ public class AreaRepository extends BaseJooqRepository<Area, AreaRecord, UUID> {
                 .leftJoin(BUILDING_MANAGER).on(BUILDING_MANAGER.BUILDING_ID.eq(BUILDING.ID))
                 .where(AREA.ID.eq(areaId))
                 .fetchAny(record -> record.get(BUILDING_MANAGER.USER_ID));
+    }
+
+    public List<AreaInfoResponse> findAllAreasWithBuildings() {
+        return dslContext.select(
+                        AREA.ID,
+                        AREA.NAME,
+                        AREA.COUNTRY,
+                        AREA.CITY,
+                        AREA.TYPE.convertFrom(AreaType::valueOf),
+                        AREA.CREATED_AT,
+                        field(
+                                select(count(APP_USER.ID))
+                                        .from(APP_USER)
+                                        .join(BUILDING).on(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                                        .where(BUILDING.AREA_ID.eq(AREA.ID))
+                        ).as("usersNumber"),
+                        multiset(
+                                select(
+                                        BUILDING.ID,
+                                        BUILDING.NAME,
+                                        BUILDING.STREET,
+                                        BUILDING.NUMBER,
+                                        field(
+                                                select(count(APP_USER.ID))
+                                                        .from(APP_USER)
+                                                        .where(APP_USER.BUILDING_ID.eq(BUILDING.ID))
+                                        ).as("usersNumber")
+                                )
+                                        .from(BUILDING)
+                                        .where(BUILDING.AREA_ID.eq(AREA.ID))
+                        ).as("buildings").convertFrom(r -> r.map(mapping(AreaInfoResponse.BuildingInfoResponse::new)))
+                )
+                .from(AREA)
+                .fetch(mapping(AreaInfoResponse::new));
     }
 }

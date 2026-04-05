@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ConversationsCreateJob.class, name = "ConversationsCreateJob"),
+        @JsonSubTypes.Type(value = SyncUserJob.class, name = "SyncUserJob"),
         // add here more jobs in future
 })
 public interface Job extends Runnable{

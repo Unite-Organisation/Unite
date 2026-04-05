@@ -34,6 +34,12 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .fetchOptional();
     }
 
+    public Optional<AppUserRecord> findByEmail(String email){
+        return dslContext.selectFrom(table)
+                .where(table.EMAIL.eq(email))
+                .fetchOptional();
+    }
+
     public boolean temporaryCredentialsAreValid(String login, String password){
         return dslContext.fetchExists(
                 dslContext.selectOne()

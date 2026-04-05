@@ -106,34 +106,6 @@ public class ConversationService {
 
     }
 
-    public void createConversationsWithAllMembers(UUID userId, UUID areaId, UUID managerId){
-        List<UUID> usersInArea = userService.getAllUsersInAreaWithoutUser(userId, areaId);
-
-        List<ConversationRecord> conversationRecords = new ArrayList<>();
-        List<ConversationMemberRecord> conversationMemberRecords = new ArrayList<>();
-        var now = LocalDateTime.now(clock);
-
-        // conversation with other users
-        for(UUID contactId : usersInArea){
-            var conversationId = UUID.randomUUID();
-
-            conversationRecords.add(new ConversationRecord(conversationId, false, null, now, now));
-
-            conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), userId, conversationId, now));
-            conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), contactId, conversationId, now));
-
-        }
-
-        // conversation with manager
-        var conversationId = UUID.randomUUID();
-        conversationRecords.add(new ConversationRecord(conversationId, false, null, now, now));
-        conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), userId, conversationId, now));
-        conversationMemberRecords.add(new ConversationMemberRecord(UUID.randomUUID(), managerId, conversationId, now));
-
-        conversationRepository.insertMany(conversationRecords);
-        conversationMemberRepository.insertMany(conversationMemberRecords);
-    }
-
     @Transactional
     public void createGroupConversation(GroupConversationRequest request, AppUserRecord user) {
         var conversationRequest = new ConversationRequest(true, request.name());

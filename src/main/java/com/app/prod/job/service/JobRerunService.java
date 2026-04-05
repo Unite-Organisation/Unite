@@ -2,6 +2,7 @@ package com.app.prod.job.service;
 
 import com.app.prod.job.JobContext;
 import com.app.prod.job.JobRunner;
+import com.app.prod.job.enums.JobStatus;
 import com.app.prod.job.jobs.Job;
 import com.app.prod.job.repository.JobErrorRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,18 +27,18 @@ public class JobRerunService {
     private final JobErrorService jobErrorService;
     private final Clock clock;
 
-    public void rerunJob(JobContext jobContext) {
-        jobRunner.execute(jobContext);
+    public JobStatus rerunJob(JobContext jobContext) {
+        return jobRunner.execute(jobContext);
     }
 
-    public void rerunJob(UUID errorId) {
+    public JobStatus rerunJob(UUID errorId) {
         LocalDateTime now = LocalDateTime.now(clock);
         Job job = getJob(errorId);
         if (job == null) {
             log.warn("Failed to deserialize job from error: {}", errorId);
-            return;
+            throw new RuntimeException("Failed to deserialize job from error");
         }
-        rerunJob(new JobContext(job, errorId));
+        return rerunJob(new JobContext(job, errorId));
     }
 
     public List<JobContext> getFailedJobs() {

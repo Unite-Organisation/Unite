@@ -5,6 +5,8 @@ import com.app.prod.config.security.jwt.JwtService;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.internal.clients.ChattingServiceClient;
 import com.app.prod.internal.dtos.UserDto;
+import com.app.prod.job.async.AsyncJobRunner;
+import com.app.prod.job.jobs.SyncUserJob;
 import com.app.prod.user.dto.*;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
@@ -39,16 +41,16 @@ public class UserService {
     private final UserRoleService userRoleService;
     private final ActivationService activationService;
     private final Validate validate;
-    private final ChattingServiceClient chattingServiceClient;
+    private final AsyncJobRunner asyncJobRunner;
     private final JwtService jwtTokenService;
 
     public List<AppUserRecord> getUsers(){
          return userRepository.findAll();
     }
 
-    public String register(UserRegisterRequest request) {
+    public void register(UserRegisterRequest request) {
         validate.thatUsernameIsFree(request.username());
-        //TODO: NO CHECK IF EMAIL IS THE SAME WHAT LEEDS TO DB EXCEPTION
+        validate.thatEmailIsFree(request.email());
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
         UUID selectedRoleId = userRoleService.getUserRoleId(request.role());
@@ -56,7 +58,7 @@ public class UserService {
         String encodedPassword = encoder.encode(request.password());
         userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, selectedRoleId, encodedPassword));
 
-        chattingServiceClient.syncUser(new UserDto(
+        SyncUserJob job = new SyncUserJob(new UserDto(
                 id,
                 request.firstName(),
                 request.lastName(),
@@ -64,12 +66,11 @@ public class UserService {
                 request.username(),
                 encodedPassword,
                 selectedRoleId,
-                UserStatus.CREATED,
+                UserStatus.ACTIVE,
                 now
         ));
-
+        asyncJobRunner.execute(job);
         log.info("Created user: {}", id);
-        return String.format("User with id: %s has been created.", id);
     }
 
 
