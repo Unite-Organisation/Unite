@@ -16,10 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.records.AppUserRecord;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -37,14 +34,13 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final AuthenticationManager authenticationManager;
     private final Clock clock;
-    private final JwtService jwtService;
     private final BCryptPasswordEncoder encoder;
     private final UserRoleService userRoleService;
     private final ActivationService activationService;
     private final Validate validate;
     private final ChattingServiceClient chattingServiceClient;
+    private final JwtService jwtTokenService;
 
     public List<AppUserRecord> getUsers(){
          return userRepository.findAll();
@@ -56,55 +52,31 @@ public class UserService {
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
         UUID selectedRoleId = userRoleService.getUserRoleId(request.role());
+
         String encodedPassword = encoder.encode(request.password());
         userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, selectedRoleId, encodedPassword));
 
-//        chattingServiceClient.syncUser(new UserDto(
-//                id,
-//                request.firstName(),
-//                request.lastName(),
-//                request.email(),
-//                request.username(),
-//                encodedPassword,
-//                selectedRoleId,
-//                UserStatus.CREATED,
-//                now
-//        ));
+        chattingServiceClient.syncUser(new UserDto(
+                id,
+                request.firstName(),
+                request.lastName(),
+                request.email(),
+                request.username(),
+                encodedPassword,
+                selectedRoleId,
+                UserStatus.CREATED,
+                now
+        ));
 
         log.info("Created user: {}", id);
         return String.format("User with id: %s has been created.", id);
     }
 
-    public String login(UserLoginRequest request){
-        return generateToken(request.username(), request.password());
-    }
 
     @Transactional
     public String activate(UserActivateRequest request){
         activationService.activate(request);
-        return generateToken(request.username(), request.password());
-    }
-
-    public String generateToken(String username, String password){
-        var auth = new UsernamePasswordAuthenticationToken(username, password);
-        Authentication result = authenticationManager.authenticate(auth);
-        UserDetails ud = (UserDetails) result.getPrincipal();
-        return jwtService.generateToken((org.springframework.security.core.userdetails.User) ud);
-    }
-
-    public AppUserRecord findByUsername(String username){
-        return userRepository.findByUsername(username).orElseThrow(
-                () -> new UsernameNotFoundException(String.format("User with username: %s does not exist.", username))
-        );
-    }
-
-    public AppUserRecord findById(UUID userId){
-        return userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotPresentException(
-                        String.format("User with id: %s does not exist.", userId),
-                        AppUser.class.getSimpleName()
-                )
-        );
+        return jwtTokenService.generateJwtAccessToken(request.username(), request.password());
     }
 
     public void addUsersBuilding(UUID userId, UUID buildingId){
@@ -156,10 +128,27 @@ public class UserService {
     }
 
     public List<UUID> getAllUsersInAreaWithoutUser(UUID userId, UUID areaId){
-        return userRepository.getAllUsersInArea(areaId).stream().filter(u -> !u.equals(userId)).toList();
+        return userRepository.getAllUsersInArea(areaId).stream()
+                .filter(u -> !u.equals(userId))
+                .collect(Collectors.toList());
     }
 
     public UserMetaInfo getUserMetadata(AppUserRecord user) {
         return userRepository.getUserMetaData(user.getId());
+    }
+
+    public AppUserRecord findByUsername(String username){
+        return userRepository.findByUsername(username).orElseThrow(
+                () -> new UsernameNotFoundException(String.format("User with username: %s does not exist.", username))
+        );
+    }
+
+    public AppUserRecord findById(UUID userId){
+        return userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotPresentException(
+                        String.format("User with id: %s does not exist.", userId),
+                        AppUser.class.getSimpleName()
+                )
+        );
     }
 }

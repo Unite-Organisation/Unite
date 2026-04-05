@@ -28,10 +28,7 @@ public class BuildingRestApi {
     private final GlobalSecurityManager globalSecurityManager;
 
     @PutMapping("/user")
-    public ResponseEntity<SimpleResponse> addUserToBuilding(
-            @RequestParam UUID buildingId,
-            @RequestParam UUID userId){
-
+    public ResponseEntity<SimpleResponse> addUserToBuilding(@RequestParam UUID buildingId, @RequestParam UUID userId){
         var manager = globalSecurityManager.getCurrentUser();
         String message = buildingService.addUser(userId, buildingId, manager);
         return ResponseEntity.ok(new SimpleResponse(message));
