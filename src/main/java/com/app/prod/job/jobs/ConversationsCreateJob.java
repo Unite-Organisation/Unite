@@ -1,16 +1,15 @@
 package com.app.prod.job.jobs;
 
-import java.util.UUID;
+import com.app.prod.internal.dtos.ConversationBulkActionDto;
+
 
 public record ConversationsCreateJob(
-        UUID userId,
-        UUID areaId,
-        UUID managerId
+        ConversationBulkActionDto dto
 ) implements Job {
 
     @Override
     public void run() {
-        jobRegistry.conversationCreateJob(userId, areaId, managerId);
+        jobRegistry.createConversations(dto);
     }
 
 }

@@ -19,7 +19,8 @@ public class PollScheduler {
     private final PollProcessingService pollProcessingService;
     private final Clock clock;
 
-    @Scheduled(cron = "0 0 * * * *")
+    // currently disabled on prod due to savings
+    // @Scheduled(cron = "0 0 * * * *")
     public void finishPoll(){
         LocalDateTime now = LocalDateTime.now(clock);
         log.info("Started scheduler for finishing polls at: {}", now);

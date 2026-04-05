@@ -1,5 +1,6 @@
 package com.app.prod.internal;
 
+import com.app.prod.exceptions.exceptions.InternalConnectionException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatusCode;
@@ -30,8 +31,10 @@ public class InternalErrorHandler implements RestClient.ResponseSpec.ErrorHandle
         log.error("Response body: {}", responseBody);
         log.error("------------------------------------");
 
+        throw new InternalConnectionException("");
+
         // TODO: maybe create some logic for retrying or circuit breaker
-        if (status.is4xxClientError()) {}
-        else if (status.is5xxServerError()) {}
+        // if (status.is4xxClientError()) {}
+        // else if (status.is5xxServerError()) {}
     }
 }

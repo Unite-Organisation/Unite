@@ -19,7 +19,9 @@ public class FailedJobsScheduler {
     private final Clock clock;
     private final JobRerunService jobRerunService;
 
-    @Scheduled(cron = "0 0 1 * * *")
+    // currently disabled on prod due to savings
+    // @Scheduled(cron = "0 0 1 * * *")
+    // @Scheduled(cron = "0 * * * * *")
     public void rerunFailedJobs() {
         log.info("Rerunning failed jobs at {}", LocalDateTime.now(clock));
         List<JobContext> failedJobs = jobRerunService.getFailedJobs();
