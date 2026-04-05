@@ -1,6 +1,7 @@
 package com.app.prod.area.service;
 
 import com.app.prod.area.dto.AreaCreateRequest;
+import com.app.prod.area.dto.AreaInfoResponse;
 import com.app.prod.area.mappers.AreaMapper;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.mappers.BuildingMapper;
@@ -61,6 +62,10 @@ public class AreaService {
                         ))
                         .toList()
         );
+    }
+
+    public List<AreaInfoResponse> getInfo() {
+        return areaRepository.findAllAreasWithBuildings();
     }
 
     public UUID getUserArea(AppUserRecord user){

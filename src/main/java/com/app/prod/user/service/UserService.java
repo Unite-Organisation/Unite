@@ -48,9 +48,9 @@ public class UserService {
          return userRepository.findAll();
     }
 
-    public String register(UserRegisterRequest request) {
+    public void register(UserRegisterRequest request) {
         validate.thatUsernameIsFree(request.username());
-        //TODO: NO CHECK IF EMAIL IS THE SAME WHAT LEEDS TO DB EXCEPTION
+        validate.thatEmailIsFree(request.email());
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
         UUID selectedRoleId = userRoleService.getUserRoleId(request.role());
@@ -70,9 +70,7 @@ public class UserService {
                 now
         ));
         asyncJobRunner.execute(job);
-
         log.info("Created user: {}", id);
-        return String.format("User with id: %s has been created.", id);
     }
 
 

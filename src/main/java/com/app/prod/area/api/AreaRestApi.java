@@ -1,6 +1,7 @@
 package com.app.prod.area.api;
 
 import com.app.prod.area.dto.AreaCreateRequest;
+import com.app.prod.area.dto.AreaInfoResponse;
 import com.app.prod.area.service.AreaService;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.SimpleResponse;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +26,13 @@ public class AreaRestApi {
     public ResponseEntity<SimpleResponse> createArea(@RequestBody AreaCreateRequest request){
         String message = areaService.createArea(request);
         return ResponseEntity.ok(new SimpleResponse(message));
+    }
+
+    @GetMapping("/admin-view")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AreaInfoResponse>> getInfo() {
+        List<AreaInfoResponse> info = areaService.getInfo();
+        return ResponseEntity.ok(info);
     }
 
 }

@@ -141,6 +141,12 @@ public class Validate {
         }
     }
 
+    public void thatEmailIsFree(String email){
+        if(userRepository.findByEmail(email).isPresent()){
+            throw new DataAlreadyExistsException("Account with this email already exists.");
+        }
+    }
+
     public void thatUserIsNotInAnyBuildingYet(UUID userId){
         var user = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotPresentException(

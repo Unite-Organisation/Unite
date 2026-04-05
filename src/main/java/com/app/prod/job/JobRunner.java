@@ -20,7 +20,7 @@ public class JobRunner {
     private final JobErrorRepository jobErrorRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void execute(JobContext jobContext) {
+    public JobStatus execute(JobContext jobContext) {
         Job job = jobContext.job();
         LocalDateTime now = LocalDateTime.now(clock);
 
@@ -29,9 +29,11 @@ public class JobRunner {
             job.run();
             jobErrorRepository.updateRerun(jobContext.jobErrorId(), JobStatus.SUCCESS, now);
             log.info("Job finished successfully");
+            return JobStatus.SUCCESS;
         } catch (Exception e) {
             log.error("Job {} failed", job.getClass().getSimpleName(), e);
             jobErrorRepository.updateRerun(jobContext.jobErrorId(), JobStatus.FAILED, now);
+            return JobStatus.FAILED;
         }
     }
 }
