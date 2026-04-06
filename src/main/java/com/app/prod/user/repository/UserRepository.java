@@ -148,7 +148,9 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
         return dslContext.select(
                 APP_USER.FIRST_NAME,
                 APP_USER.LAST_NAME,
-                APP_USER.ID
+                APP_USER.ID,
+                APP_USER.USERNAME,
+                APP_USER.EMAIL
         )
                 .from(APP_USER)
                 .leftJoin(USER_ROLE).on(USER_ROLE.ID.eq(APP_USER.USER_ROLE))
@@ -157,7 +159,9 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .fetch(record -> new ResidentToAdd(
                         record.get(APP_USER.FIRST_NAME),
                         record.get(APP_USER.LAST_NAME),
-                        record.get(APP_USER.ID)
+                        record.get(APP_USER.ID),
+                        record.get(APP_USER.USERNAME),
+                        record.get(APP_USER.EMAIL)
                 ));
     }
 
