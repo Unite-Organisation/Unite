@@ -32,9 +32,7 @@ public class PostService {
     private final Validate validate;
 
     public List<PostResponse> getPosts(Pagination pagination, UUID userId, PostFilter filter) {
-        var posts = postRepository.findForUser(userId, pagination, filter);
-        log.info("Found {} posts for user {}", posts.size(), userId);
-        return posts;
+        return postRepository.findForUser(userId, pagination, filter);
     }
 
     public Pair<byte[], MediaType> getPostPhoto(UUID id){
@@ -47,8 +45,6 @@ public class PostService {
 
     public void addImageForPost(MultipartFile photo, UUID announcementId){
         validate.post(announcementId);
-
-        log.info("Uploading photo");
         String photoPath = photosUploadService.uploadFile(ANNOUNCEMENTS_PATH, photo);
         postRepository.updatePhotoPath(announcementId, photoPath);
     }

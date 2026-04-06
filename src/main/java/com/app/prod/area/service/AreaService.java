@@ -44,7 +44,6 @@ public class AreaService {
         areaRepository.insertOne(AreaMapper.fromRequestToRecord(request, areaId, now));
         saveBuildings(request, areaId);
 
-        log.info("Created area: {}", request.name());
         return String.format("Area with id: %s has been created.", areaId);
     }
 

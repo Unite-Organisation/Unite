@@ -40,6 +40,14 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .fetchOptional();
     }
 
+    public boolean adminExists(UUID adminRoleId) {
+        return dslContext.fetchExists(
+                dslContext.selectOne()
+                        .from(APP_USER)
+                        .where(APP_USER.USER_ROLE.eq(adminRoleId))
+        );
+    }
+
     public boolean temporaryCredentialsAreValid(String login, String password){
         return dslContext.fetchExists(
                 dslContext.selectOne()

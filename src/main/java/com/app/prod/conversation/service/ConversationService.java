@@ -7,19 +7,14 @@ import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.messaging.repository.MessageRepository;
-import com.app.prod.user.repository.UserRepository;
-import com.app.prod.user.service.UserService;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.shared.EntityCreatedResponse;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.Conversation;
-import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
-import org.jooq.sources.tables.records.ConversationRecord;
-import org.jooq.sources.tables.records.MessageRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,12 +34,9 @@ public class ConversationService {
     private final MessageRepository messageRepository;
     private final Clock clock;
     private final Validate validate;
-    private final UserService userService;
 
     public List<ConversationResponse> getConversations(AppUserRecord user, Pagination pagination) {
-        List<ConversationResponse> conversations = conversationRepository.findConversationForUser(user.getId(), pagination);
-        log.info("Found {} conversations for user {}", conversations.size(), user.getId());
-        return conversations;
+        return conversationRepository.findConversationForUser(user.getId(), pagination);
     }
 
     public EntityCreatedResponse createConversation(ConversationRequest request) {
@@ -92,9 +84,7 @@ public class ConversationService {
 
     public List<ConversationMessageResponse> getConversationContent(UUID conversationId, Pagination pagination) {
         validate.conversation(conversationId);
-        List<ConversationMessageResponse> messages = messageRepository.findByConversationId(conversationId, pagination);
-        log.info("Fetched {} messages in conversation: {}", messages.size(), conversationId);
-        return messages;
+        return messageRepository.findByConversationId(conversationId, pagination);
     }
 
     public UUID getConversationId(UUID user1Id, UUID user2Id){
