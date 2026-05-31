@@ -34,6 +34,11 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.TeamMember;
+import org.jooq.sources.tables.Tournament;
+import org.jooq.sources.tables.TournamentMatch;
+import org.jooq.sources.tables.TournamentParticipant;
+import org.jooq.sources.tables.TournamentTeam;
 import org.jooq.sources.tables.UserRole;
 
 
@@ -171,6 +176,31 @@ public class Public extends SchemaImpl {
     public final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
 
     /**
+     * The table <code>public.team_member</code>.
+     */
+    public final TeamMember TEAM_MEMBER = TeamMember.TEAM_MEMBER;
+
+    /**
+     * The table <code>public.tournament</code>.
+     */
+    public final Tournament TOURNAMENT = Tournament.TOURNAMENT;
+
+    /**
+     * The table <code>public.tournament_match</code>.
+     */
+    public final TournamentMatch TOURNAMENT_MATCH = TournamentMatch.TOURNAMENT_MATCH;
+
+    /**
+     * The table <code>public.tournament_participant</code>.
+     */
+    public final TournamentParticipant TOURNAMENT_PARTICIPANT = TournamentParticipant.TOURNAMENT_PARTICIPANT;
+
+    /**
+     * The table <code>public.tournament_team</code>.
+     */
+    public final TournamentTeam TOURNAMENT_TEAM = TournamentTeam.TOURNAMENT_TEAM;
+
+    /**
      * The table <code>public.user_role</code>.
      */
     public final UserRole USER_ROLE = UserRole.USER_ROLE;
@@ -215,6 +245,11 @@ public class Public extends SchemaImpl {
             RefreshToken.REFRESH_TOKEN,
             Request.REQUEST,
             RequestDonor.REQUEST_DONOR,
+            TeamMember.TEAM_MEMBER,
+            Tournament.TOURNAMENT,
+            TournamentMatch.TOURNAMENT_MATCH,
+            TournamentParticipant.TOURNAMENT_PARTICIPANT,
+            TournamentTeam.TOURNAMENT_TEAM,
             UserRole.USER_ROLE
         );
     }

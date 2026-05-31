@@ -49,6 +49,12 @@ public abstract class BaseJooqRepository<T extends Table<R>, R extends Updatable
                 .fetchOptional();
     }
 
+    public List<R> findByIds(List<K> recordIds) {
+        return dslContext.selectFrom(table)
+                .where(id.in(recordIds))
+                .fetch();
+    }
+
     public List<R> findFilteredOr(PredicateFilter filter){
         return dslContext.selectFrom(table)
                 .where(filter.parseFilterOr())

@@ -38,6 +38,7 @@ import org.jooq.sources.tables.Facility.FacilityPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Poll.PollPath;
 import org.jooq.sources.tables.Post.PostPath;
+import org.jooq.sources.tables.Tournament.TournamentPath;
 import org.jooq.sources.tables.records.BuildingRecord;
 
 
@@ -259,6 +260,19 @@ public class Building extends TableImpl<BuildingRecord> {
             _post = new PostPath(this, null, Keys.POST__POST_BUILDING_ID_FKEY.getInverseKey());
 
         return _post;
+    }
+
+    private transient TournamentPath _tournament;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.tournament</code>
+     * table
+     */
+    public TournamentPath tournament() {
+        if (_tournament == null)
+            _tournament = new TournamentPath(this, null, Keys.TOURNAMENT__TOURNAMENT_BUILDING_ID_FKEY.getInverseKey());
+
+        return _tournament;
     }
 
     @Override

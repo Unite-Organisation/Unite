@@ -47,6 +47,10 @@ import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.RefreshToken.RefreshTokenPath;
 import org.jooq.sources.tables.Request.RequestPath;
 import org.jooq.sources.tables.RequestDonor.RequestDonorPath;
+import org.jooq.sources.tables.TeamMember.TeamMemberPath;
+import org.jooq.sources.tables.Tournament.TournamentPath;
+import org.jooq.sources.tables.TournamentParticipant.TournamentParticipantPath;
+import org.jooq.sources.tables.TournamentTeam.TournamentTeamPath;
 import org.jooq.sources.tables.UserRole.UserRolePath;
 import org.jooq.sources.tables.records.AppUserRecord;
 
@@ -405,6 +409,53 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _request = new RequestPath(this, null, Keys.REQUEST__REQUEST_USER_IN_NEED_FKEY.getInverseKey());
 
         return _request;
+    }
+
+    private transient TeamMemberPath _teamMember;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.team_member</code>
+     * table
+     */
+    public TeamMemberPath teamMember() {
+        if (_teamMember == null)
+            _teamMember = new TeamMemberPath(this, null, Keys.TEAM_MEMBER__TEAM_MEMBER_USER_ID_FKEY.getInverseKey());
+
+        return _teamMember;
+    }
+
+    private transient TournamentPath _tournament;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.tournament</code>
+     * table
+     */
+    public TournamentPath tournament() {
+        if (_tournament == null)
+            _tournament = new TournamentPath(this, null, Keys.TOURNAMENT__TOURNAMENT_CREATED_BY_FKEY.getInverseKey());
+
+        return _tournament;
+    }
+
+    private transient TournamentParticipantPath _tournamentParticipant;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tournament_participant</code> table
+     */
+    public TournamentParticipantPath tournamentParticipant() {
+        if (_tournamentParticipant == null)
+            _tournamentParticipant = new TournamentParticipantPath(this, null, Keys.TOURNAMENT_PARTICIPANT__TOURNAMENT_PARTICIPANT_USER_ID_FKEY.getInverseKey());
+
+        return _tournamentParticipant;
+    }
+
+    /**
+     * Get the implicit many-to-many join path to the
+     * <code>public.tournament_team</code> table
+     */
+    public TournamentTeamPath tournamentTeam() {
+        return teamMember().tournamentTeam();
     }
 
     @Override

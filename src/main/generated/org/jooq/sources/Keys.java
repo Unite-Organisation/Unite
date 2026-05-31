@@ -33,6 +33,11 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.TeamMember;
+import org.jooq.sources.tables.Tournament;
+import org.jooq.sources.tables.TournamentMatch;
+import org.jooq.sources.tables.TournamentParticipant;
+import org.jooq.sources.tables.TournamentTeam;
 import org.jooq.sources.tables.UserRole;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.AreaRecord;
@@ -58,6 +63,11 @@ import org.jooq.sources.tables.records.PostRecord;
 import org.jooq.sources.tables.records.RefreshTokenRecord;
 import org.jooq.sources.tables.records.RequestDonorRecord;
 import org.jooq.sources.tables.records.RequestRecord;
+import org.jooq.sources.tables.records.TeamMemberRecord;
+import org.jooq.sources.tables.records.TournamentMatchRecord;
+import org.jooq.sources.tables.records.TournamentParticipantRecord;
+import org.jooq.sources.tables.records.TournamentRecord;
+import org.jooq.sources.tables.records.TournamentTeamRecord;
 import org.jooq.sources.tables.records.UserRoleRecord;
 
 
@@ -102,6 +112,13 @@ public class Keys {
     public static final UniqueKey<RefreshTokenRecord> REFRESH_TOKEN_TOKEN_KEY = Internal.createUniqueKey(RefreshToken.REFRESH_TOKEN, DSL.name("refresh_token_token_key"), new TableField[] { RefreshToken.REFRESH_TOKEN.TOKEN }, true);
     public static final UniqueKey<RequestRecord> REQUEST_PKEY = Internal.createUniqueKey(Request.REQUEST, DSL.name("request_pkey"), new TableField[] { Request.REQUEST.ID }, true);
     public static final UniqueKey<RequestDonorRecord> REQUEST_DONOR_PKEY = Internal.createUniqueKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_pkey"), new TableField[] { RequestDonor.REQUEST_DONOR.ID }, true);
+    public static final UniqueKey<TeamMemberRecord> TEAM_MEMBER_PKEY = Internal.createUniqueKey(TeamMember.TEAM_MEMBER, DSL.name("team_member_pkey"), new TableField[] { TeamMember.TEAM_MEMBER.ID }, true);
+    public static final UniqueKey<TeamMemberRecord> TEAM_MEMBER_TEAM_ID_USER_ID_KEY = Internal.createUniqueKey(TeamMember.TEAM_MEMBER, DSL.name("team_member_team_id_user_id_key"), new TableField[] { TeamMember.TEAM_MEMBER.TEAM_ID, TeamMember.TEAM_MEMBER.USER_ID }, true);
+    public static final UniqueKey<TournamentRecord> TOURNAMENT_PKEY = Internal.createUniqueKey(Tournament.TOURNAMENT, DSL.name("tournament_pkey"), new TableField[] { Tournament.TOURNAMENT.ID }, true);
+    public static final UniqueKey<TournamentMatchRecord> TOURNAMENT_MATCH_PKEY = Internal.createUniqueKey(TournamentMatch.TOURNAMENT_MATCH, DSL.name("tournament_match_pkey"), new TableField[] { TournamentMatch.TOURNAMENT_MATCH.ID }, true);
+    public static final UniqueKey<TournamentParticipantRecord> TOURNAMENT_PARTICIPANT_PKEY = Internal.createUniqueKey(TournamentParticipant.TOURNAMENT_PARTICIPANT, DSL.name("tournament_participant_pkey"), new TableField[] { TournamentParticipant.TOURNAMENT_PARTICIPANT.ID }, true);
+    public static final UniqueKey<TournamentParticipantRecord> TOURNAMENT_PARTICIPANT_TOURNAMENT_ID_USER_ID_KEY = Internal.createUniqueKey(TournamentParticipant.TOURNAMENT_PARTICIPANT, DSL.name("tournament_participant_tournament_id_user_id_key"), new TableField[] { TournamentParticipant.TOURNAMENT_PARTICIPANT.TOURNAMENT_ID, TournamentParticipant.TOURNAMENT_PARTICIPANT.USER_ID }, true);
+    public static final UniqueKey<TournamentTeamRecord> TOURNAMENT_TEAM_PKEY = Internal.createUniqueKey(TournamentTeam.TOURNAMENT_TEAM, DSL.name("tournament_team_pkey"), new TableField[] { TournamentTeam.TOURNAMENT_TEAM.ID }, true);
     public static final UniqueKey<UserRoleRecord> USER_ROLE_PKEY = Internal.createUniqueKey(UserRole.USER_ROLE, DSL.name("user_role_pkey"), new TableField[] { UserRole.USER_ROLE.ID }, true);
 
     // -------------------------------------------------------------------------
@@ -149,4 +166,16 @@ public class Keys {
     public static final ForeignKey<RequestRecord, AppUserRecord> REQUEST__REQUEST_USER_IN_NEED_FKEY = Internal.createForeignKey(Request.REQUEST, DSL.name("request_user_in_need_fkey"), new TableField[] { Request.REQUEST.USER_IN_NEED }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<RequestDonorRecord, AppUserRecord> REQUEST_DONOR__REQUEST_DONOR_DONOR_ID_FKEY = Internal.createForeignKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_donor_id_fkey"), new TableField[] { RequestDonor.REQUEST_DONOR.DONOR_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<RequestDonorRecord, RequestRecord> REQUEST_DONOR__REQUEST_DONOR_REQUEST_ID_FKEY = Internal.createForeignKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_request_id_fkey"), new TableField[] { RequestDonor.REQUEST_DONOR.REQUEST_ID }, Keys.REQUEST_PKEY, new TableField[] { Request.REQUEST.ID }, true);
+    public static final ForeignKey<TeamMemberRecord, TournamentTeamRecord> TEAM_MEMBER__TEAM_MEMBER_TEAM_ID_FKEY = Internal.createForeignKey(TeamMember.TEAM_MEMBER, DSL.name("team_member_team_id_fkey"), new TableField[] { TeamMember.TEAM_MEMBER.TEAM_ID }, Keys.TOURNAMENT_TEAM_PKEY, new TableField[] { TournamentTeam.TOURNAMENT_TEAM.ID }, true);
+    public static final ForeignKey<TeamMemberRecord, AppUserRecord> TEAM_MEMBER__TEAM_MEMBER_USER_ID_FKEY = Internal.createForeignKey(TeamMember.TEAM_MEMBER, DSL.name("team_member_user_id_fkey"), new TableField[] { TeamMember.TEAM_MEMBER.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<TournamentRecord, BuildingRecord> TOURNAMENT__TOURNAMENT_BUILDING_ID_FKEY = Internal.createForeignKey(Tournament.TOURNAMENT, DSL.name("tournament_building_id_fkey"), new TableField[] { Tournament.TOURNAMENT.BUILDING_ID }, Keys.BUILDING_PKEY, new TableField[] { Building.BUILDING.ID }, true);
+    public static final ForeignKey<TournamentRecord, AppUserRecord> TOURNAMENT__TOURNAMENT_CREATED_BY_FKEY = Internal.createForeignKey(Tournament.TOURNAMENT, DSL.name("tournament_created_by_fkey"), new TableField[] { Tournament.TOURNAMENT.CREATED_BY }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<TournamentMatchRecord, TournamentMatchRecord> TOURNAMENT_MATCH__TOURNAMENT_MATCH_NEXT_MATCH_ID_FKEY = Internal.createForeignKey(TournamentMatch.TOURNAMENT_MATCH, DSL.name("tournament_match_next_match_id_fkey"), new TableField[] { TournamentMatch.TOURNAMENT_MATCH.NEXT_MATCH_ID }, Keys.TOURNAMENT_MATCH_PKEY, new TableField[] { TournamentMatch.TOURNAMENT_MATCH.ID }, true);
+    public static final ForeignKey<TournamentMatchRecord, TournamentTeamRecord> TOURNAMENT_MATCH__TOURNAMENT_MATCH_TEAM_A_ID_FKEY = Internal.createForeignKey(TournamentMatch.TOURNAMENT_MATCH, DSL.name("tournament_match_team_a_id_fkey"), new TableField[] { TournamentMatch.TOURNAMENT_MATCH.TEAM_A_ID }, Keys.TOURNAMENT_TEAM_PKEY, new TableField[] { TournamentTeam.TOURNAMENT_TEAM.ID }, true);
+    public static final ForeignKey<TournamentMatchRecord, TournamentTeamRecord> TOURNAMENT_MATCH__TOURNAMENT_MATCH_TEAM_B_ID_FKEY = Internal.createForeignKey(TournamentMatch.TOURNAMENT_MATCH, DSL.name("tournament_match_team_b_id_fkey"), new TableField[] { TournamentMatch.TOURNAMENT_MATCH.TEAM_B_ID }, Keys.TOURNAMENT_TEAM_PKEY, new TableField[] { TournamentTeam.TOURNAMENT_TEAM.ID }, true);
+    public static final ForeignKey<TournamentMatchRecord, TournamentRecord> TOURNAMENT_MATCH__TOURNAMENT_MATCH_TOURNAMENT_ID_FKEY = Internal.createForeignKey(TournamentMatch.TOURNAMENT_MATCH, DSL.name("tournament_match_tournament_id_fkey"), new TableField[] { TournamentMatch.TOURNAMENT_MATCH.TOURNAMENT_ID }, Keys.TOURNAMENT_PKEY, new TableField[] { Tournament.TOURNAMENT.ID }, true);
+    public static final ForeignKey<TournamentMatchRecord, TournamentTeamRecord> TOURNAMENT_MATCH__TOURNAMENT_MATCH_WINNER_TEAM_ID_FKEY = Internal.createForeignKey(TournamentMatch.TOURNAMENT_MATCH, DSL.name("tournament_match_winner_team_id_fkey"), new TableField[] { TournamentMatch.TOURNAMENT_MATCH.WINNER_TEAM_ID }, Keys.TOURNAMENT_TEAM_PKEY, new TableField[] { TournamentTeam.TOURNAMENT_TEAM.ID }, true);
+    public static final ForeignKey<TournamentParticipantRecord, TournamentRecord> TOURNAMENT_PARTICIPANT__TOURNAMENT_PARTICIPANT_TOURNAMENT_ID_FKEY = Internal.createForeignKey(TournamentParticipant.TOURNAMENT_PARTICIPANT, DSL.name("tournament_participant_tournament_id_fkey"), new TableField[] { TournamentParticipant.TOURNAMENT_PARTICIPANT.TOURNAMENT_ID }, Keys.TOURNAMENT_PKEY, new TableField[] { Tournament.TOURNAMENT.ID }, true);
+    public static final ForeignKey<TournamentParticipantRecord, AppUserRecord> TOURNAMENT_PARTICIPANT__TOURNAMENT_PARTICIPANT_USER_ID_FKEY = Internal.createForeignKey(TournamentParticipant.TOURNAMENT_PARTICIPANT, DSL.name("tournament_participant_user_id_fkey"), new TableField[] { TournamentParticipant.TOURNAMENT_PARTICIPANT.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<TournamentTeamRecord, TournamentRecord> TOURNAMENT_TEAM__TOURNAMENT_TEAM_TOURNAMENT_ID_FKEY = Internal.createForeignKey(TournamentTeam.TOURNAMENT_TEAM, DSL.name("tournament_team_tournament_id_fkey"), new TableField[] { TournamentTeam.TOURNAMENT_TEAM.TOURNAMENT_ID }, Keys.TOURNAMENT_PKEY, new TableField[] { Tournament.TOURNAMENT.ID }, true);
 }
