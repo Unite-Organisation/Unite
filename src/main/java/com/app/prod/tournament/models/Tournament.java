@@ -11,10 +11,14 @@ public class Tournament {
     private final UUID id;
     private final String name;
     private final List<Match> matches;
+    private final TournamentStatus status;
+    private final UUID creatorId;
 
-    public Tournament(UUID id, String name, List<Match> matches) {
+    public Tournament(UUID id, String name, List<Match> matches, TournamentStatus status, UUID creatorId) {
         this.id = id;
         this.name = name;
         this.matches = matches;
+        this.status = status;
+        this.creatorId = creatorId;
     }
 }

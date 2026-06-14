@@ -3,6 +3,7 @@ package com.app.prod.tournament.api;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.tournament.dto.TournamentDto;
 import com.app.prod.tournament.dto.TournamentResponse;
+import com.app.prod.tournament.dto.UpdateTournamentRequest;
 import com.app.prod.tournament.models.TournamentStatus;
 import com.app.prod.tournament.models.TournamentType;
 import com.app.prod.tournament.services.TournamentService;
@@ -61,7 +62,16 @@ public class TournamentRestApi {
     @GetMapping("/{tournamentId}")
     @PreAuthorize("hasRole('RESIDENT')")
     public ResponseEntity<TournamentDto> getTournament(@PathVariable UUID tournamentId) {
-        TournamentDto tournament = tournamentService.getTournament(tournamentId);
+        var user = globalSecurityManager.getCurrentUser();
+        TournamentDto tournament = tournamentService.getTournament(tournamentId, user);
         return ResponseEntity.ok(tournament);
+    }
+
+    @PutMapping("/{tournamentId}/update")
+    @PreAuthorize("hasRole('RESIDENT')")
+    public ResponseEntity<Void> updateTournament(@PathVariable UUID tournamentId, @RequestBody UpdateTournamentRequest request) {
+        var user = globalSecurityManager.getCurrentUser();
+        tournamentService.updateTournament(tournamentId, request.matchId(), request.winnerTeamId(), user);
+        return ResponseEntity.ok(null);
     }
 }

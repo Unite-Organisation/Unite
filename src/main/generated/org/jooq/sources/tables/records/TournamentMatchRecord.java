@@ -118,17 +118,31 @@ public class TournamentMatchRecord extends UpdatableRecordImpl<TournamentMatchRe
     }
 
     /**
+     * Setter for <code>public.tournament_match.is_skip</code>.
+     */
+    public void setIsSkip(Boolean value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>public.tournament_match.is_skip</code>.
+     */
+    public Boolean getIsSkip() {
+        return (Boolean) get(7);
+    }
+
+    /**
      * Setter for <code>public.tournament_match.status</code>.
      */
     public void setStatus(String value) {
-        set(7, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>public.tournament_match.status</code>.
      */
     public String getStatus() {
-        return (String) get(7);
+        return (String) get(8);
     }
 
     // -------------------------------------------------------------------------
@@ -154,7 +168,7 @@ public class TournamentMatchRecord extends UpdatableRecordImpl<TournamentMatchRe
     /**
      * Create a detached, initialised TournamentMatchRecord
      */
-    public TournamentMatchRecord(UUID id, UUID tournamentId, UUID nextMatchId, Integer roundNumber, UUID teamAId, UUID teamBId, UUID winnerTeamId, String status) {
+    public TournamentMatchRecord(UUID id, UUID tournamentId, UUID nextMatchId, Integer roundNumber, UUID teamAId, UUID teamBId, UUID winnerTeamId, Boolean isSkip, String status) {
         super(TournamentMatch.TOURNAMENT_MATCH);
 
         setId(id);
@@ -164,6 +178,7 @@ public class TournamentMatchRecord extends UpdatableRecordImpl<TournamentMatchRe
         setTeamAId(teamAId);
         setTeamBId(teamBId);
         setWinnerTeamId(winnerTeamId);
+        setIsSkip(isSkip);
         setStatus(status);
         resetChangedOnNotNull();
     }

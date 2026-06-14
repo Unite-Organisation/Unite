@@ -11,7 +11,7 @@ import java.util.UUID;
 @Service
 public class TournamentFactory {
 
-    public Tournament createTournament(String name, UUID tournamentId, List<Participant> participants, int teamSize) {
+    public Tournament createTournament(String name, UUID tournamentId, List<Participant> participants, int teamSize, UUID creatorId) {
         validateTournament(participants.size(), teamSize);
 
         List<Team> teams = groupParticipantsIntoTeams(participants, teamSize);
@@ -45,7 +45,8 @@ public class TournamentFactory {
 
         for (Match match : firstRoundMatches) {
             if (match.getTeamA() != null && match.getTeamB() == null) {
-                match.setWinnerTeamId(match.getTeamA().getId());
+//                match.setWinnerTeamId(match.getTeamA().getId());
+                match.setSkip(true);
 
                 if (match.getNextMatchId() != null) {
                     Match nextMatch = findMatchById(allMatches, match.getNextMatchId());
@@ -54,7 +55,7 @@ public class TournamentFactory {
             }
         }
 
-        return new Tournament(tournamentId, name, allMatches);
+        return new Tournament(tournamentId, name, allMatches, TournamentStatus.CLOSED, creatorId);
     }
 
     private void validateTournament(int numberOfParticipants, int teamSize) {

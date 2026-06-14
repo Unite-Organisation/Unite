@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.jooq.Records.mapping;
-import static org.jooq.impl.DSL.multiset;
-import static org.jooq.impl.DSL.select;
+import static org.jooq.impl.DSL.*;
 import static org.jooq.sources.Tables.*;
 
 @Repository
@@ -25,7 +24,7 @@ public class TournamentRepository extends BaseJooqRepository<Tournament, Tournam
         super(dsl, TOURNAMENT, TOURNAMENT.ID);
     }
 
-    public List<TournamentResponse> findAllByBuilidng(UUID buildingId, TournamentStatus status) {
+    public List<TournamentResponse> findAllByBuilidng(UUID buildingId, TournamentStatus status, UUID userId) {
         var condition = TOURNAMENT.BUILDING_ID.eq(buildingId);
 
         if (status != null) {
@@ -52,14 +51,14 @@ public class TournamentRepository extends BaseJooqRepository<Tournament, Tournam
                                         record.value2()
                                 ))),
                         TOURNAMENT.STATUS,
-                        TOURNAMENT.TYPE
+                        TOURNAMENT.TYPE,
+                        TOURNAMENT.CREATED_BY
                 )
                 .from(TOURNAMENT)
                 .join(APP_USER).on(APP_USER.ID.eq(TOURNAMENT.CREATED_BY))
                 .where(condition)
-                // Używamy .fetch().map(DSL.mapping(...)) zamiast .fetchInto()
                 .fetch()
-                .map(mapping((id, authorName, name, desc, teamSize, participants, tStatus, tType) ->
+                .map(mapping((id, authorName, name, desc, teamSize, participants, tStatus, tType, tCreatedBy) ->
                         new TournamentResponse(
                                 id,
                                 authorName,
@@ -67,8 +66,9 @@ public class TournamentRepository extends BaseJooqRepository<Tournament, Tournam
                                 desc,
                                 teamSize,
                                 participants,
-                                TournamentStatus.valueOf(tStatus), // Mapowanie String -> Enum (jeśli baza zwraca VARCHAR)
-                                tType != null ? TournamentType.valueOf(tType) : null    // Mapowanie String -> Enum (jeśli baza zwraca VARCHAR)
+                                TournamentStatus.valueOf(tStatus),
+                                tType != null ? TournamentType.valueOf(tType) : null,
+                                tCreatedBy.equals(userId)
                         )
                 ));
     }

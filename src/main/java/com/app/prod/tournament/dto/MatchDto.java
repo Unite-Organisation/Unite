@@ -10,6 +10,7 @@ public record MatchDto(
         MatchStatus status,
         TeamDto teamA,
         TeamDto teamB,
+        boolean isSkip,
         UUID winnerTeamId
 ) {
 }

@@ -17,8 +17,8 @@ public class Match {
     private Team teamA;
     private Team teamB;
     private UUID winnerTeamId;
+    private boolean isSkip;
     private MatchStatus matchStatus;
-
 
     public Match(UUID id, UUID tournamentId, UUID nextMatchId, int roundNumber) {
         this.id = id;

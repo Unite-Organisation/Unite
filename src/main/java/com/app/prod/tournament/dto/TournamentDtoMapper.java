@@ -4,34 +4,75 @@ import com.app.prod.tournament.models.Match;
 import com.app.prod.tournament.models.MatchStatus;
 import com.app.prod.tournament.models.Team;
 import com.app.prod.tournament.models.Tournament;
+import org.jooq.sources.tables.records.AppUserRecord;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TournamentDtoMapper {
 
-    public static TournamentDto toDto(Tournament tournament) {
-        Map<Integer, List<Match>> matchesByRound = tournament.getMatches().stream()
+    public static TournamentDto toDto(Tournament tournament, AppUserRecord user) {
+        List<Match> allMatches = tournament.getMatches();
+        if (allMatches == null || allMatches.isEmpty()) {
+            return new TournamentDto(tournament.getId(), tournament.getName(), tournament.getCreatorId().equals(user.getId()), List.of());
+        }
+
+        Map<Integer, List<Match>> matchesByRound = allMatches.stream()
                 .collect(Collectors.groupingBy(Match::getRoundNumber));
 
         int maxRound = matchesByRound.keySet().stream().max(Integer::compareTo).orElse(1);
+        int minRound = matchesByRound.keySet().stream().min(Integer::compareTo).orElse(1);
 
-        List<RoundDto> rounds = matchesByRound.entrySet().stream()
-                .map(entry -> {
-                    int roundNum = entry.getKey();
-                    List<MatchDto> matchDtos = entry.getValue().stream()
-                            .map(TournamentDtoMapper::mapToMatchDto)
-                            .sorted(Comparator.comparing(MatchDto::id))
-                            .toList();
+        Map<Integer, List<MatchDto>> dtosByRound = matchesByRound.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().stream().map(TournamentDtoMapper::mapToMatchDto).toList()
+                ));
 
-                    return new RoundDto(roundNum, getRoundName(roundNum, maxRound), matchDtos);
-                })
+        Map<Integer, List<MatchDto>> orderedDtosByRound = new HashMap<>();
+
+        List<MatchDto> finalMatches = dtosByRound.getOrDefault(maxRound, List.of()).stream()
+                .sorted(Comparator.comparing(MatchDto::id))
+                .toList();
+        orderedDtosByRound.put(maxRound, finalMatches);
+
+        for (int r = maxRound - 1; r >= minRound; r--) {
+            List<MatchDto> nextRoundMatches = orderedDtosByRound.getOrDefault(r + 1, List.of());
+            List<MatchDto> currentRoundMatches = dtosByRound.getOrDefault(r, List.of());
+
+            List<MatchDto> sortedCurrentRound = new ArrayList<>();
+            Set<UUID> processedMatchIds = new HashSet<>();
+
+            for (MatchDto parentMatch : nextRoundMatches) {
+                List<MatchDto> children = currentRoundMatches.stream()
+                        .filter(m -> parentMatch.id().equals(m.nextMatchId()))
+                        .sorted(Comparator.comparing(MatchDto::id))
+                        .toList();
+
+                sortedCurrentRound.addAll(children);
+                children.forEach(c -> processedMatchIds.add(c.id()));
+            }
+
+            List<MatchDto> orphans = currentRoundMatches.stream()
+                    .filter(m -> !processedMatchIds.contains(m.id()))
+                    .sorted(Comparator.comparing(MatchDto::id))
+                    .toList();
+            sortedCurrentRound.addAll(orphans);
+
+            orderedDtosByRound.put(r, sortedCurrentRound);
+        }
+
+        List<RoundDto> rounds = orderedDtosByRound.entrySet().stream()
+                .map(entry -> new RoundDto(entry.getKey(), getRoundName(entry.getKey(), maxRound), entry.getValue()))
                 .sorted(Comparator.comparing(RoundDto::roundNumber))
                 .toList();
 
-        return new TournamentDto(tournament.getId(), tournament.getName(), rounds);
+        return new TournamentDto(
+                tournament.getId(),
+                tournament.getName(),
+                tournament.getCreatorId().equals(user.getId()),
+                rounds
+        );
     }
 
     private static MatchDto mapToMatchDto(Match match) {
@@ -41,6 +82,7 @@ public class TournamentDtoMapper {
                 match.getWinnerTeamId() != null ? MatchStatus.OVER : MatchStatus.PENDING,
                 mapToTeamDto(match.getTeamA()),
                 mapToTeamDto(match.getTeamB()),
+                match.isSkip(),
                 match.getWinnerTeamId()
         );
     }
@@ -58,8 +100,7 @@ public class TournamentDtoMapper {
     private static String getRoundName(int currentRound, int maxRound) {
         if (currentRound == maxRound) return "Final";
         if (currentRound == maxRound - 1) return "Semi-final";
-        if (currentRound == maxRound - 2) return "Quoter-final";
+        if (currentRound == maxRound - 2) return "Quarter-final";
         return "Round " + currentRound;
     }
-
 }

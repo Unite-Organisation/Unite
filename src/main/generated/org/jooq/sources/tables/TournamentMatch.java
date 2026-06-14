@@ -94,6 +94,11 @@ public class TournamentMatch extends TableImpl<TournamentMatchRecord> {
     public final TableField<TournamentMatchRecord, UUID> WINNER_TEAM_ID = createField(DSL.name("winner_team_id"), SQLDataType.UUID, this, "");
 
     /**
+     * The column <code>public.tournament_match.is_skip</code>.
+     */
+    public final TableField<TournamentMatchRecord, Boolean> IS_SKIP = createField(DSL.name("is_skip"), SQLDataType.BOOLEAN.nullable(false), this, "");
+
+    /**
      * The column <code>public.tournament_match.status</code>.
      */
     public final TableField<TournamentMatchRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field(DSL.raw("'PENDING'::character varying"), SQLDataType.VARCHAR)), this, "");

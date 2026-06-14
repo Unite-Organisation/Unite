@@ -14,6 +14,7 @@ public record TournamentResponse(
         Integer teamSize,
         List<ParticipantResponse> participants,
         TournamentStatus status,
-        TournamentType type
+        TournamentType type,
+        Boolean creator
 ) {
 }

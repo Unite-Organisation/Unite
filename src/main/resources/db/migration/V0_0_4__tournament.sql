@@ -35,6 +35,7 @@ CREATE TABLE tournament_match
     team_a_id UUID REFERENCES tournament_team(id) ON DELETE SET NULL,
     team_b_id UUID REFERENCES tournament_team(id) ON DELETE SET NULL,
     winner_team_id UUID REFERENCES tournament_team(id) ON DELETE SET NULL,
+    is_skip BOOLEAN NOT NULL,
     status VARCHAR(50) DEFAULT 'PENDING' NOT NULL
 );
 

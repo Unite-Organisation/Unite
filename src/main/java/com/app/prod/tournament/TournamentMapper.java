@@ -1,11 +1,8 @@
 
 package com.app.prod.tournament;
 
-import com.app.prod.tournament.models.Match;
-import com.app.prod.tournament.models.MatchStatus;
-import com.app.prod.tournament.models.Participant;
-import com.app.prod.tournament.models.Team;
-import com.app.prod.tournament.models.Tournament;
+import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.tournament.models.*;
 import com.app.prod.tournament.repository.TeamMemberRepository;
 import com.app.prod.tournament.repository.TournamentMatchRepository;
 import com.app.prod.tournament.repository.TournamentRepository;
@@ -41,6 +38,9 @@ public class TournamentMapper {
 
     @Transactional
     public void saveTournament(Tournament tournament) {
+        TournamentRecord tournamentRecord = tournamentRepository.findById(tournament.getId()).orElseThrow(IllegalStateException::new);
+        tournamentRecord.setStatus(tournament.getStatus().name());
+
         Set<Team> uniqueTeams = extractUniqueTeams(tournament);
 
         if (!uniqueTeams.isEmpty()) {
@@ -80,12 +80,15 @@ public class TournamentMapper {
                 mRecord.setTeamAId(match.getTeamA() != null ? match.getTeamA().getId() : null);
                 mRecord.setTeamBId(match.getTeamB() != null ? match.getTeamB().getId() : null);
                 mRecord.setWinnerTeamId(match.getWinnerTeamId());
+                mRecord.setIsSkip(match.isSkip());
 
                 matchRecords.add(mRecord);
             }
 
             tournamentMatchRepository.insertMany(matchRecords);
         }
+
+        tournamentRepository.update(tournamentRecord);
     }
 
     private Tournament mapToTournament(TournamentRecord record) {
@@ -94,7 +97,7 @@ public class TournamentMapper {
         List<Match> matches = tournamentMatchRepository.findByTournamentId(tournamentId).stream()
                 .map(matchRecord -> mapToMatch(matchRecord, teamsById))
                 .toList();
-        return new Tournament(tournamentId, record.getName(), matches);
+        return new Tournament(tournamentId, record.getName(), matches, TournamentStatus.valueOf(record.getStatus()), record.getCreatedBy());
     }
 
     private Map<UUID, Team> loadTeamsById(UUID tournamentId) {
@@ -146,6 +149,7 @@ public class TournamentMapper {
             match.setTeamB(teamsById.get(matchRecord.getTeamBId()));
         }
         match.setWinnerTeamId(matchRecord.getWinnerTeamId());
+        match.setSkip(matchRecord.getIsSkip());
         if (matchRecord.getStatus() != null) {
             match.setMatchStatus(MatchStatus.valueOf(matchRecord.getStatus()));
         }

@@ -6,6 +6,7 @@ import java.util.UUID;
 public record TournamentDto(
         UUID id,
         String name,
+        Boolean creator,
         List<RoundDto> rounds
 ) {
 }
