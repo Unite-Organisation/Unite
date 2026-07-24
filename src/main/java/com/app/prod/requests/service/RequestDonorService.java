@@ -1,6 +1,8 @@
 package com.app.prod.requests.service;
 
 import com.app.prod.conversation.service.ConversationService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.requests.dto.RequestHelpRequest;
 import com.app.prod.requests.dto.RequestHelpResponse;
@@ -54,7 +56,7 @@ public class RequestDonorService {
         boolean statusCondition = request.getStatus().equals(RequestStatus.CREATED.name());
 
         if(!(active && statusCondition)){
-            throw new BadRequestException(String.format("Request %s is already handled", request.getId()));
+            throw new BadRequestException(AppError.of(Code.REQUEST_ALREADY_HANDLED));
         }
     }
 

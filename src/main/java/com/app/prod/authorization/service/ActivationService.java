@@ -1,5 +1,7 @@
 package com.app.prod.authorization.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.user.dto.UserActivateRequest;
 import com.app.prod.user.repository.UserRepository;
@@ -20,7 +22,7 @@ public class ActivationService {
 
     public void activate(UserActivateRequest request){
         if(!userRepository.temporaryCredentialsAreValid(request.temporaryLogin(), request.temporaryPassword())){
-            throw new BadRequestException("User credentials are not valid");
+            throw new BadRequestException(AppError.of(Code.BAD_CREDENTIALS));
         }
 
         validate.thatUsernameIsFree(request.username());

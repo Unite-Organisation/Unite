@@ -1,6 +1,8 @@
 package com.app.prod.facilities.service;
 
 import com.app.prod.config.security.TokenSecurityManager;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.facilities.dto.FacilityReservation;
 import com.app.prod.facilities.dto.ReservationRequest;
@@ -79,14 +81,14 @@ public class ReservationService {
     private static void validateTimePeriods(LocalDateTime startTime, LocalDateTime endTime) {
         if(startTime.isAfter(endTime)){
             log.warn("Start: {} is after endtime: {}", startTime, endTime);
-            throw new BadRequestException(String.format("%s is after %s", startTime, endTime));
+            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, String.format("%s is after %s", startTime, endTime)));
         }
 
         Duration duration = Duration.between(startTime, endTime);
         long hours = duration.toHours();
         if(hours > MAX_RESERVATION_HOURS){
             log.warn("Period is longer than {} hours", MAX_RESERVATION_HOURS);
-            throw new BadRequestException(String.format("Period is longer than %s hours", MAX_RESERVATION_HOURS));
+            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD,  String.format("Period is longer than %s hours", MAX_RESERVATION_HOURS)));
         }
     }
 

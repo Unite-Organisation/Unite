@@ -1,7 +1,9 @@
 package com.app.prod.exceptions.exceptions;
 
-public class EmptyFileException extends RuntimeException {
-    public EmptyFileException(String message) {
-        super(message);
+import com.app.prod.exceptions.AppError;
+
+public class EmptyFileException  extends AppException {
+    public EmptyFileException(AppError... errors) {
+        super(errors);
     }
 }

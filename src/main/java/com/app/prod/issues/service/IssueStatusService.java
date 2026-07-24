@@ -1,5 +1,7 @@
 package com.app.prod.issues.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.issues.enums.IssueProcessingStatus;
 import com.app.prod.user.enums.UserRole;
@@ -21,10 +23,11 @@ public class IssueStatusService {
     ){
         if(providedStatus.equals(SUBMITTED) || providedStatus.equals(SEEN_BY_RECIPIENT)){
             throw new BadRequestException(
+                    AppError.of(Code.ISSUE_STATUS_ERROR,
                     String.format("It is not possible to change status to %s or %s",
                             SUBMITTED.name(),
                             SEEN_BY_RECIPIENT.name()
-                    ));
+                    )));
         }
 
         switch (userRole){
@@ -40,7 +43,8 @@ public class IssueStatusService {
     ){
         if(!providedStatus.equals(CLOSED)){
             throw new BadRequestException(
-                    String.format("Resident can change status only to %s", CLOSED.name()));
+                    AppError.of(Code.ISSUE_STATUS_ERROR,
+                    String.format("Resident can change status only to %s", CLOSED.name())));
         }
     }
 
@@ -52,15 +56,17 @@ public class IssueStatusService {
         if((issueStatus.equals(SUBMITTED) || issueStatus.equals(SEEN_BY_RECIPIENT)) &&
                 !providedStatus.equals(TAKEN_ACTION)){
             throw new BadRequestException(
-                    String.format("It is not possible to change status to %s yet", providedStatus.name()));
+                    AppError.of(Code.ISSUE_STATUS_ERROR,
+                    String.format("It is not possible to change status to %s yet", providedStatus.name())));
         }
 
         if(issueStatus.equals(TAKEN_ACTION) && !providedStatus.equals(RESOLVED)){
             throw new BadRequestException(
+                    AppError.of(Code.ISSUE_STATUS_ERROR,
                     String.format("After issue is marked as %s, only state it can change to is %s",
                             TAKEN_ACTION.name(),
                             RESOLVED.name()
-                    ));
+                    )));
         }
     }
 }

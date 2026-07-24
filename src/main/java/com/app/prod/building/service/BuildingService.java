@@ -1,5 +1,7 @@
 package com.app.prod.building.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.internal.clients.ChattingServiceClient;
 import com.app.prod.internal.dtos.ConversationBulkActionDto;
 import com.app.prod.job.async.AsyncJobRunner;
@@ -37,10 +39,9 @@ public class BuildingService {
 
     public String addUser(UUID userId, UUID buildingId, AppUserRecord manager) {
         validate.user(userId);
-        validate.building(buildingId);
         validate.thatUserIsNotInAnyBuildingYet(userId);
-        userService.addUsersBuilding(userId, buildingId);
         var areaId = getAreaId(buildingId);
+        userService.addUsersBuilding(userId, buildingId);
 
         List<UUID> contacts = userService.getAllUsersInAreaWithoutUser(userId, areaId);
         UUID managerId = manager.getId();
@@ -55,12 +56,8 @@ public class BuildingService {
 
 
     public BuildingRecord findById(UUID buildingId){
-        return buildingRepository.findById(buildingId).orElseThrow(
-                () -> new EntityNotPresentException(
-                        String.format("Building with id: %s does not exist", buildingId),
-                        Building.class.getSimpleName()
-                )
-        );
+        return buildingRepository.findById(buildingId)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.BUILDING_NOT_FOUND)));
     }
 
     public List<BuildingResponse> getUsersBuildings(AppUserRecord user) {
