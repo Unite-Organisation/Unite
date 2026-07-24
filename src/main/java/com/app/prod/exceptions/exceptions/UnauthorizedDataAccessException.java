@@ -1,7 +1,9 @@
 package com.app.prod.exceptions.exceptions;
 
-public class UnauthorizedDataAccessException extends RuntimeException {
-    public UnauthorizedDataAccessException(String message) {
-        super(message);
+import com.app.prod.exceptions.AppError;
+
+public class UnauthorizedDataAccessException extends AppException {
+    public UnauthorizedDataAccessException(AppError... errors) {
+        super(errors);
     }
 }

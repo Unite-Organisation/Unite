@@ -4,6 +4,8 @@ import com.app.prod.conversation.dto.*;
 import com.app.prod.conversation.mappers.ConversationMapper;
 import com.app.prod.conversation.repository.ConversationMemberRepository;
 import com.app.prod.conversation.repository.ConversationRepository;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.messaging.repository.MessageRepository;
@@ -78,7 +80,7 @@ public class ConversationService {
             return;
 
         if(conversationMemberRepository.existsPrivateConversationBetweenContacts(user.getId(), membersToAdd.getFirst())){
-            throw new BadRequestException("You have already this private chat");
+            throw new BadRequestException(AppError.of(Code.PRIVATE_CONVERSATION_EXISTS));
         }
     }
 
@@ -89,11 +91,7 @@ public class ConversationService {
 
     public UUID getConversationId(UUID user1Id, UUID user2Id){
         return conversationRepository.findDirectConversationForUsers(user1Id, user2Id)
-                .orElseThrow(() -> new EntityNotPresentException(
-                        String.format("Conversation for %s and %s not found", user1Id, user2Id),
-                        Conversation.class.getSimpleName()
-                ));
-
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.CONVERSATION_NOT_FOUND)));
     }
 
     @Transactional

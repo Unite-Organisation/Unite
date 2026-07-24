@@ -1,6 +1,8 @@
 package com.app.prod.offering.service;
 
 import com.app.prod.building.service.BuildingService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.offering.dto.OfferingRequest;
 import com.app.prod.offering.dto.OfferingResponse;
@@ -46,7 +48,7 @@ public class OfferingService {
         OfferingRecord offering = validate.andGetOffer(offeringId, user);
 
         if(!offering.getIsActive()){
-            throw new BadRequestException("Offering is already finished or cancelled");
+            throw new BadRequestException(AppError.of(Code.OFFERING_ALREADY_CLOSED, "Offering is already finished or cancelled"));
         }
 
         offeringRepository.cancelOffering(offeringId);

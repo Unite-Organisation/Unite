@@ -1,5 +1,7 @@
 package com.app.prod.config.security;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.repository.UserRoleRepository;
@@ -44,12 +46,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private String getUserRole(AppUserRecord user){
-        return userRoleRepository.findById(user.getUserRole()).orElseThrow(
-                () -> new EntityNotPresentException(
-                        String.format("User role with id %s not found.", user.getUserRole()),
-                        org.jooq.sources.tables.UserRole.class.getSimpleName()
-                )
-        ).getUserRole();
+        return userRoleRepository.findById(user.getUserRole())
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.USER_ROLE_NOT_FOUND)))
+                .getUserRole();
 
     }
 }

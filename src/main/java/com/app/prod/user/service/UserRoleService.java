@@ -1,5 +1,7 @@
 package com.app.prod.user.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRoleRepository;
@@ -18,24 +20,14 @@ public class UserRoleService {
     public UUID getUserRoleId(UserRole userRole){
         return userRoleRepository.findByRoleName(userRole)
                 .map(UserRoleRecord::getId)
-                .orElseThrow(
-                    () -> new EntityNotPresentException(
-                            String.format("Role %s not found", userRole.name()),
-                            org.jooq.sources.tables.UserRole.class.getSimpleName()
-                    )
-                );
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.USER_ROLE_NOT_FOUND)));
     }
 
     public UserRole getUserRoleFromId(UUID id){
         return userRoleRepository.findById(id)
                 .map(UserRoleRecord::getUserRole)
                 .map(UserRole::valueOf)
-                .orElseThrow(
-                    () -> new EntityNotPresentException(
-                            String.format("Role with id %s not found", id),
-                            org.jooq.sources.tables.UserRole.class.getSimpleName()
-                    )
-            );
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.USER_ROLE_NOT_FOUND)));
     }
 
 }

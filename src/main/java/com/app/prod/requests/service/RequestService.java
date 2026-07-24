@@ -2,6 +2,8 @@ package com.app.prod.requests.service;
 
 import com.app.prod.building.service.BuildingService;
 import com.app.prod.conversation.service.ConversationService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.requests.dto.RequestHelpRequest;
 import com.app.prod.requests.dto.RequestHelpResponse;
@@ -50,10 +52,8 @@ public class RequestService {
     }
 
     public RequestRecord getRequest(UUID requestId){
-        return requestRepository.findById(requestId).orElseThrow(() -> new EntityNotPresentException(
-                String.format("Request with id %s not found", requestId),
-                Request.class.getSimpleName()
-        ));
+        return requestRepository.findById(requestId)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.REQUEST_NOT_FOUND)));
     }
 
     public List<RequestResponse> getAllRequests(AppUserRecord user, RequestStatus status) {

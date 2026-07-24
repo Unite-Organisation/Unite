@@ -1,7 +1,9 @@
 package com.app.prod.exceptions.exceptions;
 
-public class DataAlreadyExistsException extends RuntimeException {
-    public DataAlreadyExistsException(String message) {
-        super(message);
+import com.app.prod.exceptions.AppError;
+
+public class DataAlreadyExistsException extends AppException {
+    public DataAlreadyExistsException(AppError... errors) {
+        super(errors);
     }
 }

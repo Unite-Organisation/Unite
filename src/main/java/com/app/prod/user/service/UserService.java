@@ -2,8 +2,9 @@ package com.app.prod.user.service;
 
 import com.app.prod.authorization.service.ActivationService;
 import com.app.prod.config.security.jwt.JwtService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.internal.clients.ChattingServiceClient;
 import com.app.prod.internal.dtos.UserDto;
 import com.app.prod.job.async.AsyncJobRunner;
 import com.app.prod.job.jobs.SyncUserJob;
@@ -16,7 +17,6 @@ import com.app.prod.utils.PasswordGenerator;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -145,11 +145,7 @@ public class UserService {
     }
 
     public AppUserRecord findById(UUID userId){
-        return userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotPresentException(
-                        String.format("User with id: %s does not exist.", userId),
-                        AppUser.class.getSimpleName()
-                )
-        );
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.USER_NOT_FOUND)));
     }
 }

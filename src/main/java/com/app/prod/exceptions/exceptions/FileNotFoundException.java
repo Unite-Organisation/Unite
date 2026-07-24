@@ -1,7 +1,9 @@
 package com.app.prod.exceptions.exceptions;
 
-public class FileNotFoundException extends RuntimeException {
-    public FileNotFoundException(String message) {
-        super(message);
+import com.app.prod.exceptions.AppError;
+
+public class FileNotFoundException  extends AppException {
+    public FileNotFoundException(AppError... errors) {
+        super(errors);
     }
 }

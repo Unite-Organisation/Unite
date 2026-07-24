@@ -1,5 +1,7 @@
 package com.app.prod.utils.uploads;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EmptyFileException;
 import com.app.prod.exceptions.exceptions.FileNotFoundException;
 import com.app.prod.exceptions.exceptions.InvalidFileExtensionException;
@@ -75,13 +77,13 @@ public class PhotosUploadService {
 
     private void checkIfFileIsNotEmpty(MultipartFile file){
         if(file.isEmpty()){
-            throw new EmptyFileException("File is empty");
+            throw new EmptyFileException(AppError.of(Code.EMPTY_FILE));
         }
     }
 
     private void checkIfFileExists(Path filePath){
         if (!Files.exists(filePath)) {
-            throw new FileNotFoundException(String.format("File with path %s was not found", filePath));
+            throw new FileNotFoundException(AppError.of(Code.FILE_NOT_FOUND, String.format("File with path %s was not found", filePath)));
         }
     }
 
@@ -93,12 +95,12 @@ public class PhotosUploadService {
     private void validateExtension(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new InvalidFileExtensionException("File must have an extension");
+            throw new InvalidFileExtensionException(AppError.of(Code.INVALID_FILE_EXTENSION, "File must have an extension"));
         }
 
         String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new InvalidFileExtensionException("Unsupported file type: " + extension);
+            throw new InvalidFileExtensionException(AppError.of(Code.INVALID_FILE_EXTENSION, "Unsupported file type: " + extension));
         }
     }
 
