@@ -15,13 +15,10 @@ import com.app.prod.utils.shared.EntityCreatedResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("post")
@@ -45,28 +42,10 @@ public class PostRestApi {
         return postService.getPosts(pagination, userId, filter);
     }
 
-    @PatchMapping("/{id}/image")
-    @PreAuthorize("hasRole('MANAGER')")
-    public void addImageForPost(
-            @PathVariable UUID id,
-            @RequestParam("file") MultipartFile photo
-    ){
-        postService.addImageForPost(photo, id);
-    }
-
-    @GetMapping("/{id}/image")
-    public ResponseEntity<byte[]> getPostPhoto(@PathVariable UUID id){
-        var dataPair = postService.getPostPhoto(id);
-
-        return ResponseEntity.ok()
-                .contentType(dataPair.getRight())
-                .body(dataPair.getLeft());
-    }
-
     /* Announcements */
     @PostMapping("/announcement")
     @PreAuthorize("hasRole('MANAGER')")
-    public EntityCreatedResponse createAnnouncement(@RequestBody AnnouncementRequest request){
+    public EntityCreatedResponse createAnnouncement(@Valid @RequestBody AnnouncementRequest request){
         var userId = globalSecurityManager.getCurrentUser().getId();
         return announcementService.createAnnouncement(request, userId);
     }
@@ -74,7 +53,7 @@ public class PostRestApi {
     /* Events */
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
-    public EntityCreatedResponse createEvent(@RequestBody EventRequest request){
+    public EntityCreatedResponse createEvent(@Valid @RequestBody EventRequest request){
         var user = globalSecurityManager.getCurrentUser();
         return eventService.createEvent(request, user);
     }

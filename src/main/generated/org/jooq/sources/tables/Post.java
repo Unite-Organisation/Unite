@@ -15,6 +15,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.InverseForeignKey;
+import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Path;
 import org.jooq.PlainSQL;
@@ -97,11 +98,6 @@ public class Post extends TableImpl<PostRecord> {
     public final TableField<PostRecord, String> CONTENT = createField(DSL.name("content"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.post.image_reference</code>.
-     */
-    public final TableField<PostRecord, String> IMAGE_REFERENCE = createField(DSL.name("image_reference"), SQLDataType.VARCHAR(2048), this, "");
-
-    /**
      * The column <code>public.post.related_date</code>.
      */
     public final TableField<PostRecord, LocalDateTime> RELATED_DATE = createField(DSL.name("related_date"), SQLDataType.LOCALDATETIME(6), this, "");
@@ -135,6 +131,11 @@ public class Post extends TableImpl<PostRecord> {
      * The column <code>public.post.max_attendees</code>.
      */
     public final TableField<PostRecord, Integer> MAX_ATTENDEES = createField(DSL.name("max_attendees"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>public.post.attachments</code>.
+     */
+    public final TableField<PostRecord, JSONB> ATTACHMENTS = createField(DSL.name("attachments"), SQLDataType.JSONB.nullable(false).defaultValue(DSL.field(DSL.raw("'[]'::jsonb"), SQLDataType.JSONB)), this, "");
 
     private Post(Name alias, Table<PostRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

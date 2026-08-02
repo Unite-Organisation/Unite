@@ -1,0 +1,158 @@
+package com.app.prod.post;
+
+import com.app.prod.builders.AreaPersistenceFactory;
+import com.app.prod.builders.BuildingPersistenceFactory;
+import com.app.prod.builders.BuildingsManagersPersistenceFactory;
+import com.app.prod.builders.UserPersistanceFactory;
+import com.app.prod.config.IntegrationTest;
+import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.post.dto.AnnouncementRequest;
+import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
+import com.app.prod.post.repository.PostRepository;
+import com.app.prod.post.service.AnnouncementService;
+import com.app.prod.storage.ContextStoragePrefix;
+import com.app.prod.storage.InMemoryStorage;
+import com.app.prod.storage.StorageKeys;
+import com.app.prod.storage.dto.FileResponse;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.PostFilter;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@SpringBootTest
+public class AnnouncementAttachmentsIT extends IntegrationTest {
+
+    private static final long ONE_MEGABYTE = 1024 * 1024;
+
+    @Autowired
+    private UserPersistanceFactory userPersistanceFactory;
+    @Autowired
+    private AreaPersistenceFactory areaPersistenceFactory;
+    @Autowired
+    private BuildingPersistenceFactory buildingPersistenceFactory;
+    @Autowired
+    private BuildingsManagersPersistenceFactory buildingsManagersPersistenceFactory;
+    @Autowired
+    private AnnouncementService announcementService;
+    @Autowired
+    private PostRepository postRepository;
+    @Autowired
+    private InMemoryStorage storage;
+
+    private final PostFilter filter = PostFilter.builder().postType(Optional.of(PostType.ANNOUNCEMENT)).build();
+
+    private UUID buildingId;
+    private UUID managerId;
+    private UUID residentId;
+
+    @BeforeEach
+    void setUp() {
+        storage.clear();
+
+        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
+        buildingId = building.getId();
+        residentId = userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingId).buildAndSave().getId();
+        managerId = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave().getId();
+
+        buildingsManagersPersistenceFactory.addNewBuildingManager()
+                .buildingId(buildingId)
+                .managerId(managerId)
+                .buildAndSave();
+    }
+
+    @Test
+    void shouldPersistUploadedFilesAndReturnThemWithSignedUrls() {
+        var keys = uploadedKeys(3);
+
+        announcementService.createAnnouncement(request("With photos", keys), managerId);
+
+        var announcement = onlyAnnouncementFor(residentId);
+        assertThat(announcement.files()).hasSize(3);
+        assertThat(announcement.files().stream().map(FileResponse::key).toList()).containsExactlyElementsOf(keys);
+        assertThat(announcement.files()).allSatisfy(file -> {
+            assertThat(file.contentType()).isEqualTo("image/jpeg");
+            assertThat(file.url()).isEqualTo("http://localhost/fake-download/" + file.key());
+        });
+    }
+
+    @Test
+    void shouldReturnEmptyFileListWhenAnnouncementHasNoAttachments() {
+        announcementService.createAnnouncement(request("No photos", null), managerId);
+
+        assertThat(onlyAnnouncementFor(residentId).files()).isEmpty();
+    }
+
+    @Test
+    void shouldRejectKeyThatWasNeverUploaded() {
+        var key = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, managerId, "ghost.jpg");
+
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Ghost", List.of(key)), managerId))
+                .isInstanceOf(EntityNotPresentException.class);
+        assertThat(postRepository.findForUser(residentId, pagination(), filter)).isEmpty();
+    }
+
+    @Test
+    void shouldRejectKeyUploadedByAnotherUser() {
+        var foreignKey = uploadedKey(residentId, "someone-else.jpg");
+
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Stolen", List.of(foreignKey)), managerId))
+                .isInstanceOf(BadRequestException.class);
+        assertThat(postRepository.findForUser(residentId, pagination(), filter)).isEmpty();
+    }
+
+    @Test
+    void shouldRejectKeyFromAnotherContext() {
+        var eventKey = StorageKeys.build(ContextStoragePrefix.EVENT, managerId, "party.jpg");
+        storage.put(eventKey, "image/jpeg", ONE_MEGABYTE);
+
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Wrong context", List.of(eventKey)), managerId))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void shouldRejectMoreThanFiveFiles() {
+        var keys = uploadedKeys(6);
+
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Too many", keys), managerId))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    private List<String> uploadedKeys(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(index -> uploadedKey(managerId, "photo-" + index + ".jpg"))
+                .toList();
+    }
+
+    private String uploadedKey(UUID ownerId, String fileName) {
+        var key = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, ownerId, fileName);
+        storage.put(key, "image/jpeg", ONE_MEGABYTE);
+        return key;
+    }
+
+    private AnnouncementRequest request(String name, List<String> fileKeys) {
+        return new AnnouncementRequest(name, null, buildingId, "content", null, PostType.ANNOUNCEMENT, fileKeys);
+    }
+
+    private PostResponse onlyAnnouncementFor(UUID userId) {
+        var results = postRepository.findForUser(userId, pagination(), filter);
+        assertThat(results).hasSize(1);
+        return results.getFirst();
+    }
+
+    private Pagination pagination() {
+        return Pagination.builder().page(1).pageSize(5).build();
+    }
+}

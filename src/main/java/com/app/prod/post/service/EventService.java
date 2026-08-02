@@ -4,6 +4,8 @@ import com.app.prod.area.service.AreaService;
 import com.app.prod.post.dto.EventRequest;
 import com.app.prod.post.mappers.AnnouncementMapper;
 import com.app.prod.post.repository.PostRepository;
+import com.app.prod.storage.ContextStoragePrefix;
+import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.shared.EntityCreatedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class EventService {
 
     private final PostRepository postRepository;
+    private final FileService fileService;
     private final Clock clock;
     private final AreaService areaService;
 
@@ -30,9 +33,10 @@ public class EventService {
             areaId = areaService.getUserArea(user);
         }
 
+        var attachments = fileService.confirmUploaded(ContextStoragePrefix.EVENT, user.getId(), request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
-        postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, user.getId(), now, id, areaId));
+        postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, user.getId(), now, id, areaId, attachments));
 
         log.info("Created announcement with name: {}", request.name());
         return new EntityCreatedResponse(id);

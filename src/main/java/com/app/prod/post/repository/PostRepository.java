@@ -2,6 +2,7 @@ package com.app.prod.post.repository;
 
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.enums.PostType;
+import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
@@ -10,7 +11,6 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.records.PostRecord;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,8 +18,12 @@ import static org.jooq.sources.Tables.*;
 
 @Repository
 public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
-    protected PostRepository(DSLContext dsl) {
+
+    private final FileService fileService;
+
+    protected PostRepository(DSLContext dsl, FileService fileService) {
         super(dsl, POST, POST.ID);
+        this.fileService = fileService;
     }
 
     public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
@@ -38,7 +42,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         POST.LOCATION_NAME,
                         POST.ONLINE_URL,
                         POST.MAX_ATTENDEES,
-                        POST.IMAGE_REFERENCE
+                        POST.ATTACHMENTS
                 )
                 .from(APP_USER)
                 .join(BUILDING).on(BUILDING.ID.eq(APP_USER.BUILDING_ID))
@@ -54,11 +58,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetch(record -> {
-                    String imageRef = record.get(POST.IMAGE_REFERENCE);
-                    Boolean imagePresent = imageRef != null && !imageRef.isBlank();
-
-                    return new PostResponse(
+                .fetch(record -> new PostResponse(
                         record.get(POST.ID),
                         record.get(POST.NAME),
                         record.get(POST.AREA_ID),
@@ -73,15 +73,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         record.get(POST.LOCATION_NAME),
                         record.get(POST.ONLINE_URL),
                         record.get(POST.MAX_ATTENDEES),
-                        imagePresent
-                    );
-                });
-    }
-
-    public void updatePhotoPath(UUID id, String path){
-        dslContext.update(POST)
-                .set(POST.IMAGE_REFERENCE, path)
-                .where(POST.ID.eq(id))
-                .execute();
+                        fileService.toResponses(record.get(POST.ATTACHMENTS))
+                ));
     }
 }

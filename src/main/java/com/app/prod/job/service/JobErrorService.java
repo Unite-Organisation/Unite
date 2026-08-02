@@ -4,8 +4,7 @@ import com.app.prod.job.jobs.Job;
 import com.app.prod.job.dtos.JobResponse;
 import com.app.prod.job.repository.JobErrorRepository;
 import com.app.prod.job.enums.JobStatus;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.app.prod.utils.json.JsonbService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.JSONB;
@@ -22,17 +21,16 @@ import java.util.UUID;
 public class JobErrorService {
 
     private final JobErrorRepository jobErrorRepository;
-    private final ObjectMapper objectMapper;
+    private final JsonbService jsonbService;
 
     public void logError(Job job, String jobName, String errorMessage, LocalDateTime failedAt) {
-        String serializedJob = serializeJob(job);
+        JSONB jsonb = serializeJob(job);
 
-        if (serializedJob == null) {
+        if (jsonb == null) {
             log.error("Failed to serialize job: {}", jobName);
             return;
         }
 
-        JSONB jsonb = JSONB.valueOf(serializedJob);
         var record = new JobErrorRecord(
                 UUID.randomUUID(),
                 jobName,
@@ -46,9 +44,9 @@ public class JobErrorService {
         log.info("Logged error for job: {}", jobName);
     }
 
-    public String serializeJob(Job job) {
+    public JSONB serializeJob(Job job) {
         try {
-            return objectMapper.writeValueAsString(job);
+            return jsonbService.toJsonb(job);
         } catch (Exception e) {
             return null;
         }
@@ -56,8 +54,8 @@ public class JobErrorService {
 
     public Job deserializeJon(JSONB jsonb)  {
         try {
-            return objectMapper.readValue(jsonb.data(), Job.class);
-        } catch (JsonProcessingException e) {
+            return jsonbService.fromJsonb(jsonb, Job.class);
+        } catch (Exception e) {
             return null;
         }
     }

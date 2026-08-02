@@ -6,6 +6,11 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      credentials:
+        location: ${GCP_APPLICATION_CREDENTIALS}
 server:
   servlet:
     context-path: /v1/api
@@ -15,6 +20,12 @@ jwt:
   secret: ${JWT_SECRET}
   expiration-ms: ${JWT_EXPIRATION_TIME}
   refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_TIME}
+
+storage:
+  bucket: ${GCP_BUCKET_NAME}
+  upload-url-ttl: 15m
+  download-url-ttl: 15m
+  max-file-size: 50MB
 
 services:
   chatting:

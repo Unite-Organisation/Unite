@@ -2,6 +2,7 @@ package com.app.prod.post.mappers;
 
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.dto.EventRequest;
+import org.jooq.JSONB;
 import org.jooq.sources.tables.records.PostRecord;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.util.UUID;
 
 public class AnnouncementMapper {
 
-    public static PostRecord fromRequestToRecordAnn(AnnouncementRequest request, UUID userId, LocalDateTime now, UUID id){
+    public static PostRecord fromRequestToRecordAnn(AnnouncementRequest request, UUID userId, LocalDateTime now, UUID id, JSONB attachments){
         return new PostRecord(
                 id,
                 request.name(),
@@ -18,18 +19,18 @@ public class AnnouncementMapper {
                 userId,
                 now,
                 request.content(),
-                null,
                 request.relatedDate(),
                 request.postType().name(),
                 null,
                 null,
                 null,
                 null,
-                null
+                null,
+                attachments
         );
     }
 
-    public static PostRecord fromRequestToRecordEvent(EventRequest request, UUID userId, LocalDateTime now, UUID id, UUID areaId){
+    public static PostRecord fromRequestToRecordEvent(EventRequest request, UUID userId, LocalDateTime now, UUID id, UUID areaId, JSONB attachments){
         return new PostRecord(
                 id,
                 request.name(),
@@ -38,14 +39,14 @@ public class AnnouncementMapper {
                 userId,
                 now,
                 request.content(),
-                null,
                 request.relatedDate(),
                 request.postType().name(),
                 request.startDate(),
                 request.endDate(),
                 request.location(),
                 request.onlineUrl(),
-                request.maxAtendees()
+                request.maxAtendees(),
+                attachments
         );
     }
 
