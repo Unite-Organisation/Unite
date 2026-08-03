@@ -12,6 +12,8 @@ public interface AbstractStorage {
 
     Optional<StoredObject> find(String key);
 
+    void move(String sourceKey, String targetKey);
+
     String getPrivateFileUrl(String key);
 
     void delete(String key);

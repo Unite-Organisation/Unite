@@ -7,9 +7,14 @@ import java.util.regex.Pattern;
  * Builds and validates object keys. The owner is part of the key
  * ({@code context/userId/uuid-name}), which is what lets the backend confirm that a key sent back
  * by the client belongs to the caller without keeping any state about issued upload urls.
+ * <p>
+ * Uploads always land under {@value #PENDING_PREFIX} and are moved to the confirmed key only once
+ * they get attached to an entity. Everything left behind therefore sits under a single prefix that
+ * a bucket lifecycle rule can expire, which is what keeps abandoned uploads from piling up forever.
  */
 public final class StorageKeys {
 
+    public static final String PENDING_PREFIX = "tmp/";
     private static final Pattern UNSAFE_CHARACTERS = Pattern.compile("[^a-zA-Z0-9._-]");
     private static final int MAX_FILE_NAME_LENGTH = 100;
     private static final String FALLBACK_FILE_NAME = "file";
@@ -19,6 +24,22 @@ public final class StorageKeys {
 
     public static String build(ContextStoragePrefix context, UUID userId, String fileName) {
         return "%s/%s/%s-%s".formatted(context.getPrefix(), userId, UUID.randomUUID(), sanitize(fileName));
+    }
+
+    public static String buildPending(ContextStoragePrefix context, UUID userId, String fileName) {
+        return PENDING_PREFIX + build(context, userId, fileName);
+    }
+
+    public static boolean isPending(String key) {
+        return key != null && key.startsWith(PENDING_PREFIX);
+    }
+
+    public static String confirmedKeyOf(String pendingKey) {
+        return pendingKey.substring(PENDING_PREFIX.length());
+    }
+
+    public static boolean pendingBelongsTo(String key, ContextStoragePrefix context, UUID userId) {
+        return isPending(key) && belongsTo(confirmedKeyOf(key), context, userId);
     }
 
     public static boolean belongsTo(String key, ContextStoragePrefix context, UUID userId) {

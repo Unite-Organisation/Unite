@@ -69,6 +69,19 @@ public class GoogleCloudStorageService extends GoogleCloudStorage {
     }
 
     @Override
+    public void move(String sourceKey, String targetKey) {
+        BlobId source = BlobId.of(bucketName(), sourceKey);
+
+        storage.copy(Storage.CopyRequest.newBuilder()
+                .setSource(source)
+                .setTarget(BlobId.of(bucketName(), targetKey))
+                .build()).getResult();
+        storage.delete(source);
+
+        log.info("Moved {} to {}", sourceKey, targetKey);
+    }
+
+    @Override
     public String getPrivateFileUrl(String key) {
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName(), key).build();
 

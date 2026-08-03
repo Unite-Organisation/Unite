@@ -42,6 +42,15 @@ public class InMemoryStorage implements AbstractStorage {
     }
 
     @Override
+    public void move(String sourceKey, String targetKey) {
+        StoredObject object = objects.remove(sourceKey);
+
+        if (object != null) {
+            objects.put(targetKey, new StoredObject(targetKey, object.contentType(), object.size()));
+        }
+    }
+
+    @Override
     public String getPrivateFileUrl(String key) {
         return DOWNLOAD_URL_TEMPLATE.formatted(key);
     }

@@ -36,7 +36,13 @@ public class EventService {
         var attachments = fileService.confirmUploaded(ContextStoragePrefix.EVENT, user.getId(), request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
-        postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, user.getId(), now, id, areaId, attachments));
+
+        try {
+            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, user.getId(), now, id, areaId, attachments));
+        } catch (RuntimeException exception) {
+            fileService.discard(attachments);
+            throw exception;
+        }
 
         log.info("Created announcement with name: {}", request.name());
         return new EntityCreatedResponse(id);

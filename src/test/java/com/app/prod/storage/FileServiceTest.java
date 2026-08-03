@@ -33,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,7 +79,7 @@ class FileServiceTest {
 
         assertThat(uploads).hasSize(2);
         assertThat(uploads).allSatisfy(upload -> {
-            assertThat(upload.key()).startsWith("announcement/" + USER_ID + "/");
+            assertThat(upload.key()).startsWith("tmp/announcement/" + USER_ID + "/");
             assertThat(upload.method()).isEqualTo("PUT");
         });
     }
@@ -117,18 +119,64 @@ class FileServiceTest {
     }
 
     @Test
-    void shouldConfirmUploadedFiles() {
-        String key = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
-        when(storage.find(key)).thenReturn(Optional.of(new StoredObject(key, "image/jpeg", ONE_MEGABYTE)));
+    void shouldConfirmUploadedFilesAndMoveThemOutOfPendingPrefix() {
+        String pendingKey = uploaded("cat.jpg");
+        String confirmedKey = StorageKeys.confirmedKeyOf(pendingKey);
 
-        var attachments = fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(key));
+        var attachments = fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(pendingKey));
 
+        verify(storage).move(pendingKey, confirmedKey);
         var stored = jsonbService.listFromJsonb(attachments, StoredFile.class);
         assertThat(stored).hasSize(1);
-        assertThat(stored.getFirst().key()).isEqualTo(key);
+        assertThat(stored.getFirst().key()).isEqualTo(confirmedKey);
         assertThat(stored.getFirst().contentType()).isEqualTo("image/jpeg");
         assertThat(stored.getFirst().size()).isEqualTo(ONE_MEGABYTE);
         assertThat(stored.getFirst().uploadedAt()).isEqualTo(LocalDateTime.now(clock));
+    }
+
+    @Test
+    void shouldRejectKeyThatIsNotPending() {
+        String confirmedKey = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
+        when(storage.find(confirmedKey)).thenReturn(Optional.of(new StoredObject(confirmedKey, "image/jpeg", ONE_MEGABYTE)));
+
+        assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(confirmedKey)))
+                .isInstanceOf(BadRequestException.class);
+        verify(storage, never()).find(anyString());
+        verify(storage, never()).move(anyString(), anyString());
+    }
+
+    @Test
+    void shouldNotMoveAnyFileWhenOneOfThemIsInvalid() {
+        String valid = uploaded("cat.jpg");
+        String missing = StorageKeys.buildPending(ANNOUNCEMENT, USER_ID, "ghost.jpg");
+        when(storage.find(missing)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(valid, missing)))
+                .isInstanceOf(EntityNotPresentException.class);
+        verify(storage, never()).move(anyString(), anyString());
+    }
+
+    @Test
+    void shouldDeleteAlreadyMovedFilesWhenOneMoveFails() {
+        String first = uploaded("first.jpg");
+        String second = uploaded("second.jpg");
+        doThrow(new IllegalStateException("bucket is down"))
+                .when(storage).move(eq(second), anyString());
+
+        assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(first, second)))
+                .isInstanceOf(IllegalStateException.class);
+        verify(storage).delete(StorageKeys.confirmedKeyOf(first));
+        verify(storage, never()).delete(StorageKeys.confirmedKeyOf(second));
+    }
+
+    @Test
+    void shouldDeleteEveryAttachmentOnDiscard() {
+        String key = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
+        var attachments = jsonbService.toJsonb(List.of(new StoredFile(key, "image/jpeg", ONE_MEGABYTE, LocalDateTime.now(clock))));
+
+        fileService.discard(attachments);
+
+        verify(storage).delete(key);
     }
 
     @Test
@@ -139,7 +187,7 @@ class FileServiceTest {
 
     @Test
     void shouldRejectKeyBelongingToAnotherUser() {
-        String key = StorageKeys.build(ANNOUNCEMENT, OTHER_USER_ID, "cat.jpg");
+        String key = StorageKeys.buildPending(ANNOUNCEMENT, OTHER_USER_ID, "cat.jpg");
         when(storage.find(key)).thenReturn(Optional.of(new StoredObject(key, "image/jpeg", ONE_MEGABYTE)));
 
         assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(key)))
@@ -149,7 +197,7 @@ class FileServiceTest {
 
     @Test
     void shouldRejectKeyThatWasNeverUploaded() {
-        String key = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
+        String key = StorageKeys.buildPending(ANNOUNCEMENT, USER_ID, "cat.jpg");
         when(storage.find(key)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(key)))
@@ -158,17 +206,17 @@ class FileServiceTest {
 
     @Test
     void shouldRejectFileWhoseRealTypeDiffersFromDeclaredOne() {
-        String key = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
+        String key = StorageKeys.buildPending(ANNOUNCEMENT, USER_ID, "cat.jpg");
         when(storage.find(key)).thenReturn(Optional.of(new StoredObject(key, "application/zip", ONE_MEGABYTE)));
 
         assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(key)))
                 .isInstanceOf(BadRequestException.class);
+        verify(storage, never()).move(anyString(), anyString());
     }
 
     @Test
     void shouldRejectDuplicatedKeys() {
-        String key = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
-        when(storage.find(key)).thenReturn(Optional.of(new StoredObject(key, "image/jpeg", ONE_MEGABYTE)));
+        String key = uploaded("cat.jpg");
 
         assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(key, key)))
                 .isInstanceOf(BadRequestException.class);
@@ -194,5 +242,11 @@ class FileServiceTest {
 
     private FileUploadRequest photoRequest(String fileName) {
         return new FileUploadRequest(fileName, "image/jpeg", ONE_MEGABYTE);
+    }
+
+    private String uploaded(String fileName) {
+        String key = StorageKeys.buildPending(ANNOUNCEMENT, USER_ID, fileName);
+        when(storage.find(key)).thenReturn(Optional.of(new StoredObject(key, "image/jpeg", ONE_MEGABYTE)));
+        return key;
     }
 }

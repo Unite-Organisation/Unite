@@ -29,7 +29,13 @@ public class AnnouncementService {
         var attachments = fileService.confirmUploaded(ContextStoragePrefix.ANNOUNCEMENT, userId, request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
-        postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, userId, now, id, attachments));
+
+        try {
+            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, userId, now, id, attachments));
+        } catch (RuntimeException exception) {
+            fileService.discard(attachments);
+            throw exception;
+        }
 
         log.info("Created announcement with name: {}", request.name());
         return new EntityCreatedResponse(id);

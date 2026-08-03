@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class FileService {
 
         return files.stream()
                 .map(file -> storage.createUploadUrl(
-                        StorageKeys.build(context, userId, file.fileName()),
+                        StorageKeys.buildPending(context, userId, file.fileName()),
                         file.contentType(),
                         properties.getUploadUrlTtl()
                 ))
@@ -61,13 +62,18 @@ public class FileService {
         validateFileCount(context, keys.size());
         validateNoDuplicates(keys);
 
-        var now = LocalDateTime.now(clock);
-        List<StoredFile> attachments = keys.stream()
-                .map(key -> toStoredFile(context, userId, key, now))
+        List<StoredObject> pending = keys.stream()
+                .map(key -> validatePending(context, userId, key))
                 .toList();
+        List<StoredFile> attachments = promoteAll(pending, LocalDateTime.now(clock));
 
         log.info("Confirmed {} uploaded files for context {}", attachments.size(), context);
         return jsonbService.toJsonb(attachments);
+    }
+
+    public void discard(JSONB attachments) {
+        jsonbService.listFromJsonb(attachments, StoredFile.class)
+                .forEach(file -> safeDelete(file.key()));
     }
 
     public List<FileResponse> toResponses(JSONB attachments) {
@@ -76,8 +82,8 @@ public class FileService {
                 .toList();
     }
 
-    private StoredFile toStoredFile(ContextStoragePrefix context, UUID userId, String key, LocalDateTime now) {
-        if (!StorageKeys.belongsTo(key, context, userId)) {
+    private StoredObject validatePending(ContextStoragePrefix context, UUID userId, String key) {
+        if (!StorageKeys.pendingBelongsTo(key, context, userId)) {
             log.warn("User {} sent a file key that does not belong to them: {}", userId, key);
             throw new BadRequestException(AppError.of(Code.INVALID_FILE_KEY));
         }
@@ -86,7 +92,32 @@ public class FileService {
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.FILE_NOT_FOUND, "File %s was not uploaded".formatted(key))));
 
         validateStoredObject(context, object);
-        return new StoredFile(object.key(), object.contentType(), object.size(), now);
+        return object;
+    }
+
+    private List<StoredFile> promoteAll(List<StoredObject> pending, LocalDateTime now) {
+        List<StoredFile> promoted = new ArrayList<>();
+
+        try {
+            for (StoredObject object : pending) {
+                String confirmedKey = StorageKeys.confirmedKeyOf(object.key());
+                storage.move(object.key(), confirmedKey);
+                promoted.add(new StoredFile(confirmedKey, object.contentType(), object.size(), now));
+            }
+            return List.copyOf(promoted);
+        } catch (RuntimeException exception) {
+            log.error("Failed to promote uploaded files, rolling back {} already moved objects", promoted.size(), exception);
+            promoted.forEach(file -> safeDelete(file.key()));
+            throw exception;
+        }
+    }
+
+    private void safeDelete(String key) {
+        try {
+            storage.delete(key);
+        } catch (RuntimeException exception) {
+            log.error("Could not delete {}, it will stay in the bucket unreferenced", key, exception);
+        }
     }
 
     private void validateRequestedFile(ContextStoragePrefix context, FileUploadRequest file) {

@@ -76,16 +76,36 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     @Test
     void shouldPersistUploadedFilesAndReturnThemWithSignedUrls() {
         var keys = uploadedKeys(3);
+        var confirmedKeys = keys.stream().map(StorageKeys::confirmedKeyOf).toList();
 
         announcementService.createAnnouncement(request("With photos", keys), managerId);
 
         var announcement = onlyAnnouncementFor(residentId);
         assertThat(announcement.files()).hasSize(3);
-        assertThat(announcement.files().stream().map(FileResponse::key).toList()).containsExactlyElementsOf(keys);
+        assertThat(announcement.files().stream().map(FileResponse::key).toList()).containsExactlyElementsOf(confirmedKeys);
         assertThat(announcement.files()).allSatisfy(file -> {
             assertThat(file.contentType()).isEqualTo("image/jpeg");
             assertThat(file.url()).isEqualTo("http://localhost/fake-download/" + file.key());
         });
+    }
+
+    @Test
+    void shouldMoveConfirmedFilesOutOfThePendingPrefix() {
+        var pendingKey = uploadedKey(managerId, "cat.jpg");
+
+        announcementService.createAnnouncement(request("With photo", List.of(pendingKey)), managerId);
+
+        assertThat(storage.find(pendingKey)).isEmpty();
+        assertThat(storage.find(StorageKeys.confirmedKeyOf(pendingKey))).isPresent();
+    }
+
+    @Test
+    void shouldRejectKeyThatIsAlreadyConfirmed() {
+        var confirmedKey = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, managerId, "cat.jpg");
+        storage.put(confirmedKey, "image/jpeg", ONE_MEGABYTE);
+
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Reused", List.of(confirmedKey)), managerId))
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test
@@ -97,7 +117,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
 
     @Test
     void shouldRejectKeyThatWasNeverUploaded() {
-        var key = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, managerId, "ghost.jpg");
+        var key = StorageKeys.buildPending(ContextStoragePrefix.ANNOUNCEMENT, managerId, "ghost.jpg");
 
         assertThatThrownBy(() -> announcementService.createAnnouncement(request("Ghost", List.of(key)), managerId))
                 .isInstanceOf(EntityNotPresentException.class);
@@ -115,7 +135,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
 
     @Test
     void shouldRejectKeyFromAnotherContext() {
-        var eventKey = StorageKeys.build(ContextStoragePrefix.EVENT, managerId, "party.jpg");
+        var eventKey = StorageKeys.buildPending(ContextStoragePrefix.EVENT, managerId, "party.jpg");
         storage.put(eventKey, "image/jpeg", ONE_MEGABYTE);
 
         assertThatThrownBy(() -> announcementService.createAnnouncement(request("Wrong context", List.of(eventKey)), managerId))
@@ -137,7 +157,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     }
 
     private String uploadedKey(UUID ownerId, String fileName) {
-        var key = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, ownerId, fileName);
+        var key = StorageKeys.buildPending(ContextStoragePrefix.ANNOUNCEMENT, ownerId, fileName);
         storage.put(key, "image/jpeg", ONE_MEGABYTE);
         return key;
     }
