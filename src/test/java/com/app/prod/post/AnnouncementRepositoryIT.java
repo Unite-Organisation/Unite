@@ -1,10 +1,12 @@
 package com.app.prod.post;
 
 import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.builders.PostPersistenceFactory;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
+import com.app.prod.builders.BuildingsManagersPersistenceFactory;
 import com.app.prod.builders.UserPersistanceFactory;
 import com.app.prod.config.IntegrationTest;
 import com.app.prod.utils.Pagination;
@@ -12,6 +14,7 @@ import com.app.prod.utils.Pagination;
 import static com.app.prod.post.enums.PostType.ANNOUNCEMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +34,17 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
     private BuildingPersistenceFactory buildingPersistenceFactory;
     @Autowired
     private PostPersistenceFactory postPersistenceFactory;
+    @Autowired
+    private BuildingsManagersPersistenceFactory buildingsManagersPersistenceFactory;
 
     @Autowired
     private PostRepository postRepository;
 
-    private PostFilter filter = PostFilter.builder().postType(Optional.of(ANNOUNCEMENT)).build();
+    private final PostFilter filter = PostFilter.builder()
+            .postType(Optional.of(PostType.ANNOUNCEMENT))
+            .visibleFrom(ComparisonFilter.empty())
+            .visibleTo(ComparisonFilter.empty())
+            .build();
 
     @Test
     void shouldReturnAnnouncementsOnlyForMe(){
@@ -156,6 +165,77 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         var result = postRepository.findForUser(user.getId(), pagination, filter);
 
         //TODO: assertions
+    }
+
+    /* A manager has no app_user.building_id - the buildings they see come from building_manager. */
+    @Test
+    void shouldReturnAnnouncementsForBuildingsManagedByManager(){
+        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+        var otherArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+
+        var managedBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
+        var foreignBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(otherArea.getId()).buildAndSave();
+
+        var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
+        assignManager(manager.getId(), managedBuilding.getId());
+
+        assertThat(manager.getBuildingId()).isNull();
+
+        //for the managed building
+        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
+                .withRandomValues()
+                .name("Event1")
+                .buildingId(managedBuilding.getId())
+                .createdBy(manager.getId())
+                .buildAndSave();
+
+        //for the area the managed building belongs to
+        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
+                .withRandomValues()
+                .name("Event2")
+                .areaId(area.getId())
+                .createdBy(manager.getId())
+                .buildAndSave();
+
+        //for a building the manager does not manage (SHOULD NOT MATCH)
+        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
+                .withRandomValues()
+                .name("Event3")
+                .buildingId(foreignBuilding.getId())
+                .createdBy(manager.getId())
+                .buildAndSave();
+
+        Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
+
+        var result = postRepository.findForUser(manager.getId(), pagination, filter);
+        assertThat(result.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
+    }
+
+    /* A resident sees their building even when nobody manages it yet. */
+    @Test
+    void shouldReturnAnnouncementsForResidentOfBuildingWithoutManager(){
+        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
+        var resident = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
+
+        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
+                .withRandomValues()
+                .name("Event1")
+                .buildingId(building.getId())
+                .createdBy(resident.getId())
+                .buildAndSave();
+
+        Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
+
+        var result = postRepository.findForUser(resident.getId(), pagination, filter);
+        assertThat(result.stream().map(PostResponse::name).toList()).containsExactly("Event1");
+    }
+
+    private void assignManager(UUID managerId, UUID buildingId){
+        buildingsManagersPersistenceFactory.addNewBuildingManager()
+                .buildingId(buildingId)
+                .managerId(managerId)
+                .buildAndSave();
     }
 
     private void createManyAnnouncements(UUID buildingId, UUID createdBy, int number){

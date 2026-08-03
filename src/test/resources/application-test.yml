@@ -1,0 +1,13 @@
+spring:
+  cloud:
+    gcp:
+      core:
+        enabled: false
+      storage:
+        enabled: false
+
+storage:
+  bucket: test-bucket
+  upload-url-ttl: 15m
+  download-url-ttl: 15m
+  max-file-size: 50MB

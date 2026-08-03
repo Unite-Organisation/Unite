@@ -11,8 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @RestControllerAdvice
 @Slf4j
@@ -98,6 +101,17 @@ public class GlobalExceptionHandler {
         log.info("Wrong credentials. Exception content: {}", e.getMessage());
         ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.UNAUTHORIZED, AppError.of(Code.BAD_CREDENTIALS), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleException(MethodArgumentNotValidException e, HttpServletRequest request){
+        List<AppError> errors = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> AppError.of(Code.VALIDATION_ERROR, error.getField()))
+                .toList();
+
+        log.info("Request body failed validation: {}", errors);
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.BAD_REQUEST, errors, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)

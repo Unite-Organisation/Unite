@@ -23,6 +23,7 @@ public enum Code {
     USERNAME_TAKEN("username_taken", "Username is taken"),
     EMAIL_TAKEN("email_taken", "Account with this email already exists"),
     UNKNOWN_ERROR("unknown_error", "Unknown error occurred"),
+    VALIDATION_ERROR("validation_error", "Request is not valid"),
     JWT_TOKEN_EXPIRED("jwt_token_expired", "Authorization token has expired"),
     ACCESS_DENIED("access_denied", "Access denied"),
     USER_WITHOUT_BUILDING("user_without_building", "User is not assigned to any building"),
@@ -34,10 +35,15 @@ public enum Code {
     EMPTY_FILE("empty_file", "File is empty"),
     FILE_NOT_FOUND("file_not_found", "File not found"),
     INVALID_FILE_EXTENSION("invalid_file_extension", "File extension not valid"),
+    UNSUPPORTED_FILE_TYPE("unsupported_file_type", "File type is not supported"),
+    FILE_TOO_LARGE("file_too_large", "File is too large"),
+    TOO_MANY_FILES("too_many_files", "Too many files"),
+    INVALID_FILE_KEY("invalid_file_key", "File key is not valid"),
     REQUEST_ALREADY_HANDLED("request_already_handled", "Request is already handled"),
     REQUEST_DONOR("request_donor", "User is not request donor"),
 
     //errors
+    JSON_SERIALIZATION_ERROR("json_serialization_error", "Could not read or write json data"),
     INTERNAL_CONNECTION_ERROR("internal_connection", "Internal connection error"),
     APP_PROFILE_NOT_FOUND("app_profile_not_found", "App profile not found"),
     REFRESH_TOKEN_ERROR("refresh_token_error", "Refresh token error");

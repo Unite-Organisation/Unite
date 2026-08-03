@@ -1,8 +1,13 @@
 package com.app.prod.post.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.mappers.AnnouncementMapper;
 import com.app.prod.post.repository.PostRepository;
+import com.app.prod.storage.ContextStoragePrefix;
+import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.shared.EntityCreatedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,17 +23,38 @@ import java.util.UUID;
 public class AnnouncementService {
 
     private final PostRepository postRepository;
+    private final FileService fileService;
     private final Clock clock;
 
     public EntityCreatedResponse createAnnouncement(AnnouncementRequest request, UUID userId) {
         //TODO: check if manager can post announcements for building or area
 
+        validateVisibilityWindow(request.visibleFrom(), request.visibleTo());
+
+        var attachments = fileService.confirmUploaded(ContextStoragePrefix.ANNOUNCEMENT, userId, request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
-        postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, userId, now, id));
+
+        try {
+            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, userId, now, id, attachments));
+        } catch (RuntimeException exception) {
+            fileService.discard(attachments);
+            throw exception;
+        }
 
         log.info("Created announcement with name: {}", request.name());
         return new EntityCreatedResponse(id);
+    }
+
+    private static void validateVisibilityWindow(LocalDateTime visibleFrom, LocalDateTime visibleTo) {
+        if (visibleFrom == null || visibleTo == null) {
+            return;
+        }
+
+        if (visibleFrom.isAfter(visibleTo)) {
+            log.warn("Visible from: {} is after visible to: {}", visibleFrom, visibleTo);
+            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, String.format("%s is after %s", visibleFrom, visibleTo)));
+        }
     }
 
 }
