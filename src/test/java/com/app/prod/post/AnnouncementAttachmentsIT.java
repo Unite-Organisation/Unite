@@ -17,6 +17,7 @@ import com.app.prod.storage.InMemoryStorage;
 import com.app.prod.storage.StorageKeys;
 import com.app.prod.storage.dto.FileResponse;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,11 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     @Autowired
     private InMemoryStorage storage;
 
-    private final PostFilter filter = PostFilter.builder().postType(Optional.of(PostType.ANNOUNCEMENT)).build();
+    private final PostFilter filter = PostFilter.builder()
+            .postType(Optional.of(PostType.ANNOUNCEMENT))
+            .visibleFrom(ComparisonFilter.empty())
+            .visibleTo(ComparisonFilter.empty())
+            .build();
 
     private UUID buildingId;
     private UUID managerId;
@@ -163,7 +168,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     }
 
     private AnnouncementRequest request(String name, List<String> fileKeys) {
-        return new AnnouncementRequest(name, null, buildingId, "content", null, PostType.ANNOUNCEMENT, fileKeys);
+        return new AnnouncementRequest(name, null, buildingId, "content", null, PostType.ANNOUNCEMENT, null, null, fileKeys);
     }
 
     private PostResponse onlyAnnouncementFor(UUID userId) {

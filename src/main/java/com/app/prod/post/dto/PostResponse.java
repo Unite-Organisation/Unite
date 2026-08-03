@@ -22,6 +22,8 @@ public record PostResponse(
         String locationName,
         String onlineUrl,
         Integer maxAttendees,
+        LocalDateTime visibleFrom,
+        LocalDateTime visibleTo,
         List<FileResponse> files
 ) {
 }

@@ -14,6 +14,8 @@ public record AnnouncementRequest(
         String content,
         LocalDateTime relatedDate,
         PostType postType,
+        LocalDateTime visibleFrom,
+        LocalDateTime visibleTo,
         @Size(max = 5)
         List<String> fileKeys
 ) {

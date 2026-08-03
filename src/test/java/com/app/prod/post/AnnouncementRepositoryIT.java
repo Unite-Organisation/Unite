@@ -1,10 +1,12 @@
 package com.app.prod.post;
 
 import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.builders.PostPersistenceFactory;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
+import com.app.prod.builders.BuildingsManagersPersistenceFactory;
 import com.app.prod.builders.UserPersistanceFactory;
 import com.app.prod.config.IntegrationTest;
 import com.app.prod.utils.Pagination;
@@ -12,6 +14,7 @@ import com.app.prod.utils.Pagination;
 import static com.app.prod.post.enums.PostType.ANNOUNCEMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +34,17 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
     private BuildingPersistenceFactory buildingPersistenceFactory;
     @Autowired
     private PostPersistenceFactory postPersistenceFactory;
+    @Autowired
+    private BuildingsManagersPersistenceFactory buildingsManagersPersistenceFactory;
 
     @Autowired
     private PostRepository postRepository;
 
-    private PostFilter filter = PostFilter.builder().postType(Optional.of(ANNOUNCEMENT)).build();
+    private final PostFilter filter = PostFilter.builder()
+            .postType(Optional.of(PostType.ANNOUNCEMENT))
+            .visibleFrom(ComparisonFilter.empty())
+            .visibleTo(ComparisonFilter.empty())
+            .build();
 
     @Test
     void shouldReturnAnnouncementsOnlyForMe(){
@@ -44,6 +53,7 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         var user = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
 
         var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
+        assignManager(manager.getId(), building.getId());
 
         //only for building
         var ann1 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
@@ -85,6 +95,10 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         var userFromAnotherCountry = userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingFromAnotherCountry.getId()).buildAndSave();
 
         var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
+        assignManager(manager.getId(), myBuilding.getId());
+        assignManager(manager.getId(), differentBuilding.getId());
+        assignManager(manager.getId(), farBuilding.getId());
+        assignManager(manager.getId(), buildingFromAnotherCountry.getId());
 
         //for building in my area - but not mine building (SHOULD NOT MATCH)
         var ann1 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
@@ -149,6 +163,7 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
         var user = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
         var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
+        assignManager(manager.getId(), building.getId());
 
         createManyAnnouncements(building.getId(), manager.getId(), 10);
         Pagination pagination = Pagination.builder().page(2).pageSize(3).build();
@@ -156,6 +171,13 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         var result = postRepository.findForUser(user.getId(), pagination, filter);
 
         //TODO: assertions
+    }
+
+    private void assignManager(UUID managerId, UUID buildingId){
+        buildingsManagersPersistenceFactory.addNewBuildingManager()
+                .buildingId(buildingId)
+                .managerId(managerId)
+                .buildAndSave();
     }
 
     private void createManyAnnouncements(UUID buildingId, UUID createdBy, int number){

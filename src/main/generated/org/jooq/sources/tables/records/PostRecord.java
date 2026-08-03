@@ -231,6 +231,34 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
         return (JSONB) get(14);
     }
 
+    /**
+     * Setter for <code>public.post.visible_from</code>.
+     */
+    public void setVisibleFrom(LocalDateTime value) {
+        set(15, value);
+    }
+
+    /**
+     * Getter for <code>public.post.visible_from</code>.
+     */
+    public LocalDateTime getVisibleFrom() {
+        return (LocalDateTime) get(15);
+    }
+
+    /**
+     * Setter for <code>public.post.visible_to</code>.
+     */
+    public void setVisibleTo(LocalDateTime value) {
+        set(16, value);
+    }
+
+    /**
+     * Getter for <code>public.post.visible_to</code>.
+     */
+    public LocalDateTime getVisibleTo() {
+        return (LocalDateTime) get(16);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -254,7 +282,7 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
     /**
      * Create a detached, initialised PostRecord
      */
-    public PostRecord(UUID id, String name, UUID areaId, UUID buildingId, UUID createdBy, LocalDateTime createdAt, String content, LocalDateTime relatedDate, String postType, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, JSONB attachments) {
+    public PostRecord(UUID id, String name, UUID areaId, UUID buildingId, UUID createdBy, LocalDateTime createdAt, String content, LocalDateTime relatedDate, String postType, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, JSONB attachments, LocalDateTime visibleFrom, LocalDateTime visibleTo) {
         super(Post.POST);
 
         setId(id);
@@ -272,6 +300,8 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
         setOnlineUrl(onlineUrl);
         setMaxAttendees(maxAttendees);
         setAttachments(attachments);
+        setVisibleFrom(visibleFrom);
+        setVisibleTo(visibleTo);
         resetChangedOnNotNull();
     }
 }

@@ -10,15 +10,20 @@ import com.app.prod.post.service.PostFilteringService;
 import com.app.prod.post.service.PostService;
 import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
 import com.app.prod.utils.shared.EntityCreatedResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME;
 
 @RestController
 @RequestMapping("post")
@@ -35,10 +40,14 @@ public class PostRestApi {
     @GetMapping()
     public List<PostResponse> getPosts(
             @Valid @ModelAttribute Pagination pagination,
-            @RequestParam(required = false) PostType postType
+            @RequestParam(required = false) PostType postType,
+            @RequestParam @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
+            @RequestParam ComparisonFilter.Modifier visibleFromModifier,
+            @RequestParam @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
+            @RequestParam ComparisonFilter.Modifier visibleToModifier
     ){
         var userId = globalSecurityManager.getCurrentUser().getId();
-        PostFilter filter = postFilteringService.prepareFilter(postType);
+        PostFilter filter = postFilteringService.prepareFilter(postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
         return postService.getPosts(pagination, userId, filter);
     }
 

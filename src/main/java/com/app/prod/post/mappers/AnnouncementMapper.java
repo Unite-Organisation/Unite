@@ -26,7 +26,9 @@ public class AnnouncementMapper {
                 null,
                 null,
                 null,
-                attachments
+                attachments,
+                request.visibleFrom(),
+                request.visibleTo()
         );
     }
 
@@ -46,7 +48,9 @@ public class AnnouncementMapper {
                 request.location(),
                 request.onlineUrl(),
                 request.maxAtendees(),
-                attachments
+                attachments,
+                null,
+                null
         );
     }
 

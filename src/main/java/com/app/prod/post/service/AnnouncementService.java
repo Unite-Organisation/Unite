@@ -1,5 +1,8 @@
 package com.app.prod.post.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
+import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.mappers.AnnouncementMapper;
 import com.app.prod.post.repository.PostRepository;
@@ -26,6 +29,8 @@ public class AnnouncementService {
     public EntityCreatedResponse createAnnouncement(AnnouncementRequest request, UUID userId) {
         //TODO: check if manager can post announcements for building or area
 
+        validateVisibilityWindow(request.visibleFrom(), request.visibleTo());
+
         var attachments = fileService.confirmUploaded(ContextStoragePrefix.ANNOUNCEMENT, userId, request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
@@ -39,6 +44,17 @@ public class AnnouncementService {
 
         log.info("Created announcement with name: {}", request.name());
         return new EntityCreatedResponse(id);
+    }
+
+    private static void validateVisibilityWindow(LocalDateTime visibleFrom, LocalDateTime visibleTo) {
+        if (visibleFrom == null || visibleTo == null) {
+            return;
+        }
+
+        if (visibleFrom.isAfter(visibleTo)) {
+            log.warn("Visible from: {} is after visible to: {}", visibleFrom, visibleTo);
+            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, String.format("%s is after %s", visibleFrom, visibleTo)));
+        }
     }
 
 }

@@ -42,6 +42,8 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         POST.LOCATION_NAME,
                         POST.ONLINE_URL,
                         POST.MAX_ATTENDEES,
+                        POST.VISIBLE_FROM,
+                        POST.VISIBLE_TO,
                         POST.ATTACHMENTS
                 )
                 .from(APP_USER)
@@ -73,6 +75,8 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         record.get(POST.LOCATION_NAME),
                         record.get(POST.ONLINE_URL),
                         record.get(POST.MAX_ATTENDEES),
+                        record.get(POST.VISIBLE_FROM),
+                        record.get(POST.VISIBLE_TO),
                         fileService.toResponses(record.get(POST.ATTACHMENTS))
                 ));
     }

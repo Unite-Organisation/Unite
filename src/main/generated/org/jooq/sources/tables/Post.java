@@ -137,6 +137,16 @@ public class Post extends TableImpl<PostRecord> {
      */
     public final TableField<PostRecord, JSONB> ATTACHMENTS = createField(DSL.name("attachments"), SQLDataType.JSONB.nullable(false).defaultValue(DSL.field(DSL.raw("'[]'::jsonb"), SQLDataType.JSONB)), this, "");
 
+    /**
+     * The column <code>public.post.visible_from</code>.
+     */
+    public final TableField<PostRecord, LocalDateTime> VISIBLE_FROM = createField(DSL.name("visible_from"), SQLDataType.LOCALDATETIME(6), this, "");
+
+    /**
+     * The column <code>public.post.visible_to</code>.
+     */
+    public final TableField<PostRecord, LocalDateTime> VISIBLE_TO = createField(DSL.name("visible_to"), SQLDataType.LOCALDATETIME(6), this, "");
+
     private Post(Name alias, Table<PostRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -253,7 +263,8 @@ public class Post extends TableImpl<PostRecord> {
     @Override
     public List<Check<PostRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null_ann"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true)
+            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null_ann"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true),
+            Internal.createCheck(this, DSL.name("visible_window_valid"), "(((visible_from IS NULL) OR (visible_to IS NULL) OR (visible_from <= visible_to)))", true)
         );
     }
 

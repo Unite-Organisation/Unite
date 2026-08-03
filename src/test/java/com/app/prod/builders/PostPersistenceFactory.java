@@ -92,6 +92,26 @@ public class PostPersistenceFactory {
             return this;
         }
 
+        public Builder visibleFrom(LocalDateTime visibleFrom) {
+            instance.setVisibleFrom(visibleFrom);
+            return this;
+        }
+
+        public Builder visibleTo(LocalDateTime visibleTo) {
+            instance.setVisibleTo(visibleTo);
+            return this;
+        }
+
+        public Builder startDateTime(LocalDateTime startDateTime) {
+            instance.setStartDateTime(startDateTime);
+            return this;
+        }
+
+        public Builder endDateTime(LocalDateTime endDateTime) {
+            instance.setEndDateTime(endDateTime);
+            return this;
+        }
+
         public Builder withRandomValues() {
             instance.setId(UUID.randomUUID());
             instance.setName("Announcement-" + UUID.randomUUID().toString().substring(0, 5));
@@ -99,6 +119,8 @@ public class PostPersistenceFactory {
             instance.setContent("Sample content for announcement.");
             instance.setAttachments(EMPTY_ATTACHMENTS);
             instance.setRelatedDate(LocalDateTime.now(clock).plusDays(1));
+            instance.setVisibleFrom(LocalDateTime.now(clock).minusDays(100));
+            instance.setVisibleTo(LocalDateTime.now(clock).plusDays(100));
             return this;
         }
 
