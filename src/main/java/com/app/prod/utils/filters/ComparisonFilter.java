@@ -12,8 +12,8 @@ public class ComparisonFilter<T> {
     public Modifier modifier;
 
     public enum Modifier {
-        LOWER,
-        HIGHER,
+        LESS_OR_EQUAL_THAN,
+        GREATER_OR_EQUAL_THAN,
         EQUAL
     }
 
@@ -39,8 +39,8 @@ public class ComparisonFilter<T> {
 
         var effective = modifier == null ? Modifier.EQUAL : modifier;
         return value.map(r -> switch (effective) {
-            case LOWER -> field.le(r);
-            case HIGHER -> field.ge(r);
+            case LESS_OR_EQUAL_THAN -> field.le(r);
+            case GREATER_OR_EQUAL_THAN -> field.ge(r);
             case EQUAL -> field.eq(r);
         });
     }

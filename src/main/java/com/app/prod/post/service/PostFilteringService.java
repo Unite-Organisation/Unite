@@ -24,12 +24,12 @@ public class PostFilteringService {
 
         ComparisonFilter<LocalDateTime> visibleToFilter = ComparisonFilter.of(visibleTo, visibleToModifier);
         if (visibleToFilter.isEmpty()) {
-            visibleToFilter = ComparisonFilter.of(LocalDateTime.now(clock), ComparisonFilter.Modifier.HIGHER);
+            visibleToFilter = ComparisonFilter.of(LocalDateTime.now(clock), ComparisonFilter.Modifier.GREATER_OR_EQUAL_THAN);
         }
 
         ComparisonFilter<LocalDateTime> visibleFromFilter = ComparisonFilter.of(visibleFrom, visibleFromModifier);
         if (visibleFromFilter.isEmpty()) {
-            visibleFromFilter = ComparisonFilter.of(LocalDateTime.now(clock), ComparisonFilter.Modifier.LOWER);
+            visibleFromFilter = ComparisonFilter.of(LocalDateTime.now(clock), ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN);
         }
 
         return PostFilter.builder()

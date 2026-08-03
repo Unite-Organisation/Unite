@@ -14,19 +14,19 @@ class ComparisonFilterTest {
     @Test
     void shouldProduceNoConditionWithoutValue() {
         assertThat(ComparisonFilter.<BigDecimal>empty().toCondition(OFFERING.PRICE)).isEmpty();
-        assertThat(ComparisonFilter.of((BigDecimal) null, ComparisonFilter.Modifier.LOWER).toCondition(OFFERING.PRICE)).isEmpty();
+        assertThat(ComparisonFilter.of((BigDecimal) null, ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN).toCondition(OFFERING.PRICE)).isEmpty();
     }
 
     @Test
     void shouldMapLowerToLessOrEqual() {
-        var condition = ComparisonFilter.of(PRICE, ComparisonFilter.Modifier.LOWER).toCondition(OFFERING.PRICE);
+        var condition = ComparisonFilter.of(PRICE, ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN).toCondition(OFFERING.PRICE);
 
         assertThat(condition).hasValueSatisfying(c -> assertThat(c).hasToString(OFFERING.PRICE.le(PRICE).toString()));
     }
 
     @Test
     void shouldMapHigherToGreaterOrEqual() {
-        var condition = ComparisonFilter.of(PRICE, ComparisonFilter.Modifier.HIGHER).toCondition(OFFERING.PRICE);
+        var condition = ComparisonFilter.of(PRICE, ComparisonFilter.Modifier.GREATER_OR_EQUAL_THAN).toCondition(OFFERING.PRICE);
 
         assertThat(condition).hasValueSatisfying(c -> assertThat(c).hasToString(OFFERING.PRICE.ge(PRICE).toString()));
     }

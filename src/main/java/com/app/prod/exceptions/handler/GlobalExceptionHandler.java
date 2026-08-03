@@ -106,7 +106,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleException(MethodArgumentNotValidException e, HttpServletRequest request){
         List<AppError> errors = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> AppError.of(Code.VALIDATION_ERROR, "%s %s".formatted(error.getField(), error.getDefaultMessage())))
+                .map(error -> AppError.of(Code.VALIDATION_ERROR, error.getField()))
                 .toList();
 
         log.info("Request body failed validation: {}", errors);

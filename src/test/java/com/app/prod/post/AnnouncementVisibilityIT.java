@@ -121,7 +121,7 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
         announcement("Expired").visibleFrom(now.minusDays(10)).visibleTo(now.minusDays(1)).buildAndSave();
         announcement("Active").visibleFrom(now.minusDays(1)).visibleTo(now.plusDays(1)).buildAndSave();
 
-        var filter = postFilteringService.prepareFilter(null, null, null, now, ComparisonFilter.Modifier.LOWER);
+        var filter = postFilteringService.prepareFilter(null, null, null, now, ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN);
 
         assertThat(namesFor(filter)).containsExactly("Expired");
     }

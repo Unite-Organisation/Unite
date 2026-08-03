@@ -41,17 +41,16 @@ public class PostRestApi {
     public List<PostResponse> getPosts(
             @Valid @ModelAttribute Pagination pagination,
             @RequestParam(required = false) PostType postType,
-            @RequestParam @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
-            @RequestParam ComparisonFilter.Modifier visibleFromModifier,
-            @RequestParam @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
-            @RequestParam ComparisonFilter.Modifier visibleToModifier
+            @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
+            @RequestParam(required = false) ComparisonFilter.Modifier visibleFromModifier,
+            @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
+            @RequestParam(required = false) ComparisonFilter.Modifier visibleToModifier
     ){
         var userId = globalSecurityManager.getCurrentUser().getId();
         PostFilter filter = postFilteringService.prepareFilter(postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
         return postService.getPosts(pagination, userId, filter);
     }
 
-    /* Announcements */
     @PostMapping("/announcement")
     @PreAuthorize("hasRole('MANAGER')")
     public EntityCreatedResponse createAnnouncement(@Valid @RequestBody AnnouncementRequest request){
@@ -59,7 +58,6 @@ public class PostRestApi {
         return announcementService.createAnnouncement(request, userId);
     }
 
-    /* Events */
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
     public EntityCreatedResponse createEvent(@Valid @RequestBody EventRequest request){

@@ -27,6 +27,8 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
     }
 
     public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
+        var visibleBuildings = buildingsVisibleTo(userId);
+
         return dslContext.selectDistinct(
                         POST.ID,
                         POST.NAME,
@@ -46,17 +48,12 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         POST.VISIBLE_TO,
                         POST.ATTACHMENTS
                 )
-                .from(APP_USER)
-                .join(BUILDING).on(BUILDING.ID.eq(APP_USER.BUILDING_ID))
-                .join(AREA).on(AREA.ID.eq(BUILDING.AREA_ID))
-                .join(POST).on(
-                        POST.BUILDING_ID.eq(BUILDING.ID)
-                                .or(POST.AREA_ID.eq(AREA.ID))
+                .from(POST)
+                .join(visibleBuildings).on(
+                        POST.BUILDING_ID.eq(visibleBuildings.field(BUILDING.ID))
+                                .or(POST.AREA_ID.eq(visibleBuildings.field(BUILDING.AREA_ID)))
                 )
-                .join(BUILDING_MANAGER).on(BUILDING_MANAGER.BUILDING_ID.eq(BUILDING.ID))
-                .where(APP_USER.ID.eq(userId))
-                .or(BUILDING_MANAGER.USER_ID.eq(userId))
-                .and(filter.parseFilterAnd())
+                .where(filter.parseFilterAnd())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
