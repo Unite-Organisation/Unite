@@ -33,6 +33,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.AreaRecord;
@@ -58,6 +59,7 @@ import org.jooq.sources.tables.records.PostRecord;
 import org.jooq.sources.tables.records.RefreshTokenRecord;
 import org.jooq.sources.tables.records.RequestDonorRecord;
 import org.jooq.sources.tables.records.RequestRecord;
+import org.jooq.sources.tables.records.UserInteractionRecord;
 import org.jooq.sources.tables.records.UserRoleRecord;
 
 
@@ -102,6 +104,8 @@ public class Keys {
     public static final UniqueKey<RefreshTokenRecord> REFRESH_TOKEN_TOKEN_KEY = Internal.createUniqueKey(RefreshToken.REFRESH_TOKEN, DSL.name("refresh_token_token_key"), new TableField[] { RefreshToken.REFRESH_TOKEN.TOKEN }, true);
     public static final UniqueKey<RequestRecord> REQUEST_PKEY = Internal.createUniqueKey(Request.REQUEST, DSL.name("request_pkey"), new TableField[] { Request.REQUEST.ID }, true);
     public static final UniqueKey<RequestDonorRecord> REQUEST_DONOR_PKEY = Internal.createUniqueKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_pkey"), new TableField[] { RequestDonor.REQUEST_DONOR.ID }, true);
+    public static final UniqueKey<UserInteractionRecord> USER_INTERACTION_PKEY = Internal.createUniqueKey(UserInteraction.USER_INTERACTION, DSL.name("user_interaction_pkey"), new TableField[] { UserInteraction.USER_INTERACTION.ID }, true);
+    public static final UniqueKey<UserInteractionRecord> USER_INTERACTION_UNIQUE = Internal.createUniqueKey(UserInteraction.USER_INTERACTION, DSL.name("user_interaction_unique"), new TableField[] { UserInteraction.USER_INTERACTION.ENTITY_TYPE, UserInteraction.USER_INTERACTION.ENTITY_ID, UserInteraction.USER_INTERACTION.INTERACTION_TYPE, UserInteraction.USER_INTERACTION.USER_ID }, true);
     public static final UniqueKey<UserRoleRecord> USER_ROLE_PKEY = Internal.createUniqueKey(UserRole.USER_ROLE, DSL.name("user_role_pkey"), new TableField[] { UserRole.USER_ROLE.ID }, true);
 
     // -------------------------------------------------------------------------
@@ -149,4 +153,5 @@ public class Keys {
     public static final ForeignKey<RequestRecord, AppUserRecord> REQUEST__REQUEST_USER_IN_NEED_FKEY = Internal.createForeignKey(Request.REQUEST, DSL.name("request_user_in_need_fkey"), new TableField[] { Request.REQUEST.USER_IN_NEED }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<RequestDonorRecord, AppUserRecord> REQUEST_DONOR__REQUEST_DONOR_DONOR_ID_FKEY = Internal.createForeignKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_donor_id_fkey"), new TableField[] { RequestDonor.REQUEST_DONOR.DONOR_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<RequestDonorRecord, RequestRecord> REQUEST_DONOR__REQUEST_DONOR_REQUEST_ID_FKEY = Internal.createForeignKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_request_id_fkey"), new TableField[] { RequestDonor.REQUEST_DONOR.REQUEST_ID }, Keys.REQUEST_PKEY, new TableField[] { Request.REQUEST.ID }, true);
+    public static final ForeignKey<UserInteractionRecord, AppUserRecord> USER_INTERACTION__USER_INTERACTION_USER_ID_FKEY = Internal.createForeignKey(UserInteraction.USER_INTERACTION, DSL.name("user_interaction_user_id_fkey"), new TableField[] { UserInteraction.USER_INTERACTION.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
 }

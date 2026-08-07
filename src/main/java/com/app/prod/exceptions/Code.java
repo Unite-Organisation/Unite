@@ -41,6 +41,8 @@ public enum Code {
     INVALID_FILE_KEY("invalid_file_key", "File key is not valid"),
     REQUEST_ALREADY_HANDLED("request_already_handled", "Request is already handled"),
     REQUEST_DONOR("request_donor", "User is not request donor"),
+    INTERACTION_NOT_SUPPORTED("interaction_not_supported", "Interaction is not supported for this entity"),
+    EVENT_MAX_ATTENDEES("event_max_attendees", "Reached limit of event attendees"),
 
     //errors
     JSON_SERIALIZATION_ERROR("json_serialization_error", "Could not read or write json data"),

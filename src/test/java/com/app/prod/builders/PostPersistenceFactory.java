@@ -112,6 +112,11 @@ public class PostPersistenceFactory {
             return this;
         }
 
+        public Builder maxAttendees(Integer maxAttendees) {
+            instance.setMaxAttendees(maxAttendees);
+            return this;
+        }
+
         public Builder withRandomValues() {
             instance.setId(UUID.randomUUID());
             instance.setName("Announcement-" + UUID.randomUUID().toString().substring(0, 5));

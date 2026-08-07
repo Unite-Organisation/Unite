@@ -1,5 +1,6 @@
 package com.app.prod.post.dto;
 
+import com.app.prod.interaction.dto.InteractionSummary;
 import com.app.prod.post.enums.PostType;
 import com.app.prod.storage.dto.FileResponse;
 
@@ -22,8 +23,10 @@ public record PostResponse(
         String locationName,
         String onlineUrl,
         Integer maxAttendees,
+        Integer attendeesCount,
         LocalDateTime visibleFrom,
         LocalDateTime visibleTo,
-        List<FileResponse> files
+        List<FileResponse> files,
+        List<InteractionSummary> interactions
 ) {
 }
