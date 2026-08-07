@@ -1,17 +1,25 @@
 package com.app.prod.post.repository;
 
+import com.app.prod.interaction.dto.InteractionSummary;
+import com.app.prod.interaction.enums.InteractionEntityType;
+import com.app.prod.interaction.enums.InteractionType;
+import com.app.prod.interaction.repository.InteractionFields;
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.enums.PostType;
 import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.records.PostRecord;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.jooq.sources.Tables.*;
@@ -27,9 +35,9 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
     }
 
     public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
-        var visibleBuildings = buildingsVisibleTo(userId);
+        Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, userId);
 
-        return dslContext.selectDistinct(
+        return dslContext.select(
                         POST.ID,
                         POST.NAME,
                         POST.AREA_ID,
@@ -46,18 +54,19 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         POST.MAX_ATTENDEES,
                         POST.VISIBLE_FROM,
                         POST.VISIBLE_TO,
-                        POST.ATTACHMENTS
+                        POST.ATTACHMENTS,
+                        interactions
                 )
                 .from(POST)
-                .join(visibleBuildings).on(
-                        POST.BUILDING_ID.eq(visibleBuildings.field(BUILDING.ID))
-                                .or(POST.AREA_ID.eq(visibleBuildings.field(BUILDING.AREA_ID)))
-                )
-                .where(filter.parseFilterAnd())
+                .where(visibleTo(userId))
+                .and(filter.parseFilter())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetch(record -> new PostResponse(
+                .fetch(record -> {
+                    List<InteractionSummary> postInteractions = record.get(interactions);
+
+                    return new PostResponse(
                         record.get(POST.ID),
                         record.get(POST.NAME),
                         record.get(POST.AREA_ID),
@@ -72,9 +81,51 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         record.get(POST.LOCATION_NAME),
                         record.get(POST.ONLINE_URL),
                         record.get(POST.MAX_ATTENDEES),
+                        countOf(postInteractions, InteractionType.ATTENDING),
                         record.get(POST.VISIBLE_FROM),
                         record.get(POST.VISIBLE_TO),
-                        fileService.toResponses(record.get(POST.ATTACHMENTS))
-                ));
+                        fileService.toResponses(record.get(POST.ATTACHMENTS)),
+                        postInteractions
+                    );
+                });
+    }
+
+    private static Integer countOf(List<InteractionSummary> interactions, InteractionType interactionType) {
+        return interactions.stream()
+                .filter(summary -> summary.interactionType() == interactionType)
+                .map(InteractionSummary::count)
+                .findFirst()
+                .orElse(0);
+    }
+
+    /**
+     * Locks the post row for the rest of the transaction, so callers enforcing a per post limit
+     * (attendees) serialize with each other instead of racing between the count and the insert.
+     */
+    public Optional<PostRecord> findVisibleForUpdate(UUID userId, UUID postId) {
+        return dslContext.selectFrom(POST)
+                .where(POST.ID.eq(postId))
+                .and(visibleTo(userId))
+                .forUpdate()
+                .fetchOptional();
+    }
+
+    public Optional<PostType> findVisiblePostType(UUID userId, UUID postId) {
+        return dslContext.select(POST.POST_TYPE)
+                .from(POST)
+                .where(POST.ID.eq(postId))
+                .and(visibleTo(userId))
+                .fetchOptional(record -> PostType.valueOf(record.get(POST.POST_TYPE)));
+    }
+
+    private Condition visibleTo(UUID userId) {
+        var visibleBuildings = buildingsVisibleTo(userId);
+
+        return DSL.exists(
+                DSL.selectOne()
+                        .from(visibleBuildings)
+                        .where(POST.BUILDING_ID.eq(visibleBuildings.field(BUILDING.ID))
+                                .or(POST.AREA_ID.eq(visibleBuildings.field(BUILDING.AREA_ID))))
+        );
     }
 }

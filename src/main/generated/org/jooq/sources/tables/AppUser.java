@@ -47,6 +47,7 @@ import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.RefreshToken.RefreshTokenPath;
 import org.jooq.sources.tables.Request.RequestPath;
 import org.jooq.sources.tables.RequestDonor.RequestDonorPath;
+import org.jooq.sources.tables.UserInteraction.UserInteractionPath;
 import org.jooq.sources.tables.UserRole.UserRolePath;
 import org.jooq.sources.tables.records.AppUserRecord;
 
@@ -405,6 +406,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _request = new RequestPath(this, null, Keys.REQUEST__REQUEST_USER_IN_NEED_FKEY.getInverseKey());
 
         return _request;
+    }
+
+    private transient UserInteractionPath _userInteraction;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.user_interaction</code> table
+     */
+    public UserInteractionPath userInteraction() {
+        if (_userInteraction == null)
+            _userInteraction = new UserInteractionPath(this, null, Keys.USER_INTERACTION__USER_INTERACTION_USER_ID_FKEY.getInverseKey());
+
+        return _userInteraction;
     }
 
     @Override

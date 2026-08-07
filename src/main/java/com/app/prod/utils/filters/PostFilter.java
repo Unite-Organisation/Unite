@@ -12,7 +12,7 @@ import java.util.Optional;
 import static org.jooq.sources.Tables.POST;
 
 @Builder
-public class PostFilter implements PredicateFilter{
+public class PostFilter implements PredicateFilter {
     Optional<PostType> postType;
     ComparisonFilter<LocalDateTime> visibleFrom;
     ComparisonFilter<LocalDateTime> visibleTo;

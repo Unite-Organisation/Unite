@@ -9,6 +9,7 @@ import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.sources.tables.FlywaySchemaHistory;
+import org.jooq.sources.tables.UserInteraction;
 
 
 /**
@@ -22,4 +23,5 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index FLYWAY_SCHEMA_HISTORY_S_IDX = Internal.createIndex(DSL.name("flyway_schema_history_s_idx"), FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.SUCCESS }, false);
+    public static final Index IDX_USER_INTERACTION_USER = Internal.createIndex(DSL.name("idx_user_interaction_user"), UserInteraction.USER_INTERACTION, new OrderField[] { UserInteraction.USER_INTERACTION.USER_ID }, false);
 }
