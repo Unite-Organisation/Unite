@@ -15,6 +15,7 @@ import com.app.prod.interaction.enums.InteractionEntityType;
 import com.app.prod.interaction.enums.InteractionType;
 import com.app.prod.interaction.service.InteractionFilteringService;
 import com.app.prod.interaction.service.InteractionService;
+import com.app.prod.post.dto.PostFilterRequest;
 import com.app.prod.post.dto.PostResponse;
 import org.jooq.sources.tables.records.PostRecord;
 import com.app.prod.post.repository.PostRepository;
@@ -215,7 +216,7 @@ public class PostInteractionIT extends IntegrationTest {
     }
 
     private List<InteractionSummary> interactionsOf(UUID postId, UUID userId) {
-        var filter = postFilteringService.prepareFilter(TestBuildingScope.of(buildingId, userId), null, null, null, null, null);
+        var filter = postFilteringService.prepareFilter(TestBuildingScope.of(buildingId, userId), new PostFilterRequest());
         return postRepository.findPosts(userId, pagination(), filter).stream()
                 .filter(post -> post.id().equals(postId))
                 .map(PostResponse::interactions)

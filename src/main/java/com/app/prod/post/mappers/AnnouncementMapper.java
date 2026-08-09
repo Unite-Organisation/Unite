@@ -35,7 +35,7 @@ public class AnnouncementMapper {
         record.setEndDateTime(request.endDate());
         record.setLocationName(request.location());
         record.setOnlineUrl(request.onlineUrl());
-        record.setMaxAttendees(request.maxAtendees());
+        record.setMaxAttendees(request.maxAttendees());
 
         return record;
     }

@@ -80,6 +80,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
         filter = PostFilter.builder()
                 .buildingId(buildingId)
                 .postType(Optional.of(PostType.ANNOUNCEMENT))
+                .createdBy(Optional.empty())
                 .visibleFrom(ComparisonFilter.empty())
                 .visibleTo(ComparisonFilter.empty())
                 .build();

@@ -9,38 +9,56 @@ or a service method - conditions belong in the filter, the repository only appli
 The flow is always the same:
 
 ```
-@RequestParam  ->  <Entity>FilteringService.prepareFilter(...)  ->  <Entity>Filter  ->  .where(filter.parseFilter())
+<Entity>FilterRequest  ->  <Entity>FilteringService.prepareFilter(scope, request)  ->  <Entity>Filter  ->  .where(filter.parseFilter())
 ```
 
 ### 1. Controller - request params
 
-Filter values arrive as flat, optional `@RequestParam`. The controller does not interpret them -
-it passes them straight to the filtering service and hands the resulting filter to the domain service.
+Request params arrive as a single `@ModelAttribute` object, one `<Entity>FilterRequest` per
+feature, extending `FilterRequest` (`com.app.prod.utils.filters`). The controller does not
+interpret it - it passes it straight to the filtering service and hands the resulting filter to
+the domain service.
 
 ```java
 @GetMapping()
-public List<PostResponse> getPosts(
-        BuildingScope scope,
-        @Valid @ModelAttribute Pagination pagination,
-        @RequestParam(required = false) PostType postType,
-        @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
-        @RequestParam(required = false) ComparisonFilter.Modifier visibleFromModifier,
-        @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
-        @RequestParam(required = false) ComparisonFilter.Modifier visibleToModifier
-){
-    PostFilter filter = postFilteringService.prepareFilter(scope, postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
-    return postService.getPosts(pagination, scope, filter);
+public List<PostResponse> getPosts(BuildingScope scope, @Valid @ModelAttribute PostFilterRequest request){
+    PostFilter filter = postFilteringService.prepareFilter(scope, request);
+    return postService.getPosts(request.pagination(), scope, filter);
 }
 ```
 
-- All filter params are `required = false` - an absent param means "do not narrow the result".
+```java
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class PostFilterRequest extends FilterRequest {
+    private PostType postType;
+    private UUID createdBy;
+    @DateTimeFormat(iso = DATE_TIME)
+    private LocalDateTime visibleFrom;
+    private ComparisonFilter.Modifier visibleFromModifier;
+    ...
+}
+```
+
+- Fields live in the request object, never as flat `@RequestParam` - Spring binds each query
+  param onto the matching field, an absent one stays `null` and means "do not narrow the result".
+- Every GET endpoint accepts pagination, because `page` and `pageSize` come from the
+  `FilterRequest` base class. Both are optional: `request.pagination()` falls back to
+  `Pagination.DEFAULT_PAGE` / `Pagination.DEFAULT_PAGE_SIZE`, so an endpoint the frontend does not
+  paginate simply gets the default page. `@Valid` still rejects explicit out-of-range values.
+- Paging stays separate from filtering - it is read off the request object, never a field of the
+  `<Entity>Filter`.
 - Range-style params come in pairs: the value plus a `ComparisonFilter.Modifier`
   (`LESS_OR_EQUAL_THAN`, `GREATER_OR_EQUAL_THAN`, `EQUAL`), named `<field>Modifier`.
-- Dates use `@DateTimeFormat(iso = DATE_TIME)`.
-- Paging is separate from filtering - `@Valid @ModelAttribute Pagination`, never a field of the filter.
-- Access scoping is not a filter param either - the building comes from the authorized
+- Dates use `@DateTimeFormat(iso = DATE_TIME)` on the field.
+- `@SuperBuilder` + `@NoArgsConstructor` - the no-arg constructor and setters are what Spring binds
+  through, the builder is what tests construct the request with.
+- Access scoping is not a request field - the building comes from the authorized
   `BuildingScope` (see `building_scope.md`), which the controller declares as a parameter and hands
   to the filtering service. Migrated features carry it as a mandatory `buildingId` filter field.
+  A `<Entity>FilterRequest` never carries `buildingId`.
 
 ### 2. FilteringService - params to filter
 
@@ -139,6 +157,6 @@ public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFi
 
 ### Existing filters
 
-`PostFilter`, `PollFilter`, `OfferingFilter`, `RequestFilter` - all in `com.app.prod.utils.filters`.
+`PostFilter`, `FacilityFilter`, `PollFilter`, `OfferingFilter`, `RequestFilter` - all in `com.app.prod.utils.filters`.
 Follow whichever is closest when adding a new one, and add a shared field to `ComparisonFilter`
 rather than duplicating comparison logic per filter.

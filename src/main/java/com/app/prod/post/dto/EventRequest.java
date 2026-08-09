@@ -1,21 +1,23 @@
 package com.app.prod.post.dto;
 
 import com.app.prod.post.enums.PostType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public record EventRequest(
-        String name,
-        String content,
+        @NotBlank String name,
+        @NotBlank String content,
         LocalDateTime relatedDate,
-        PostType postType,
+        @NotNull PostType postType,
         LocalDateTime startDate,
         LocalDateTime endDate,
         String location,
         String onlineUrl,
-        Integer maxAtendees,
+        @NotNull Integer maxAttendees,
         @Size(max = 5)
         List<String> fileKeys
 ) {

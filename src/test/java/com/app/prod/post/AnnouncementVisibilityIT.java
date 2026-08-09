@@ -9,6 +9,7 @@ import com.app.prod.builders.PostPersistenceFactory;
 import com.app.prod.builders.UserPersistanceFactory;
 import com.app.prod.config.IntegrationTest;
 import com.app.prod.config.MutableClock;
+import com.app.prod.post.dto.PostFilterRequest;
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.post.service.PostFilteringService;
@@ -126,7 +127,11 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
         announcement("Expired").visibleFrom(now.minusDays(10)).visibleTo(now.minusDays(1)).buildAndSave();
         announcement("Active").visibleFrom(now.minusDays(1)).visibleTo(now.plusDays(1)).buildAndSave();
 
-        var filter = postFilteringService.prepareFilter(scope, null, null, null, now, ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN);
+        var request = PostFilterRequest.builder()
+                .visibleTo(now)
+                .visibleToModifier(ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN)
+                .build();
+        var filter = postFilteringService.prepareFilter(scope, request);
 
         assertThat(namesFor(filter)).containsExactly("Expired");
     }
@@ -148,7 +153,7 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
     }
 
     private List<String> defaultNames() {
-        return namesFor(postFilteringService.prepareFilter(scope, null, null, null, null, null));
+        return namesFor(postFilteringService.prepareFilter(scope, new PostFilterRequest()));
     }
 
     private List<String> namesFor(PostFilter filter) {

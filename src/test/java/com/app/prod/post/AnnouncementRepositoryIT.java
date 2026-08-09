@@ -148,6 +148,7 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         return PostFilter.builder()
                 .buildingId(scope.buildingId())
                 .postType(Optional.of(postType))
+                .createdBy(Optional.empty())
                 .visibleFrom(ComparisonFilter.empty())
                 .visibleTo(ComparisonFilter.empty())
                 .build();

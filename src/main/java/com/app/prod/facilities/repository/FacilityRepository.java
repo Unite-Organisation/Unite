@@ -2,7 +2,8 @@ package com.app.prod.facilities.repository;
 
 import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.utils.BaseJooqRepository;
-import com.app.prod.utils.validators.Validate;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.FacilityFilter;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.records.FacilityRecord;
@@ -19,7 +20,7 @@ public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRec
         super(dsl, Facility.FACILITY, Facility.FACILITY.ID);
     }
 
-    public List<FacilityResponse> getFacilities(UUID userId){
+    public List<FacilityResponse> findFacilities(Pagination pagination, FacilityFilter filter){
         return dslContext.select(
                 FACILITY.ID,
                 FACILITY.NAME,
@@ -28,14 +29,11 @@ public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRec
                 FACILITY.LOCATION,
                 FACILITY.REQUIRES_APPROVAL
         )
-                .from(APP_USER)
-                .leftJoin(BUILDING_MANAGER).on(APP_USER.ID.eq(BUILDING_MANAGER.USER_ID))
-                .innerJoin(BUILDING).on(
-                        BUILDING.ID.eq(APP_USER.BUILDING_ID)
-                                .or(BUILDING.ID.eq(BUILDING_MANAGER.BUILDING_ID))
-                )
-                .join(FACILITY).on(BUILDING.ID.eq(FACILITY.BUILDING_ID))
-                .where(APP_USER.ID.eq(userId))
+                .from(FACILITY)
+                .where(filter.parseFilter())
+                .orderBy(FACILITY.NAME)
+                .offset(pagination.getOffset())
+                .limit(pagination.pageSize())
                 .fetch(r -> new FacilityResponse(
                         r.get(FACILITY.ID),
                         r.get(FACILITY.NAME),

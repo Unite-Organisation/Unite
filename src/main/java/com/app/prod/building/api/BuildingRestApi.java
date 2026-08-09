@@ -3,7 +3,6 @@ package com.app.prod.building.api;
 import com.app.prod.building.dto.BuildingResponse;
 import com.app.prod.building.service.BuildingService;
 import com.app.prod.config.security.GlobalSecurityManager;
-import com.app.prod.facilities.dto.BuildingFacilitiesResponse;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.service.FacilityService;
 import com.app.prod.utils.SimpleResponse;

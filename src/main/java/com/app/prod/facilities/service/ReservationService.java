@@ -1,19 +1,23 @@
 package com.app.prod.facilities.service;
 
-import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
+import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.facilities.dto.FacilityReservation;
+import com.app.prod.facilities.dto.FacilitySlot;
 import com.app.prod.facilities.dto.ReservationRequest;
-import com.app.prod.facilities.dto.ReserveResponse;
+import com.app.prod.facilities.dto.ReservationResponse;
 import com.app.prod.facilities.enums.ReservationStatus;
+import com.app.prod.facilities.enums.SlotView;
 import com.app.prod.facilities.mappers.ReservationMapper;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
+import com.app.prod.utils.filters.FacilityReservationFilter;
+import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.meta.derby.sys.Sys;
 import org.jooq.sources.tables.records.FacilityReservationRecord;
 import org.springframework.stereotype.Service;
 
@@ -30,36 +34,26 @@ public class ReservationService {
 
     private final FacilityReservationsRepository facilityReservationsRepository;
     private final FacilityRepository facilityRepository;
-    private final TokenSecurityManager tokenSecurityManager;
+    private final Validate validate;
     private final Clock clock;
 
     public static final long MAX_RESERVATION_HOURS = 12;
-    
-    public List<FacilityReservation> getFacilityAvailability(UUID facilityId) {
-        return facilityReservationsRepository.getAvailability(facilityId);
+
+    public List<FacilitySlot> getFacilityAvailability(UUID facilityId, SlotView view, FacilityReservationFilter filter) {
+        validate.facility(facilityId);
+        List<FacilityReservation> reservations = facilityReservationsRepository.findReservations(filter);
+        return AvailabilityCalculator.slotsOf(filter.getDay(), view, reservations);
     }
 
-    public ReserveResponse reserve(ReservationRequest request, UUID userId) {
+    public ReservationResponse reserve(ReservationRequest request, UUID userId) {
         UUID facilityId = request.facilityId();
         LocalDateTime startTime = request.startTime();
         LocalDateTime endTime = request.endTime();
 
         validateTimePeriods(startTime, endTime);
-
-        List<FacilityReservationRecord> overlappingReservations =
-                facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, startTime, endTime);
-
-        if(!overlappingReservations.isEmpty()){
-            overlappingReservations.forEach(reservation -> {
-                log.warn("Selected date for facility: {} is booked by {}", reservation.getFacilityId(), reservation.getUserId());
-            });
-            return new ReserveResponse(
-                    false,
-                    ReservationMapper.fromRecordToResponse(overlappingReservations)
-            );
-        }
-
         ReservationStatus status = determineReservationStatusFromFacility(facilityId);
+        validateThatPeriodIsFree(facilityId, startTime, endTime);
+
         var recordToBeInserted = new FacilityReservationRecord(
                 UUID.randomUUID(),
                 facilityId,
@@ -72,10 +66,25 @@ public class ReservationService {
         );
 
         facilityReservationsRepository.insertOne(recordToBeInserted);
-        return new ReserveResponse(
-                true,
-                ReservationMapper.fromRecordToResponse(List.of(recordToBeInserted))
-        );
+        return ReservationMapper.fromRecordToResponse(recordToBeInserted);
+    }
+
+    private void validateThatPeriodIsFree(UUID facilityId, LocalDateTime startTime, LocalDateTime endTime) {
+        List<FacilityReservationRecord> overlappingReservations =
+                facilityReservationsRepository.getOverlappingReservationsForFacility(facilityId, startTime, endTime);
+
+        if (overlappingReservations.isEmpty()) {
+            return;
+        }
+
+        overlappingReservations.forEach(reservation -> log.info(
+                "Facility {} is booked by {} between {} and {}",
+                reservation.getFacilityId(), reservation.getUserId(), reservation.getStartTime(), reservation.getEndTime()
+        ));
+        throw new DataAlreadyExistsException(AppError.of(
+                Code.FACILITY_ALREADY_RESERVED,
+                String.format("Facility %s is already reserved between %s and %s", facilityId, startTime, endTime)
+        ));
     }
 
     private static void validateTimePeriods(LocalDateTime startTime, LocalDateTime endTime) {
@@ -93,18 +102,14 @@ public class ReservationService {
     }
 
     private ReservationStatus determineReservationStatusFromFacility(UUID facilityId){
-        var facility = facilityRepository.findById(facilityId);
-        return facility.get().getRequiresApproval() ?
-                ReservationStatus.PENDING : ReservationStatus.RESERVED;
-    }
+        var facility = facilityRepository.findById(facilityId).orElseThrow(
+                () -> new EntityNotPresentException(AppError.of(
+                        Code.FACILITY_NOT_FOUND,
+                        String.format("Facility with id: %s doesn't exist.", facilityId)
+                ))
+        );
 
-    private boolean intervalsOverlap(
-            LocalDateTime desirableStart,
-            LocalDateTime desirableEnd,
-            LocalDateTime xStart,
-            LocalDateTime xEnd
-            ){
-        return !((desirableEnd.isBefore(xStart) && desirableStart.isBefore(xStart)) ||
-                (desirableStart.isAfter(xEnd) && desirableEnd.isAfter(xEnd)));
+        return facility.getRequiresApproval() ?
+                ReservationStatus.PENDING : ReservationStatus.RESERVED;
     }
 }
