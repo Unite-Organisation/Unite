@@ -26,6 +26,8 @@ public enum Code {
     VALIDATION_ERROR("validation_error", "Request is not valid"),
     JWT_TOKEN_EXPIRED("jwt_token_expired", "Authorization token has expired"),
     ACCESS_DENIED("access_denied", "Access denied"),
+    BUILDING_ACCESS_DENIED("building_access_denied", "No access to this building"),
+    BUILDING_ID_REQUIRED("building_id_required", "Building id is required"),
     USER_WITHOUT_BUILDING("user_without_building", "User is not assigned to any building"),
     USER_WITH_BUILDING("user_with_building", "User is already assigned to the building"),
     PRIVATE_CONVERSATION_EXISTS("private_conversation_exists", "Private conversation already exists"),

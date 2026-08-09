@@ -1,5 +1,6 @@
 package com.app.prod.post.api;
 
+import com.app.prod.access.BuildingScope;
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.dto.EventRequest;
 import com.app.prod.post.dto.PostResponse;
@@ -8,7 +9,6 @@ import com.app.prod.post.service.AnnouncementService;
 import com.app.prod.post.service.EventService;
 import com.app.prod.post.service.PostFilteringService;
 import com.app.prod.post.service.PostService;
-import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME;
 
@@ -32,37 +33,36 @@ import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME
 public class PostRestApi {
 
     private final PostService postService;
-    private final GlobalSecurityManager globalSecurityManager;
     private final EventService eventService;
     private final AnnouncementService announcementService;
     private final PostFilteringService postFilteringService;
 
     @GetMapping()
+    @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
     public List<PostResponse> getPosts(
+            BuildingScope scope,
             @Valid @ModelAttribute Pagination pagination,
             @RequestParam(required = false) PostType postType,
+            @RequestParam(required = false) UUID createdBy,
             @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
             @RequestParam(required = false) ComparisonFilter.Modifier visibleFromModifier,
             @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
             @RequestParam(required = false) ComparisonFilter.Modifier visibleToModifier
     ){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        PostFilter filter = postFilteringService.prepareFilter(postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
-        return postService.getPosts(pagination, userId, filter);
+        PostFilter filter = postFilteringService.prepareFilter(scope, postType, createdBy, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
+        return postService.getPosts(pagination, scope, filter);
     }
 
     @PostMapping("/announcement")
     @PreAuthorize("hasRole('MANAGER')")
-    public EntityCreatedResponse createAnnouncement(@Valid @RequestBody AnnouncementRequest request){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        return announcementService.createAnnouncement(request, userId);
+    public EntityCreatedResponse createAnnouncement(BuildingScope scope, @Valid @RequestBody AnnouncementRequest request){
+        return announcementService.createAnnouncement(request, scope);
     }
 
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
-    public EntityCreatedResponse createEvent(@Valid @RequestBody EventRequest request){
-        var user = globalSecurityManager.getCurrentUser();
-        return eventService.createEvent(request, user);
+    public EntityCreatedResponse createEvent(BuildingScope scope, @Valid @RequestBody EventRequest request){
+        return eventService.createEvent(request, scope);
     }
 
 }

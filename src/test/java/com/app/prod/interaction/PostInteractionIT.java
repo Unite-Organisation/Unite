@@ -1,5 +1,7 @@
 package com.app.prod.interaction;
 
+import com.app.prod.access.BuildingScope;
+import com.app.prod.access.TestBuildingScope;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
 import com.app.prod.builders.PostPersistenceFactory;
@@ -62,6 +64,8 @@ public class PostInteractionIT extends IntegrationTest {
     private UUID buildingId;
     private UUID residentId;
     private UUID otherResidentId;
+    private BuildingScope residentScope;
+    private BuildingScope otherResidentScope;
 
     @BeforeEach
     void setUp() {
@@ -71,14 +75,17 @@ public class PostInteractionIT extends IntegrationTest {
         buildingId = building.getId();
         residentId = userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingId).buildAndSave().getId();
         otherResidentId = userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingId).buildAndSave().getId();
+
+        residentScope = TestBuildingScope.of(buildingId, residentId);
+        otherResidentScope = TestBuildingScope.of(buildingId, otherResidentId);
     }
 
     @Test
     void shouldReturnInteractionCountsAlongWithPosts() {
         var eventId = event("Barbecue").getId();
 
-        interactionService.addInteraction(residentId, attending(eventId));
-        interactionService.addInteraction(otherResidentId, attending(eventId));
+        interactionService.addInteraction(residentScope, attending(eventId));
+        interactionService.addInteraction(otherResidentScope, attending(eventId));
 
         assertThat(interactionsOf(eventId, residentId))
                 .containsExactly(new InteractionSummary(ATTENDING, 2, true));
@@ -92,8 +99,8 @@ public class PostInteractionIT extends IntegrationTest {
     void shouldNotCountTheSameUserTwice() {
         var eventId = event("Cleanup").getId();
 
-        interactionService.addInteraction(residentId, attending(eventId));
-        interactionService.addInteraction(residentId, attending(eventId));
+        interactionService.addInteraction(residentScope, attending(eventId));
+        interactionService.addInteraction(residentScope, attending(eventId));
 
         assertThat(interactionsOf(eventId, residentId))
                 .containsExactly(new InteractionSummary(ATTENDING, 1, true));
@@ -110,8 +117,8 @@ public class PostInteractionIT extends IntegrationTest {
     void shouldRemoveInteraction() {
         var eventId = event("Meeting").getId();
 
-        interactionService.addInteraction(residentId, attending(eventId));
-        interactionService.removeInteraction(residentId, POST, eventId, ATTENDING);
+        interactionService.addInteraction(residentScope, attending(eventId));
+        interactionService.removeInteraction(residentScope, POST, eventId, ATTENDING);
 
         assertThat(interactionsOf(eventId, residentId)).isEmpty();
     }
@@ -120,11 +127,11 @@ public class PostInteractionIT extends IntegrationTest {
     void shouldListUsersThatReacted() {
         var eventId = event("Party").getId();
 
-        interactionService.addInteraction(residentId, attending(eventId));
-        interactionService.addInteraction(otherResidentId, attending(eventId));
+        interactionService.addInteraction(residentScope, attending(eventId));
+        interactionService.addInteraction(otherResidentScope, attending(eventId));
 
         var filter = interactionFilteringService.prepareFilter(POST, eventId, ATTENDING, null, null);
-        var users = interactionService.getInteractions(residentId, POST, eventId, filter, pagination());
+        var users = interactionService.getInteractions(residentScope, POST, eventId, filter, pagination());
 
         assertThat(users).extracting(r -> r.user().id()).containsExactlyInAnyOrder(residentId, otherResidentId);
         assertThat(users).extracting(r -> r.user().firstName()).doesNotContainNull();
@@ -134,16 +141,20 @@ public class PostInteractionIT extends IntegrationTest {
     void shouldRejectAttendingOnAnnouncement() {
         var announcementId = announcement("Water shutdown").getId();
 
-        assertThatThrownBy(() -> interactionService.addInteraction(residentId, attending(announcementId)))
+        assertThatThrownBy(() -> interactionService.addInteraction(residentScope, attending(announcementId)))
                 .isInstanceOf(BadRequestException.class);
     }
 
     @Test
-    void shouldRejectInteractionWithPostThatIsNotVisibleToUser() {
+    void shouldRejectInteractionWithPostFromAnotherBuilding() {
         var eventId = event("Barbecue").getId();
-        var outsider = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave().getId();
 
-        assertThatThrownBy(() -> interactionService.addInteraction(outsider, attending(eventId)))
+        var otherArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
+        var otherBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(otherArea.getId()).buildAndSave();
+        var outsider = userPersistanceFactory.getNewUser().withRandomValues().buildingId(otherBuilding.getId()).buildAndSave().getId();
+        var outsiderScope = TestBuildingScope.of(otherBuilding.getId(), outsider);
+
+        assertThatThrownBy(() -> interactionService.addInteraction(outsiderScope, attending(eventId)))
                 .isInstanceOf(EntityNotPresentException.class);
     }
 
@@ -151,9 +162,9 @@ public class PostInteractionIT extends IntegrationTest {
     void shouldRejectAttendingWhenEventIsFull() {
         var eventId = eventWithLimit("Workshop", 1).getId();
 
-        interactionService.addInteraction(residentId, attending(eventId));
+        interactionService.addInteraction(residentScope, attending(eventId));
 
-        assertThatThrownBy(() -> interactionService.addInteraction(otherResidentId, attending(eventId)))
+        assertThatThrownBy(() -> interactionService.addInteraction(otherResidentScope, attending(eventId)))
                 .isInstanceOf(BadRequestException.class);
         assertThat(interactionsOf(eventId, residentId))
                 .containsExactly(new InteractionSummary(ATTENDING, 1, true));
@@ -166,11 +177,11 @@ public class PostInteractionIT extends IntegrationTest {
         var executor = Executors.newFixedThreadPool(2);
 
         try {
-            List<Future<Boolean>> attempts = List.of(residentId, otherResidentId).stream()
-                    .map(user -> executor.submit(() -> {
+            List<Future<Boolean>> attempts = List.of(residentScope, otherResidentScope).stream()
+                    .map(scope -> executor.submit(() -> {
                         start.await();
                         try {
-                            interactionService.addInteraction(user, attending(eventId));
+                            interactionService.addInteraction(scope, attending(eventId));
                             return true;
                         } catch (BadRequestException e) {
                             return false;
@@ -204,8 +215,8 @@ public class PostInteractionIT extends IntegrationTest {
     }
 
     private List<InteractionSummary> interactionsOf(UUID postId, UUID userId) {
-        var filter = postFilteringService.prepareFilter(null, null, null, null, null);
-        return postRepository.findForUser(userId, pagination(), filter).stream()
+        var filter = postFilteringService.prepareFilter(TestBuildingScope.of(buildingId, userId), null, null, null, null, null);
+        return postRepository.findPosts(userId, pagination(), filter).stream()
                 .filter(post -> post.id().equals(postId))
                 .map(PostResponse::interactions)
                 .findFirst()

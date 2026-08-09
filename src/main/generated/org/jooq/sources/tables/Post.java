@@ -14,6 +14,7 @@ import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.JSONB;
 import org.jooq.Name;
@@ -33,10 +34,10 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
+import org.jooq.sources.Indexes;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
 import org.jooq.sources.tables.AppUser.AppUserPath;
-import org.jooq.sources.tables.Area.AreaPath;
 import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.records.PostRecord;
 
@@ -73,14 +74,9 @@ public class Post extends TableImpl<PostRecord> {
     public final TableField<PostRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(256).nullable(false), this, "");
 
     /**
-     * The column <code>public.post.area_id</code>.
-     */
-    public final TableField<PostRecord, UUID> AREA_ID = createField(DSL.name("area_id"), SQLDataType.UUID, this, "");
-
-    /**
      * The column <code>public.post.building_id</code>.
      */
-    public final TableField<PostRecord, UUID> BUILDING_ID = createField(DSL.name("building_id"), SQLDataType.UUID, this, "");
+    public final TableField<PostRecord, UUID> BUILDING_ID = createField(DSL.name("building_id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
      * The column <code>public.post.created_by</code>.
@@ -215,25 +211,18 @@ public class Post extends TableImpl<PostRecord> {
     }
 
     @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.IDX_POST_BUILDING_CREATED);
+    }
+
+    @Override
     public UniqueKey<PostRecord> getPrimaryKey() {
         return Keys.POST_PKEY;
     }
 
     @Override
     public List<ForeignKey<PostRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.POST__POST_AREA_ID_FKEY, Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY);
-    }
-
-    private transient AreaPath _area;
-
-    /**
-     * Get the implicit join path to the <code>public.area</code> table.
-     */
-    public AreaPath area() {
-        if (_area == null)
-            _area = new AreaPath(this, Keys.POST__POST_AREA_ID_FKEY, null);
-
-        return _area;
+        return Arrays.asList(Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY);
     }
 
     private transient BuildingPath _building;
@@ -263,7 +252,6 @@ public class Post extends TableImpl<PostRecord> {
     @Override
     public List<Check<PostRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null_ann"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true),
             Internal.createCheck(this, DSL.name("visible_window_valid"), "(((visible_from IS NULL) OR (visible_to IS NULL) OR (visible_from <= visible_to)))", true)
         );
     }

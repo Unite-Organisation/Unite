@@ -5,11 +5,9 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public record EventRequest(
         String name,
-        UUID buildingId,
         String content,
         LocalDateTime relatedDate,
         PostType postType,

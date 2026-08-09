@@ -20,6 +20,7 @@ it passes them straight to the filtering service and hands the resulting filter 
 ```java
 @GetMapping()
 public List<PostResponse> getPosts(
+        BuildingScope scope,
         @Valid @ModelAttribute Pagination pagination,
         @RequestParam(required = false) PostType postType,
         @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
@@ -27,9 +28,8 @@ public List<PostResponse> getPosts(
         @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
         @RequestParam(required = false) ComparisonFilter.Modifier visibleToModifier
 ){
-    var userId = globalSecurityManager.getCurrentUser().getId();
-    PostFilter filter = postFilteringService.prepareFilter(postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
-    return postService.getPosts(pagination, userId, filter);
+    PostFilter filter = postFilteringService.prepareFilter(scope, postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
+    return postService.getPosts(pagination, scope, filter);
 }
 ```
 
@@ -38,8 +38,9 @@ public List<PostResponse> getPosts(
   (`LESS_OR_EQUAL_THAN`, `GREATER_OR_EQUAL_THAN`, `EQUAL`), named `<field>Modifier`.
 - Dates use `@DateTimeFormat(iso = DATE_TIME)`.
 - Paging is separate from filtering - `@Valid @ModelAttribute Pagination`, never a field of the filter.
-- Access scoping (which buildings the user may see) is not a filter param - it is resolved
-  from the current user in the repository (`buildingsVisibleTo(userId)`).
+- Access scoping is not a filter param either - the building comes from the authorized
+  `BuildingScope` (see `building_scope.md`), which the controller declares as a parameter and hands
+  to the filtering service. Migrated features carry it as a mandatory `buildingId` filter field.
 
 ### 2. FilteringService - params to filter
 
@@ -54,6 +55,7 @@ public class PostFilteringService {
     private final Clock clock;
 
     public PostFilter prepareFilter(
+            BuildingScope scope,
             PostType postType,
             LocalDateTime visibleFrom, ComparisonFilter.Modifier visibleFromModifier,
             LocalDateTime visibleTo, ComparisonFilter.Modifier visibleToModifier
@@ -64,6 +66,7 @@ public class PostFilteringService {
         }
         ...
         return PostFilter.builder()
+                .buildingId(scope.buildingId())
                 .postType(Optional.ofNullable(postType))
                 .visibleFrom(visibleFromFilter)
                 .visibleTo(visibleToFilter)
@@ -86,6 +89,7 @@ Fields are `Optional<T>` or `ComparisonFilter<T>` - never raw nullable values.
 ```java
 @Builder
 public class PostFilter implements PredicateFilter {
+    UUID buildingId;   // from the authorized BuildingScope, always present
     Optional<PostType> postType;
     ComparisonFilter<LocalDateTime> visibleFrom;
     ComparisonFilter<LocalDateTime> visibleTo;
@@ -94,6 +98,7 @@ public class PostFilter implements PredicateFilter {
     public List<Condition> combineConditions() {
         List<Condition> conditionList = new ArrayList<>();
 
+        conditionList.add(POST.BUILDING_ID.eq(buildingId));
         postType.ifPresent(r -> conditionList.add(POST.POST_TYPE.eq(r.name())));
         visibleFrom.toCondition(POST.VISIBLE_FROM).ifPresent(conditionList::add);
         visibleTo.toCondition(POST.VISIBLE_TO).ifPresent(conditionList::add);
@@ -113,12 +118,9 @@ public class PostFilter implements PredicateFilter {
 The jOOQ repository takes the filter as a parameter and applies it with a single `.where(filter.parseFilter())`.
 
 ```java
-public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
-    var visibleBuildings = buildingsVisibleTo(userId);
-
+public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
     return dslContext.select(...)
             .from(POST)
-            .join(visibleBuildings).on(...)
             .where(filter.parseFilter())
             .orderBy(POST.CREATED_AT)
             .offset(pagination.getOffset())
@@ -129,7 +131,8 @@ public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFi
 
 - Exactly one `.where(filter.parseFilter())` - additional `.and(...)` calls in the query mean a
   condition that belongs in the filter leaked into the repository.
-- Access-control joins (`buildingsVisibleTo`) stay in the repository, they are not part of the filter.
+- No access-control joins or visibility subqueries in the repository - access is already settled by
+  the `BuildingScope` the filter was built from. A `viewerId` parameter is only for personalisation.
 - Always paginate with `.offset(pagination.getOffset()).limit(pagination.pageSize())` and keep a
   deterministic `.orderBy(...)`.
 - Repositories extend `BaseJooqRepository<Table, Record, Id>`.

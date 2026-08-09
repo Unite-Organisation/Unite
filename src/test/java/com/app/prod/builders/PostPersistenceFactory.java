@@ -53,11 +53,6 @@ public class PostPersistenceFactory {
             return this;
         }
 
-        public Builder areaId(UUID areaId) {
-            instance.setAreaId(areaId);
-            return this;
-        }
-
         public Builder buildingId(UUID buildingId) {
             instance.setBuildingId(buildingId);
             return this;

@@ -10,10 +10,8 @@ import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.impl.DSL;
 import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.records.PostRecord;
 import org.springframework.stereotype.Repository;
@@ -34,13 +32,12 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
         this.fileService = fileService;
     }
 
-    public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
-        Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, userId);
+    public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
+        Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, viewerId);
 
         return dslContext.select(
                         POST.ID,
                         POST.NAME,
-                        POST.AREA_ID,
                         POST.BUILDING_ID,
                         POST.CREATED_BY,
                         POST.CONTENT,
@@ -58,8 +55,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                         interactions
                 )
                 .from(POST)
-                .where(visibleTo(userId))
-                .and(filter.parseFilter())
+                .where(filter.parseFilter())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
@@ -69,7 +65,6 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                     return new PostResponse(
                         record.get(POST.ID),
                         record.get(POST.NAME),
-                        record.get(POST.AREA_ID),
                         record.get(POST.BUILDING_ID),
                         record.get(POST.CREATED_BY),
                         record.get(POST.CONTENT),
@@ -98,34 +93,19 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                 .orElse(0);
     }
 
-    /**
-     * Locks the post row for the rest of the transaction, so callers enforcing a per post limit
-     * (attendees) serialize with each other instead of racing between the count and the insert.
-     */
-    public Optional<PostRecord> findVisibleForUpdate(UUID userId, UUID postId) {
+    public Optional<PostRecord> findInBuildingForUpdate(UUID buildingId, UUID postId) {
         return dslContext.selectFrom(POST)
                 .where(POST.ID.eq(postId))
-                .and(visibleTo(userId))
+                .and(POST.BUILDING_ID.eq(buildingId))
                 .forUpdate()
                 .fetchOptional();
     }
 
-    public Optional<PostType> findVisiblePostType(UUID userId, UUID postId) {
+    public Optional<PostType> findPostTypeInBuilding(UUID buildingId, UUID postId) {
         return dslContext.select(POST.POST_TYPE)
                 .from(POST)
                 .where(POST.ID.eq(postId))
-                .and(visibleTo(userId))
+                .and(POST.BUILDING_ID.eq(buildingId))
                 .fetchOptional(record -> PostType.valueOf(record.get(POST.POST_TYPE)));
-    }
-
-    private Condition visibleTo(UUID userId) {
-        var visibleBuildings = buildingsVisibleTo(userId);
-
-        return DSL.exists(
-                DSL.selectOne()
-                        .from(visibleBuildings)
-                        .where(POST.BUILDING_ID.eq(visibleBuildings.field(BUILDING.ID))
-                                .or(POST.AREA_ID.eq(visibleBuildings.field(BUILDING.AREA_ID))))
-        );
     }
 }

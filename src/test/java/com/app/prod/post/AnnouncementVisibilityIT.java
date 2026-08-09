@@ -1,5 +1,7 @@
 package com.app.prod.post;
 
+import com.app.prod.access.BuildingScope;
+import com.app.prod.access.TestBuildingScope;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
 import com.app.prod.builders.BuildingsManagersPersistenceFactory;
@@ -54,6 +56,7 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
     private UUID buildingId;
     private UUID residentId;
     private UUID managerId;
+    private BuildingScope scope;
     private Instant clockAtStart;
 
     @BeforeEach
@@ -71,6 +74,8 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
                 .buildingId(buildingId)
                 .managerId(managerId)
                 .buildAndSave();
+
+        scope = TestBuildingScope.of(buildingId, residentId);
     }
 
     @AfterEach
@@ -121,7 +126,7 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
         announcement("Expired").visibleFrom(now.minusDays(10)).visibleTo(now.minusDays(1)).buildAndSave();
         announcement("Active").visibleFrom(now.minusDays(1)).visibleTo(now.plusDays(1)).buildAndSave();
 
-        var filter = postFilteringService.prepareFilter(null, null, null, now, ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN);
+        var filter = postFilteringService.prepareFilter(scope, null, null, null, now, ComparisonFilter.Modifier.LESS_OR_EQUAL_THAN);
 
         assertThat(namesFor(filter)).containsExactly("Expired");
     }
@@ -143,12 +148,12 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
     }
 
     private List<String> defaultNames() {
-        return namesFor(postFilteringService.prepareFilter(null, null, null, null, null));
+        return namesFor(postFilteringService.prepareFilter(scope, null, null, null, null, null));
     }
 
     private List<String> namesFor(PostFilter filter) {
         var pagination = Pagination.builder().page(1).pageSize(5).build();
-        return postRepository.findForUser(residentId, pagination, filter).stream()
+        return postRepository.findPosts(residentId, pagination, filter).stream()
                 .map(PostResponse::name)
                 .toList();
     }

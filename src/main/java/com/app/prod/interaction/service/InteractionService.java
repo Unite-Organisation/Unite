@@ -1,5 +1,6 @@
 package com.app.prod.interaction.service;
 
+import com.app.prod.access.BuildingScope;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
@@ -37,26 +38,26 @@ public class InteractionService {
     }
 
     @Transactional
-    public void addInteraction(UUID userId, InteractionRequest request) {
-        target(request.entityType()).assertInteractionAllowed(userId, request.entityId(), request.interactionType());
+    public void addInteraction(BuildingScope scope, InteractionRequest request) {
+        target(request.entityType()).assertInteractionAllowed(scope, request.entityId(), request.interactionType());
 
         boolean added = interactionRepository.add(
-                userId,
+                scope.userId(),
                 request.entityType(),
                 request.entityId(),
                 request.interactionType(),
                 LocalDateTime.now(clock)
         );
 
-        log.info("Interaction {} on {} {} by user {} - added: {}", request.interactionType(), request.entityType(), request.entityId(), userId, added);
+        log.info("Interaction {} on {} {} by user {} - added: {}", request.interactionType(), request.entityType(), request.entityId(), scope.userId(), added);
     }
 
-    public void removeInteraction(UUID userId, InteractionEntityType entityType, UUID entityId, InteractionType interactionType) {
-        interactionRepository.remove(userId, entityType, entityId, interactionType);
+    public void removeInteraction(BuildingScope scope, InteractionEntityType entityType, UUID entityId, InteractionType interactionType) {
+        interactionRepository.remove(scope.userId(), entityType, entityId, interactionType);
     }
 
-    public List<InteractionUserResponse> getInteractions(UUID userId, InteractionEntityType entityType, UUID entityId, InteractionFilter filter, Pagination pagination) {
-        target(entityType).assertVisible(userId, entityId);
+    public List<InteractionUserResponse> getInteractions(BuildingScope scope, InteractionEntityType entityType, UUID entityId, InteractionFilter filter, Pagination pagination) {
+        target(entityType).assertVisible(scope, entityId);
         return interactionRepository.findUsers(filter, pagination);
     }
 
