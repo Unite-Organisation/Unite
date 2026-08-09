@@ -1,5 +1,6 @@
 package com.app.prod.post.mappers;
 
+import com.app.prod.access.BuildingScope;
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.dto.EventRequest;
 import org.jooq.JSONB;
@@ -10,48 +11,45 @@ import java.util.UUID;
 
 public class AnnouncementMapper {
 
-    public static PostRecord fromRequestToRecordAnn(AnnouncementRequest request, UUID userId, LocalDateTime now, UUID id, JSONB attachments){
-        return new PostRecord(
-                id,
-                request.name(),
-                request.areaId(),
-                request.buildingId(),
-                userId,
-                now,
-                request.content(),
-                request.relatedDate(),
-                request.postType().name(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                attachments,
-                request.visibleFrom(),
-                request.visibleTo()
-        );
+    public static PostRecord fromRequestToRecordAnn(AnnouncementRequest request, BuildingScope scope, LocalDateTime now, UUID id, JSONB attachments){
+        PostRecord record = basePost(scope, now, id, attachments);
+
+        record.setName(request.name());
+        record.setContent(request.content());
+        record.setRelatedDate(request.relatedDate());
+        record.setPostType(request.postType().name());
+        record.setVisibleFrom(request.visibleFrom());
+        record.setVisibleTo(request.visibleTo());
+
+        return record;
     }
 
-    public static PostRecord fromRequestToRecordEvent(EventRequest request, UUID userId, LocalDateTime now, UUID id, UUID areaId, JSONB attachments){
-        return new PostRecord(
-                id,
-                request.name(),
-                areaId,
-                request.buildingId(),
-                userId,
-                now,
-                request.content(),
-                request.relatedDate(),
-                request.postType().name(),
-                request.startDate(),
-                request.endDate(),
-                request.location(),
-                request.onlineUrl(),
-                request.maxAtendees(),
-                attachments,
-                null,
-                null
-        );
+    public static PostRecord fromRequestToRecordEvent(EventRequest request, BuildingScope scope, LocalDateTime now, UUID id, JSONB attachments){
+        PostRecord record = basePost(scope, now, id, attachments);
+
+        record.setName(request.name());
+        record.setContent(request.content());
+        record.setRelatedDate(request.relatedDate());
+        record.setPostType(request.postType().name());
+        record.setStartDateTime(request.startDate());
+        record.setEndDateTime(request.endDate());
+        record.setLocationName(request.location());
+        record.setOnlineUrl(request.onlineUrl());
+        record.setMaxAttendees(request.maxAttendees());
+
+        return record;
+    }
+
+    private static PostRecord basePost(BuildingScope scope, LocalDateTime now, UUID id, JSONB attachments) {
+        PostRecord record = new PostRecord();
+
+        record.setId(id);
+        record.setBuildingId(scope.buildingId());
+        record.setCreatedBy(scope.userId());
+        record.setCreatedAt(now);
+        record.setAttachments(attachments);
+
+        return record;
     }
 
 }

@@ -9,37 +9,56 @@ or a service method - conditions belong in the filter, the repository only appli
 The flow is always the same:
 
 ```
-@RequestParam  ->  <Entity>FilteringService.prepareFilter(...)  ->  <Entity>Filter  ->  .where(filter.parseFilter())
+<Entity>FilterRequest  ->  <Entity>FilteringService.prepareFilter(scope, request)  ->  <Entity>Filter  ->  .where(filter.parseFilter())
 ```
 
 ### 1. Controller - request params
 
-Filter values arrive as flat, optional `@RequestParam`. The controller does not interpret them -
-it passes them straight to the filtering service and hands the resulting filter to the domain service.
+Request params arrive as a single `@ModelAttribute` object, one `<Entity>FilterRequest` per
+feature, extending `FilterRequest` (`com.app.prod.utils.filters`). The controller does not
+interpret it - it passes it straight to the filtering service and hands the resulting filter to
+the domain service.
 
 ```java
 @GetMapping()
-public List<PostResponse> getPosts(
-        @Valid @ModelAttribute Pagination pagination,
-        @RequestParam(required = false) PostType postType,
-        @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleFrom,
-        @RequestParam(required = false) ComparisonFilter.Modifier visibleFromModifier,
-        @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime visibleTo,
-        @RequestParam(required = false) ComparisonFilter.Modifier visibleToModifier
-){
-    var userId = globalSecurityManager.getCurrentUser().getId();
-    PostFilter filter = postFilteringService.prepareFilter(postType, visibleFrom, visibleFromModifier, visibleTo, visibleToModifier);
-    return postService.getPosts(pagination, userId, filter);
+public List<PostResponse> getPosts(BuildingScope scope, @Valid @ModelAttribute PostFilterRequest request){
+    PostFilter filter = postFilteringService.prepareFilter(scope, request);
+    return postService.getPosts(request.pagination(), scope, filter);
 }
 ```
 
-- All filter params are `required = false` - an absent param means "do not narrow the result".
+```java
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class PostFilterRequest extends FilterRequest {
+    private PostType postType;
+    private UUID createdBy;
+    @DateTimeFormat(iso = DATE_TIME)
+    private LocalDateTime visibleFrom;
+    private ComparisonFilter.Modifier visibleFromModifier;
+    ...
+}
+```
+
+- Fields live in the request object, never as flat `@RequestParam` - Spring binds each query
+  param onto the matching field, an absent one stays `null` and means "do not narrow the result".
+- Every GET endpoint accepts pagination, because `page` and `pageSize` come from the
+  `FilterRequest` base class. Both are optional: `request.pagination()` falls back to
+  `Pagination.DEFAULT_PAGE` / `Pagination.DEFAULT_PAGE_SIZE`, so an endpoint the frontend does not
+  paginate simply gets the default page. `@Valid` still rejects explicit out-of-range values.
+- Paging stays separate from filtering - it is read off the request object, never a field of the
+  `<Entity>Filter`.
 - Range-style params come in pairs: the value plus a `ComparisonFilter.Modifier`
   (`LESS_OR_EQUAL_THAN`, `GREATER_OR_EQUAL_THAN`, `EQUAL`), named `<field>Modifier`.
-- Dates use `@DateTimeFormat(iso = DATE_TIME)`.
-- Paging is separate from filtering - `@Valid @ModelAttribute Pagination`, never a field of the filter.
-- Access scoping (which buildings the user may see) is not a filter param - it is resolved
-  from the current user in the repository (`buildingsVisibleTo(userId)`).
+- Dates use `@DateTimeFormat(iso = DATE_TIME)` on the field.
+- `@SuperBuilder` + `@NoArgsConstructor` - the no-arg constructor and setters are what Spring binds
+  through, the builder is what tests construct the request with.
+- Access scoping is not a request field - the building comes from the authorized
+  `BuildingScope` (see `building_scope.md`), which the controller declares as a parameter and hands
+  to the filtering service. Migrated features carry it as a mandatory `buildingId` filter field.
+  A `<Entity>FilterRequest` never carries `buildingId`.
 
 ### 2. FilteringService - params to filter
 
@@ -54,6 +73,7 @@ public class PostFilteringService {
     private final Clock clock;
 
     public PostFilter prepareFilter(
+            BuildingScope scope,
             PostType postType,
             LocalDateTime visibleFrom, ComparisonFilter.Modifier visibleFromModifier,
             LocalDateTime visibleTo, ComparisonFilter.Modifier visibleToModifier
@@ -64,6 +84,7 @@ public class PostFilteringService {
         }
         ...
         return PostFilter.builder()
+                .buildingId(scope.buildingId())
                 .postType(Optional.ofNullable(postType))
                 .visibleFrom(visibleFromFilter)
                 .visibleTo(visibleToFilter)
@@ -86,6 +107,7 @@ Fields are `Optional<T>` or `ComparisonFilter<T>` - never raw nullable values.
 ```java
 @Builder
 public class PostFilter implements PredicateFilter {
+    UUID buildingId;   // from the authorized BuildingScope, always present
     Optional<PostType> postType;
     ComparisonFilter<LocalDateTime> visibleFrom;
     ComparisonFilter<LocalDateTime> visibleTo;
@@ -94,6 +116,7 @@ public class PostFilter implements PredicateFilter {
     public List<Condition> combineConditions() {
         List<Condition> conditionList = new ArrayList<>();
 
+        conditionList.add(POST.BUILDING_ID.eq(buildingId));
         postType.ifPresent(r -> conditionList.add(POST.POST_TYPE.eq(r.name())));
         visibleFrom.toCondition(POST.VISIBLE_FROM).ifPresent(conditionList::add);
         visibleTo.toCondition(POST.VISIBLE_TO).ifPresent(conditionList::add);
@@ -113,12 +136,9 @@ public class PostFilter implements PredicateFilter {
 The jOOQ repository takes the filter as a parameter and applies it with a single `.where(filter.parseFilter())`.
 
 ```java
-public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
-    var visibleBuildings = buildingsVisibleTo(userId);
-
+public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
     return dslContext.select(...)
             .from(POST)
-            .join(visibleBuildings).on(...)
             .where(filter.parseFilter())
             .orderBy(POST.CREATED_AT)
             .offset(pagination.getOffset())
@@ -129,13 +149,14 @@ public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFi
 
 - Exactly one `.where(filter.parseFilter())` - additional `.and(...)` calls in the query mean a
   condition that belongs in the filter leaked into the repository.
-- Access-control joins (`buildingsVisibleTo`) stay in the repository, they are not part of the filter.
+- No access-control joins or visibility subqueries in the repository - access is already settled by
+  the `BuildingScope` the filter was built from. A `viewerId` parameter is only for personalisation.
 - Always paginate with `.offset(pagination.getOffset()).limit(pagination.pageSize())` and keep a
   deterministic `.orderBy(...)`.
 - Repositories extend `BaseJooqRepository<Table, Record, Id>`.
 
 ### Existing filters
 
-`PostFilter`, `PollFilter`, `OfferingFilter`, `RequestFilter` - all in `com.app.prod.utils.filters`.
+`PostFilter`, `FacilityFilter`, `PollFilter`, `OfferingFilter`, `RequestFilter` - all in `com.app.prod.utils.filters`.
 Follow whichever is closest when adding a new one, and add a shared field to `ComparisonFilter`
 rather than duplicating comparison logic per filter.

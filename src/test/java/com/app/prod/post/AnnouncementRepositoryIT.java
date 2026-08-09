@@ -1,27 +1,32 @@
 package com.app.prod.post;
 
-import com.app.prod.post.dto.PostResponse;
-import com.app.prod.post.enums.PostType;
-import com.app.prod.post.repository.PostRepository;
-import com.app.prod.builders.PostPersistenceFactory;
+import com.app.prod.access.BuildingScope;
+import com.app.prod.access.TestBuildingScope;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
 import com.app.prod.builders.BuildingsManagersPersistenceFactory;
+import com.app.prod.builders.PostPersistenceFactory;
 import com.app.prod.builders.UserPersistanceFactory;
 import com.app.prod.config.IntegrationTest;
+import com.app.prod.post.dto.PostResponse;
+import com.app.prod.post.enums.PostType;
+import com.app.prod.post.repository.PostRepository;
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.utils.Pagination;
-
-import static com.app.prod.post.enums.PostType.ANNOUNCEMENT;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.app.prod.post.enums.PostType.ANNOUNCEMENT;
+import static com.app.prod.post.enums.PostType.EVENT;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 public class AnnouncementRepositoryIT extends IntegrationTest {
@@ -40,214 +45,123 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
     @Autowired
     private PostRepository postRepository;
 
-    private final PostFilter filter = PostFilter.builder()
-            .postType(Optional.of(PostType.ANNOUNCEMENT))
-            .visibleFrom(ComparisonFilter.empty())
-            .visibleTo(ComparisonFilter.empty())
-            .build();
+    private UUID buildingId;
+    private UUID otherBuildingId;
+    private UUID residentId;
+    private UUID managerId;
 
-    @Test
-    void shouldReturnAnnouncementsOnlyForMe(){
-        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
-        var user = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
-
-        var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
-
-        //only for building
-        var ann1 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event1")
-                .buildingId(building.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //obly for area but user belongs to area
-        var ann2 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event2")
-                .areaId(area.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
-
-        var result = postRepository.findForUser(user.getId(), pagination, filter);
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
-    }
-
-    @Test
-    void shouldReturnOnlyAnnouncementsForRelatedUser() {
-        var myArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-        var differentArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-        var areaFromAnotherCountry = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-
-        var myBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(myArea.getId()).buildAndSave();
-        var differentBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(myArea.getId()).buildAndSave();
-        var farBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(differentArea.getId()).buildAndSave();
-        var buildingFromAnotherCountry = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(areaFromAnotherCountry.getId()).buildAndSave();
-
-        var myUser = userPersistanceFactory.getNewUser().withRandomValues().buildingId(myBuilding.getId()).buildAndSave();
-        var differentUserFromFar = userPersistanceFactory.getNewUser().withRandomValues().buildingId(farBuilding.getId()).buildAndSave();
-        var userFromAnotherCountry = userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingFromAnotherCountry.getId()).buildAndSave();
-
-        var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
-
-        //for building in my area - but not mine building (SHOULD NOT MATCH)
-        var ann1 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event1")
-                .buildingId(differentBuilding.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //for building in another area (SHOULD NOT MATCH)
-        var ann2 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event2")
-                .buildingId(farBuilding.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //for another area (SHOULD NOT MATCH)
-        var ann3 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event3")
-                .areaId(differentArea.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //for my building
-        var ann4 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event4")
-                .buildingId(myBuilding.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //for my area
-        var ann5 = postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event5")
-                .areaId(myArea.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
-
-        var resultForMyUser = postRepository.findForUser(myUser.getId(), pagination, filter);
-        assertThat(resultForMyUser).isNotNull();
-        assertThat(resultForMyUser).hasSize(2);
-        assertThat(resultForMyUser.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event4", "Event5");
-
-        var resultForDifferentUser = postRepository.findForUser(differentUserFromFar.getId(), pagination, filter);
-        assertThat(resultForDifferentUser).isNotNull();
-        assertThat(resultForDifferentUser).hasSize(2);
-        assertThat(resultForDifferentUser.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event2", "Event3");
-
-        var resultForUserFromAnotherCountry = postRepository.findForUser(userFromAnotherCountry.getId(), pagination, filter);
-        assertThat(resultForUserFromAnotherCountry).isNotNull();
-        assertThat(resultForUserFromAnotherCountry).isEmpty();
-    }
-
-    @Test
-    void shouldReturnPaginatedResults(){
-        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
-        var user = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
-        var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
-
-        createManyAnnouncements(building.getId(), manager.getId(), 10);
-        Pagination pagination = Pagination.builder().page(2).pageSize(3).build();
-
-        var result = postRepository.findForUser(user.getId(), pagination, filter);
-
-        //TODO: assertions
-    }
-
-    /* A manager has no app_user.building_id - the buildings they see come from building_manager. */
-    @Test
-    void shouldReturnAnnouncementsForBuildingsManagedByManager(){
+    @BeforeEach
+    void setUp() {
         var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
         var otherArea = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
 
-        var managedBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
-        var foreignBuilding = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(otherArea.getId()).buildAndSave();
+        buildingId = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave().getId();
+        otherBuildingId = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(otherArea.getId()).buildAndSave().getId();
 
-        var manager = userPersistanceFactory.getNewUser().withRandomValues().buildAndSave();
-        assignManager(manager.getId(), managedBuilding.getId());
+        residentId = userPersistanceFactory.getNewUser().withRandomValues().buildingId(buildingId).buildAndSave().getId();
+        managerId = userPersistanceFactory.getNewUser().withRandomValues().userRole(UserRole.MANAGER).buildAndSave().getId();
 
-        assertThat(manager.getBuildingId()).isNull();
-
-        //for the managed building
-        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event1")
-                .buildingId(managedBuilding.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //for the area the managed building belongs to
-        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event2")
-                .areaId(area.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        //for a building the manager does not manage (SHOULD NOT MATCH)
-        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event3")
-                .buildingId(foreignBuilding.getId())
-                .createdBy(manager.getId())
-                .buildAndSave();
-
-        Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
-
-        var result = postRepository.findForUser(manager.getId(), pagination, filter);
-        assertThat(result.stream().map(PostResponse::name).toList()).containsExactlyInAnyOrder("Event1", "Event2");
-    }
-
-    /* A resident sees their building even when nobody manages it yet. */
-    @Test
-    void shouldReturnAnnouncementsForResidentOfBuildingWithoutManager(){
-        var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
-        var building = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave();
-        var resident = userPersistanceFactory.getNewUser().withRandomValues().buildingId(building.getId()).buildAndSave();
-
-        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                .withRandomValues()
-                .name("Event1")
-                .buildingId(building.getId())
-                .createdBy(resident.getId())
-                .buildAndSave();
-
-        Pagination pagination = Pagination.builder().page(1).pageSize(5).build();
-
-        var result = postRepository.findForUser(resident.getId(), pagination, filter);
-        assertThat(result.stream().map(PostResponse::name).toList()).containsExactly("Event1");
-    }
-
-    private void assignManager(UUID managerId, UUID buildingId){
         buildingsManagersPersistenceFactory.addNewBuildingManager()
                 .buildingId(buildingId)
                 .managerId(managerId)
                 .buildAndSave();
     }
 
-    private void createManyAnnouncements(UUID buildingId, UUID createdBy, int number){
-        for(int i = 0; i < number; i++){
-            postPersistenceFactory.getNewPost(ANNOUNCEMENT)
-                    .withRandomValues()
-                    .name("Event" + (i + 1))
-                    .buildingId(buildingId)
-                    .createdBy(createdBy)
-                    .buildAndSave();
+    @Test
+    void shouldReturnOnlyPostsOfTheBuildingInScope(){
+        announcement("Mine", buildingId);
+        announcement("Somewhere else", otherBuildingId);
 
+        var scope = TestBuildingScope.of(buildingId, residentId);
+
+        assertThat(namesFor(scope)).containsExactly("Mine");
+    }
+
+    /* The building decides what is returned, not who is asking - access is settled before the query. */
+    @Test
+    void shouldReturnTheSamePostsToManagerAndResidentOfOneBuilding(){
+        announcement("Water shutdown", buildingId);
+
+        var residentScope = TestBuildingScope.of(buildingId, residentId);
+        var managerScope = TestBuildingScope.of(buildingId, managerId, UserRole.MANAGER);
+
+        assertThat(namesFor(residentScope)).containsExactly("Water shutdown");
+        assertThat(namesFor(managerScope)).containsExactly("Water shutdown");
+    }
+
+    @Test
+    void shouldReturnPostsOfEveryManagedBuildingSeparately(){
+        buildingsManagersPersistenceFactory.addNewBuildingManager()
+                .buildingId(otherBuildingId)
+                .managerId(managerId)
+                .buildAndSave();
+
+        announcement("First building", buildingId);
+        announcement("Second building", otherBuildingId);
+
+        assertThat(namesFor(TestBuildingScope.of(buildingId, managerId, UserRole.MANAGER))).containsExactly("First building");
+        assertThat(namesFor(TestBuildingScope.of(otherBuildingId, managerId, UserRole.MANAGER))).containsExactly("Second building");
+    }
+
+    @Test
+    void shouldNarrowResultsToRequestedPostType(){
+        announcement("Announcement", buildingId);
+        postPersistenceFactory.getNewPost(EVENT)
+                .withRandomValues()
+                .name("Event")
+                .buildingId(buildingId)
+                .createdBy(managerId)
+                .buildAndSave();
+
+        var scope = TestBuildingScope.of(buildingId, residentId);
+
+        assertThat(namesFor(scope)).containsExactly("Announcement");
+        assertThat(namesFor(scope, filter(scope, EVENT))).containsExactly("Event");
+    }
+
+    @Test
+    void shouldReturnPaginatedResults(){
+        createManyAnnouncements(10);
+
+        var scope = TestBuildingScope.of(buildingId, residentId);
+        var secondPage = postRepository.findPosts(residentId, Pagination.builder().page(2).pageSize(3).build(), filter(scope, ANNOUNCEMENT));
+
+        assertThat(secondPage).hasSize(3);
+    }
+
+    private void announcement(String name, UUID postBuildingId){
+        postPersistenceFactory.getNewPost(ANNOUNCEMENT)
+                .withRandomValues()
+                .name(name)
+                .buildingId(postBuildingId)
+                .createdBy(managerId)
+                .buildAndSave();
+    }
+
+    private void createManyAnnouncements(int number){
+        for(int i = 0; i < number; i++){
+            announcement("Event" + (i + 1), buildingId);
         }
     }
 
+    private PostFilter filter(BuildingScope scope, PostType postType){
+        return PostFilter.builder()
+                .buildingId(scope.buildingId())
+                .postType(Optional.of(postType))
+                .createdBy(Optional.empty())
+                .visibleFrom(ComparisonFilter.empty())
+                .visibleTo(ComparisonFilter.empty())
+                .build();
+    }
+
+    private List<String> namesFor(BuildingScope scope){
+        return namesFor(scope, filter(scope, ANNOUNCEMENT));
+    }
+
+    private List<String> namesFor(BuildingScope scope, PostFilter filter){
+        var pagination = Pagination.builder().page(1).pageSize(5).build();
+        return postRepository.findPosts(scope.userId(), pagination, filter).stream()
+                .map(PostResponse::name)
+                .toList();
+    }
 }

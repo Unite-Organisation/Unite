@@ -1,5 +1,6 @@
 package com.app.prod.post.service;
 
+import com.app.prod.access.BuildingScope;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
@@ -29,22 +30,22 @@ public class PostInteractionTarget implements InteractionTarget {
     }
 
     @Override
-    public void assertVisible(UUID userId, UUID entityId) {
-        findVisiblePostType(userId, entityId);
+    public void assertVisible(BuildingScope scope, UUID entityId) {
+        findPostTypeInBuilding(scope, entityId);
     }
 
     @Override
-    public void assertInteractionAllowed(UUID userId, UUID entityId, InteractionType interactionType) {
+    public void assertInteractionAllowed(BuildingScope scope, UUID entityId, InteractionType interactionType) {
         if (interactionType != InteractionType.ATTENDING) {
-            assertVisible(userId, entityId);
+            assertVisible(scope, entityId);
             return;
         }
 
-        assertCanAttend(userId, entityId);
+        assertCanAttend(scope, entityId);
     }
 
-    private void assertCanAttend(UUID userId, UUID eventId) {
-        PostRecord event = postRepository.findVisibleForUpdate(userId, eventId)
+    private void assertCanAttend(BuildingScope scope, UUID eventId) {
+        PostRecord event = postRepository.findInBuildingForUpdate(scope.buildingId(), eventId)
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.POST_NOT_FOUND)));
 
         PostType postType = PostType.valueOf(event.getPostType());
@@ -66,8 +67,8 @@ public class PostInteractionTarget implements InteractionTarget {
         }
     }
 
-    private PostType findVisiblePostType(UUID userId, UUID postId) {
-        return postRepository.findVisiblePostType(userId, postId)
+    private PostType findPostTypeInBuilding(BuildingScope scope, UUID postId) {
+        return postRepository.findPostTypeInBuilding(scope.buildingId(), postId)
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.POST_NOT_FOUND)));
     }
 }

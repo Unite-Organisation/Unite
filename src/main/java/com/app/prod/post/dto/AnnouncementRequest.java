@@ -7,12 +7,9 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public record AnnouncementRequest(
         @NotBlank String name,
-        UUID areaId,
-        UUID buildingId,
         @NotBlank String content,
         LocalDateTime relatedDate,
         @NotNull PostType postType,

@@ -1,5 +1,7 @@
 package com.app.prod.post;
 
+import com.app.prod.access.BuildingScope;
+import com.app.prod.access.TestBuildingScope;
 import com.app.prod.builders.AreaPersistenceFactory;
 import com.app.prod.builders.BuildingPersistenceFactory;
 import com.app.prod.builders.BuildingsManagersPersistenceFactory;
@@ -16,6 +18,7 @@ import com.app.prod.storage.ContextStoragePrefix;
 import com.app.prod.storage.InMemoryStorage;
 import com.app.prod.storage.StorageKeys;
 import com.app.prod.storage.dto.FileResponse;
+import com.app.prod.user.enums.UserRole;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
@@ -52,15 +55,11 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     @Autowired
     private InMemoryStorage storage;
 
-    private final PostFilter filter = PostFilter.builder()
-            .postType(Optional.of(PostType.ANNOUNCEMENT))
-            .visibleFrom(ComparisonFilter.empty())
-            .visibleTo(ComparisonFilter.empty())
-            .build();
-
     private UUID buildingId;
     private UUID managerId;
     private UUID residentId;
+    private BuildingScope managerScope;
+    private PostFilter filter;
 
     @BeforeEach
     void setUp() {
@@ -76,6 +75,15 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
                 .buildingId(buildingId)
                 .managerId(managerId)
                 .buildAndSave();
+
+        managerScope = TestBuildingScope.of(buildingId, managerId, UserRole.MANAGER);
+        filter = PostFilter.builder()
+                .buildingId(buildingId)
+                .postType(Optional.of(PostType.ANNOUNCEMENT))
+                .createdBy(Optional.empty())
+                .visibleFrom(ComparisonFilter.empty())
+                .visibleTo(ComparisonFilter.empty())
+                .build();
     }
 
     @Test
@@ -83,7 +91,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
         var keys = uploadedKeys(3);
         var confirmedKeys = keys.stream().map(StorageKeys::confirmedKeyOf).toList();
 
-        announcementService.createAnnouncement(request("With photos", keys), managerId);
+        announcementService.createAnnouncement(request("With photos", keys), managerScope);
 
         var announcement = onlyAnnouncementFor(residentId);
         assertThat(announcement.files()).hasSize(3);
@@ -98,7 +106,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     void shouldMoveConfirmedFilesOutOfThePendingPrefix() {
         var pendingKey = uploadedKey(managerId, "cat.jpg");
 
-        announcementService.createAnnouncement(request("With photo", List.of(pendingKey)), managerId);
+        announcementService.createAnnouncement(request("With photo", List.of(pendingKey)), managerScope);
 
         assertThat(storage.find(pendingKey)).isEmpty();
         assertThat(storage.find(StorageKeys.confirmedKeyOf(pendingKey))).isPresent();
@@ -109,13 +117,13 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
         var confirmedKey = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, managerId, "cat.jpg");
         storage.put(confirmedKey, "image/jpeg", ONE_MEGABYTE);
 
-        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Reused", List.of(confirmedKey)), managerId))
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Reused", List.of(confirmedKey)), managerScope))
                 .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void shouldReturnEmptyFileListWhenAnnouncementHasNoAttachments() {
-        announcementService.createAnnouncement(request("No photos", null), managerId);
+        announcementService.createAnnouncement(request("No photos", null), managerScope);
 
         assertThat(onlyAnnouncementFor(residentId).files()).isEmpty();
     }
@@ -124,18 +132,18 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     void shouldRejectKeyThatWasNeverUploaded() {
         var key = StorageKeys.buildPending(ContextStoragePrefix.ANNOUNCEMENT, managerId, "ghost.jpg");
 
-        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Ghost", List.of(key)), managerId))
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Ghost", List.of(key)), managerScope))
                 .isInstanceOf(EntityNotPresentException.class);
-        assertThat(postRepository.findForUser(residentId, pagination(), filter)).isEmpty();
+        assertThat(postRepository.findPosts(residentId, pagination(), filter)).isEmpty();
     }
 
     @Test
     void shouldRejectKeyUploadedByAnotherUser() {
         var foreignKey = uploadedKey(residentId, "someone-else.jpg");
 
-        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Stolen", List.of(foreignKey)), managerId))
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Stolen", List.of(foreignKey)), managerScope))
                 .isInstanceOf(BadRequestException.class);
-        assertThat(postRepository.findForUser(residentId, pagination(), filter)).isEmpty();
+        assertThat(postRepository.findPosts(residentId, pagination(), filter)).isEmpty();
     }
 
     @Test
@@ -143,7 +151,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
         var eventKey = StorageKeys.buildPending(ContextStoragePrefix.EVENT, managerId, "party.jpg");
         storage.put(eventKey, "image/jpeg", ONE_MEGABYTE);
 
-        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Wrong context", List.of(eventKey)), managerId))
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Wrong context", List.of(eventKey)), managerScope))
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -151,7 +159,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     void shouldRejectMoreThanFiveFiles() {
         var keys = uploadedKeys(6);
 
-        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Too many", keys), managerId))
+        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Too many", keys), managerScope))
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -168,11 +176,11 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     }
 
     private AnnouncementRequest request(String name, List<String> fileKeys) {
-        return new AnnouncementRequest(name, null, buildingId, "content", null, PostType.ANNOUNCEMENT, null, null, fileKeys);
+        return new AnnouncementRequest(name, "content", null, PostType.ANNOUNCEMENT, null, null, fileKeys);
     }
 
     private PostResponse onlyAnnouncementFor(UUID userId) {
-        var results = postRepository.findForUser(userId, pagination(), filter);
+        var results = postRepository.findPosts(userId, pagination(), filter);
         assertThat(results).hasSize(1);
         return results.getFirst();
     }

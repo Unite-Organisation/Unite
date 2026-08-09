@@ -1,5 +1,6 @@
 package com.app.prod.post.service;
 
+import com.app.prod.access.BuildingScope;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
@@ -26,23 +27,21 @@ public class AnnouncementService {
     private final FileService fileService;
     private final Clock clock;
 
-    public EntityCreatedResponse createAnnouncement(AnnouncementRequest request, UUID userId) {
-        //TODO: check if manager can post announcements for building or area
-
+    public EntityCreatedResponse createAnnouncement(AnnouncementRequest request, BuildingScope scope) {
         validateVisibilityWindow(request.visibleFrom(), request.visibleTo());
 
-        var attachments = fileService.confirmUploaded(ContextStoragePrefix.ANNOUNCEMENT, userId, request.fileKeys());
+        var attachments = fileService.confirmUploaded(ContextStoragePrefix.ANNOUNCEMENT, scope.userId(), request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
 
         try {
-            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, userId, now, id, attachments));
+            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordAnn(request, scope, now, id, attachments));
         } catch (RuntimeException exception) {
             fileService.discard(attachments);
             throw exception;
         }
 
-        log.info("Created announcement with name: {}", request.name());
+        log.info("Created announcement with name: {} in building: {}", request.name(), scope.buildingId());
         return new EntityCreatedResponse(id);
     }
 

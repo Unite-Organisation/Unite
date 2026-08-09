@@ -47,6 +47,11 @@ public class FacilitiesReservationnPersistanceFactory {
             return this;
         }
 
+        public Builder status(ReservationStatus status){
+            instance.setStatus(status.name());
+            return this;
+        }
+
         public Builder withRandomValues(){
             instance.setId(UUID.randomUUID());
             instance.setStatus(ReservationStatus.RESERVED.name());
