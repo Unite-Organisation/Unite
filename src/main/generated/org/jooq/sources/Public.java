@@ -16,6 +16,7 @@ import org.jooq.sources.tables.Building;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
+import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -80,6 +81,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.conversation_member</code>.
      */
     public final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
+
+    /**
+     * The table <code>public.email_delivery</code>.
+     */
+    public final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
 
     /**
      * The table <code>public.facility</code>.
@@ -203,6 +209,7 @@ public class Public extends SchemaImpl {
             BuildingManager.BUILDING_MANAGER,
             Conversation.CONVERSATION,
             ConversationMember.CONVERSATION_MEMBER,
+            EmailDelivery.EMAIL_DELIVERY,
             Facility.FACILITY,
             FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,

@@ -49,6 +49,8 @@ public enum Code {
     EVENT_MAX_ATTENDEES("event_max_attendees", "Reached limit of event attendees"),
 
     //errors
+    EVENT_HANDLER_NOT_FOUND("event_handler_not_found", "No handler registered for event"),
+    EVENT_HANDLER_DUPLICATED("event_handler_duplicated", "Event is handled by more than one handler"),
     JSON_SERIALIZATION_ERROR("json_serialization_error", "Could not read or write json data"),
     INTERNAL_CONNECTION_ERROR("internal_connection", "Internal connection error"),
     APP_PROFILE_NOT_FOUND("app_profile_not_found", "App profile not found"),
