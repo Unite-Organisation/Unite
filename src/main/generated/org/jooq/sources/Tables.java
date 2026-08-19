@@ -4,6 +4,7 @@
 package org.jooq.sources;
 
 
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
@@ -38,6 +39,11 @@ import org.jooq.sources.tables.UserRole;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.activation_token</code>.
+     */
+    public static final ActivationToken ACTIVATION_TOKEN = ActivationToken.ACTIVATION_TOKEN;
 
     /**
      * The table <code>public.app_user</code>.

@@ -8,6 +8,7 @@ import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -26,6 +27,7 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index FLYWAY_SCHEMA_HISTORY_S_IDX = Internal.createIndex(DSL.name("flyway_schema_history_s_idx"), FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.SUCCESS }, false);
+    public static final Index IDX_ACTIVATION_TOKEN_USER = Internal.createIndex(DSL.name("idx_activation_token_user"), ActivationToken.ACTIVATION_TOKEN, new OrderField[] { ActivationToken.ACTIVATION_TOKEN.USER_ID }, false);
     public static final Index IDX_BUILDING_MANAGER_USER_BUILDING = Internal.createIndex(DSL.name("idx_building_manager_user_building"), BuildingManager.BUILDING_MANAGER, new OrderField[] { BuildingManager.BUILDING_MANAGER.USER_ID, BuildingManager.BUILDING_MANAGER.BUILDING_ID }, true);
     public static final Index IDX_EMAIL_DELIVERY_UNFINISHED = Internal.createIndex(DSL.name("idx_email_delivery_unfinished"), EmailDelivery.EMAIL_DELIVERY, new OrderField[] { EmailDelivery.EMAIL_DELIVERY.STATUS }, false);
     public static final Index IDX_POST_BUILDING_CREATED = Internal.createIndex(DSL.name("idx_post_building_created"), Post.POST, new OrderField[] { Post.POST.BUILDING_ID, Post.POST.CREATED_AT }, false);

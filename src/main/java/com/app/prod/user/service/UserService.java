@@ -13,7 +13,6 @@ import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
-import com.app.prod.utils.PasswordGenerator;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -82,46 +80,6 @@ public class UserService {
 
     public void addUsersBuilding(UUID userId, UUID buildingId){
         userRepository.addBuilding(userId, buildingId);
-    }
-
-    public BulkCreationResponse bulkCreation(BulkCreationRequest request) {
-        List<PersonToBeCreated> failedCreations = new ArrayList<>();
-
-        for(PersonToBeCreated personToBeCreated : request.personToBeCreateds()){
-            int status = userRepository.insertOne(createNewNonActiveUser(personToBeCreated));
-            if(status == 0){
-                log.warn("User {} {} was not created.", personToBeCreated.firstName(), personToBeCreated.lastName());
-                failedCreations.add(personToBeCreated);
-            }
-            else{
-                log.info("User {} {} was has been created.", personToBeCreated.firstName(), personToBeCreated.lastName());
-            }
-        }
-
-        return BulkCreationResponse.builder()
-                .success(failedCreations.isEmpty())
-                .failedCreations(failedCreations)
-                .build();
-    }
-
-    private AppUserRecord createNewNonActiveUser(PersonToBeCreated personToBeCreated){
-        String temporaryUsername = personToBeCreated.firstName().toLowerCase().charAt(0) + "." + personToBeCreated.lastName();
-        var standardRole = userRoleService.getUserRoleId(UserRole.RESIDENT);
-        var id = UUID.randomUUID();
-        LocalDateTime now = LocalDateTime.now(clock);
-
-        return new AppUserRecord(
-                id,
-                personToBeCreated.firstName(),
-                personToBeCreated.lastName(),
-                null,
-                temporaryUsername,
-                PasswordGenerator.generatePassword(),
-                standardRole,
-                UserStatus.CREATED.name(),
-                now,
-                personToBeCreated.buildingId()
-        );
     }
 
     public List<ResidentToAdd> getUsersWithoutBuilding() {

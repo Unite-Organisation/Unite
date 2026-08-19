@@ -9,6 +9,7 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
@@ -36,6 +37,7 @@ import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
 import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
+import org.jooq.sources.tables.records.ActivationTokenRecord;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.AreaRecord;
 import org.jooq.sources.tables.records.BuildingManagerRecord;
@@ -76,6 +78,8 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<ActivationTokenRecord> ACTIVATION_TOKEN_PKEY = Internal.createUniqueKey(ActivationToken.ACTIVATION_TOKEN, DSL.name("activation_token_pkey"), new TableField[] { ActivationToken.ACTIVATION_TOKEN.ID }, true);
+    public static final UniqueKey<ActivationTokenRecord> ACTIVATION_TOKEN_TOKEN_HASH_KEY = Internal.createUniqueKey(ActivationToken.ACTIVATION_TOKEN, DSL.name("activation_token_token_hash_key"), new TableField[] { ActivationToken.ACTIVATION_TOKEN.TOKEN_HASH }, true);
     public static final UniqueKey<AppUserRecord> APP_USER_EMAIL_KEY = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_email_key"), new TableField[] { AppUser.APP_USER.EMAIL }, true);
     public static final UniqueKey<AppUserRecord> APP_USER_PKEY = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_pkey"), new TableField[] { AppUser.APP_USER.ID }, true);
     public static final UniqueKey<AppUserRecord> APP_USER_USERNAME_KEY = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_username_key"), new TableField[] { AppUser.APP_USER.USERNAME }, true);
@@ -116,6 +120,7 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<ActivationTokenRecord, AppUserRecord> ACTIVATION_TOKEN__ACTIVATION_TOKEN_USER_ID_FKEY = Internal.createForeignKey(ActivationToken.ACTIVATION_TOKEN, DSL.name("activation_token_user_id_fkey"), new TableField[] { ActivationToken.ACTIVATION_TOKEN.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<AppUserRecord, BuildingRecord> APP_USER__APP_USER_BUILDING_ID_FKEY = Internal.createForeignKey(AppUser.APP_USER, DSL.name("app_user_building_id_fkey"), new TableField[] { AppUser.APP_USER.BUILDING_ID }, Keys.BUILDING_PKEY, new TableField[] { Building.BUILDING.ID }, true);
     public static final ForeignKey<AppUserRecord, UserRoleRecord> APP_USER__APP_USER_USER_ROLE_FKEY = Internal.createForeignKey(AppUser.APP_USER, DSL.name("app_user_user_role_fkey"), new TableField[] { AppUser.APP_USER.USER_ROLE }, Keys.USER_ROLE_PKEY, new TableField[] { UserRole.USER_ROLE.ID }, true);
     public static final ForeignKey<BuildingRecord, AreaRecord> BUILDING__BUILDING_AREA_ID_FKEY = Internal.createForeignKey(Building.BUILDING, DSL.name("building_area_id_fkey"), new TableField[] { Building.BUILDING.AREA_ID }, Keys.AREA_PKEY, new TableField[] { Area.AREA.ID }, true);

@@ -13,10 +13,14 @@ import com.app.prod.utils.Pagination;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.records.AppUserRecord;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.app.prod.user.enums.UserStatus.ACTIVE;
@@ -48,21 +52,25 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
         );
     }
 
-    public boolean temporaryCredentialsAreValid(String login, String password){
-        return dslContext.fetchExists(
-                dslContext.selectOne()
-                        .from(table)
-                        .where(table.USERNAME.eq(login).and(table.PASSWORD.eq(password)))
-        );
+    /**
+     * Compared in lower case, because that is how invitations normalise addresses - otherwise the
+     * same person could be invited again under a different capitalisation.
+     */
+    public Set<String> findExistingEmails(Collection<String> emails) {
+        return dslContext.select(APP_USER.EMAIL)
+                .from(APP_USER)
+                .where(DSL.lower(APP_USER.EMAIL).in(emails))
+                .fetchSet(record -> record.get(APP_USER.EMAIL).toLowerCase(Locale.ROOT));
     }
 
-    public void activateUser(String temporaryUserName, String email, String username, String password){
+    public void activateUser(UUID userId, String username, String password, String firstName, String lastName){
         dslContext.update(table)
                 .set(table.USERNAME, username)
                 .set(table.PASSWORD, password)
-                .set(table.EMAIL, email)
+                .set(table.FIRST_NAME, firstName)
+                .set(table.LAST_NAME, lastName)
                 .set(table.STATUS, ACTIVE.name())
-                .where(table.USERNAME.eq(temporaryUserName))
+                .where(table.ID.eq(userId))
                 .execute();
     }
 

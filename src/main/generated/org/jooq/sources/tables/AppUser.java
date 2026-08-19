@@ -32,6 +32,7 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
+import org.jooq.sources.tables.ActivationToken.ActivationTokenPath;
 import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.BuildingManager.BuildingManagerPath;
 import org.jooq.sources.tables.ConversationMember.ConversationMemberPath;
@@ -82,12 +83,12 @@ public class AppUser extends TableImpl<AppUserRecord> {
     /**
      * The column <code>public.app_user.first_name</code>.
      */
-    public final TableField<AppUserRecord, String> FIRST_NAME = createField(DSL.name("first_name"), SQLDataType.VARCHAR(20).nullable(false), this, "");
+    public final TableField<AppUserRecord, String> FIRST_NAME = createField(DSL.name("first_name"), SQLDataType.VARCHAR(20), this, "");
 
     /**
      * The column <code>public.app_user.last_name</code>.
      */
-    public final TableField<AppUserRecord, String> LAST_NAME = createField(DSL.name("last_name"), SQLDataType.VARCHAR(20).nullable(false), this, "");
+    public final TableField<AppUserRecord, String> LAST_NAME = createField(DSL.name("last_name"), SQLDataType.VARCHAR(20), this, "");
 
     /**
      * The column <code>public.app_user.email</code>.
@@ -228,6 +229,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _userRole = new UserRolePath(this, Keys.APP_USER__APP_USER_USER_ROLE_FKEY, null);
 
         return _userRole;
+    }
+
+    private transient ActivationTokenPath _activationToken;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.activation_token</code> table
+     */
+    public ActivationTokenPath activationToken() {
+        if (_activationToken == null)
+            _activationToken = new ActivationTokenPath(this, null, Keys.ACTIVATION_TOKEN__ACTIVATION_TOKEN_USER_ID_FKEY.getInverseKey());
+
+        return _activationToken;
     }
 
     private transient BuildingManagerPath _buildingManager;

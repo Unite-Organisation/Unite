@@ -10,6 +10,7 @@ import java.util.List;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
@@ -51,6 +52,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.activation_token</code>.
+     */
+    public final ActivationToken ACTIVATION_TOKEN = ActivationToken.ACTIVATION_TOKEN;
 
     /**
      * The table <code>public.app_user</code>.
@@ -203,6 +209,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            ActivationToken.ACTIVATION_TOKEN,
             AppUser.APP_USER,
             Area.AREA,
             Building.BUILDING,
