@@ -6,8 +6,6 @@ import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.area.repository.AreaRepository;
 import com.app.prod.building.repository.BuildingRepository;
-import com.app.prod.conversation.repository.ConversationMemberRepository;
-import com.app.prod.conversation.repository.ConversationRepository;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
@@ -16,7 +14,6 @@ import com.app.prod.issues.repository.IssueRepository;
 import com.app.prod.issues.repository.NotificationRepository;
 import com.app.prod.offering.repository.OfferingRepository;
 import com.app.prod.polls.repository.PollRepository;
-import com.app.prod.requests.repository.RequestDonorRepository;
 import com.app.prod.requests.repository.RequestRepository;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.repository.UserRepository;
@@ -38,8 +35,6 @@ import java.util.UUID;
 @Slf4j
 public class Validate {
 
-    private final ConversationMemberRepository conversationMemberRepository;
-    private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final AreaRepository areaRepository;
     private final BuildingRepository buildingRepository;
@@ -53,19 +48,9 @@ public class Validate {
     private final RequestRepository requestRepository;
     private final UserRoleService userRoleService;
 
-    //TAK JEST DOBRZE (na podstawie tej metody, popraw wszystko)
     public void user(UUID id){
         if(!userRepository.exists(id)){
             throw new EntityNotPresentException(AppError.of(Code.USER_NOT_FOUND, String.format("User with id: %s not found. Entity: %s", id, AppUser.class.getSimpleName())));
-        }
-    }
-
-    public void conversation(UUID id) {
-        if (!conversationRepository.exists(id)) {
-            throw new EntityNotPresentException(AppError.of(
-                    Code.CONVERSATION_NOT_FOUND,
-                    String.format("Conversation with id: %s doesn't exist. Entity: %s", id, Conversation.class.getSimpleName())
-            ));
         }
     }
 
