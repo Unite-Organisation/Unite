@@ -86,7 +86,6 @@ public class PendingAccountService {
                 .collect(Collectors.toMap(AppUserRecord::getId, AppUserRecord::getEmail));
 
         List<IssuedActivationToken> tokens = activationTokenService.issueFor(List.copyOf(emailsByUser.keySet()));
-
         List<AccountInvitation> invitations = tokens.stream()
                 .map(token -> new AccountInvitation(
                         token.userId(),

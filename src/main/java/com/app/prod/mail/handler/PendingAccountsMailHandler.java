@@ -1,10 +1,14 @@
 package com.app.prod.mail.handler;
 
+import com.app.prod.authorization.config.ActivationProperties;
 import com.app.prod.eventbus.EventHandler;
+import com.app.prod.mail.config.MailProperties;
 import com.app.prod.mail.dto.MailContent;
 import com.app.prod.mail.dto.MailRecipient;
 import com.app.prod.mail.enums.EmailDeliveryType;
 import com.app.prod.mail.service.MailDeliveryService;
+import com.app.prod.mail.template.MailTemplate;
+import com.app.prod.mail.template.MailTemplateProcessor;
 import com.app.prod.user.events.AccountInvitation;
 import com.app.prod.user.events.PendingAccountsCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -20,6 +25,9 @@ import java.util.List;
 public class PendingAccountsMailHandler implements EventHandler<PendingAccountsCreatedEvent> {
 
     private final MailDeliveryService mailDeliveryService;
+    private final MailTemplateProcessor mailTemplateRenderer;
+    private final MailProperties mailProperties;
+    private final ActivationProperties activationProperties;
 
     @Override
     public void handle(PendingAccountsCreatedEvent event) {
@@ -40,10 +48,11 @@ public class PendingAccountsMailHandler implements EventHandler<PendingAccountsC
         return PendingAccountsCreatedEvent.class;
     }
 
-    private static MailContent content(AccountInvitation invitation) {
-        return new MailContent(
-                "Your account is ready to be activated",
-                String.format("An account was created for you. Set it up here: %s", invitation.activationLink())
-        );
+    private MailContent content(AccountInvitation invitation) {
+        return mailTemplateRenderer.render(MailTemplate.USER_INVITATION, Map.of(
+                "appName", mailProperties.getFromName(),
+                "activationLink", invitation.activationLink(),
+                "expiresInDays", activationProperties.getTokenTtl().toDays()
+        ));
     }
 }

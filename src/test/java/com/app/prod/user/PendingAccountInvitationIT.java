@@ -35,13 +35,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,6 +51,8 @@ import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 @SpringBootTest
 @Import(PendingAccountInvitationIT.SynchronousMailConfig.class)
 class PendingAccountInvitationIT extends IntegrationTest {
+
+    private static final Pattern TOKEN_IN_LINK = Pattern.compile("token=([A-Za-z0-9_-]+)");
 
     @Autowired
     private PendingAccountService pendingAccountService;
@@ -211,8 +214,9 @@ class PendingAccountInvitationIT extends IntegrationTest {
     }
 
     private static String tokenFrom(MailMessage message) {
-        String link = message.body().substring(message.body().lastIndexOf("http"));
-        return UriComponentsBuilder.fromUriString(link).build().getQueryParams().getFirst("token");
+        Matcher matcher = TOKEN_IN_LINK.matcher(message.body());
+        assertThat(matcher.find()).as("activation link in %s", message.body()).isTrue();
+        return matcher.group(1);
     }
 
     private AppUserRecord accountFor(String email) {
