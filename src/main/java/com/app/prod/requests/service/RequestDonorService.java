@@ -1,6 +1,5 @@
 package com.app.prod.requests.service;
 
-import com.app.prod.conversation.service.ConversationService;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
@@ -29,7 +28,6 @@ public class RequestDonorService {
 
     private final Clock clock;
     private final Validate validate;
-    private final ConversationService conversationService;
     private final RequestDonorRepository requestDonorRepository;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
@@ -47,8 +45,9 @@ public class RequestDonorService {
         log.info("User {} offered help with request {}", user.getId(), request.getId());
 
         //TODO: create conversation for those users if not exist
-        var conversationId = conversationService.getConversationId(request.getUserInNeed(), user.getId());
-        return new RequestHelpResponse(conversationId);
+//        var conversationId = conversationService.getConversationId(request.getUserInNeed(), user.getId());
+        throw new RuntimeException("Functionality disabled");
+//        return new RequestHelpResponse(conversationId);
     }
 
     private void checkIfRequestIsActive(RequestRecord request){
