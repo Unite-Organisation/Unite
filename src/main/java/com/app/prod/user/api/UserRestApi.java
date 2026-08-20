@@ -6,9 +6,11 @@ import com.app.prod.config.security.GlobalSecurityManager;
 import com.app.prod.user.dto.*;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.service.PendingAccountService;
+import com.app.prod.user.service.UserFilteringService;
 import com.app.prod.user.service.UserCommunityService;
 import com.app.prod.user.service.UserService;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.BuildingUserFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class UserRestApi {
     private final UserService userService;
     private final UserCommunityService userCommunityService;
     private final PendingAccountService pendingAccountService;
+    private final UserFilteringService userFilteringService;
     private final GlobalSecurityManager globalSecurityManager;
 
     @GetMapping("meta-info")
@@ -60,6 +63,14 @@ public class UserRestApi {
     @PreAuthorize("hasRole('MANAGER')")
     public List<ResidentToAdd> getAllUsersWithoutBuildings(){
         return userService.getUsersWithoutBuilding();
+    }
+
+
+    @GetMapping("/in-building")
+    @PreAuthorize("hasRole('MANAGER')")
+    public List<BuildingUserResponse> getUsersInBuilding(BuildingScope scope, @Valid @ModelAttribute BuildingUserFilterRequest request){
+        BuildingUserFilter filter = userFilteringService.prepareFilter(scope, request);
+        return userService.getUsersInBuilding(request.pagination(), filter);
     }
 
     @PostMapping("/bulk-creation")

@@ -13,6 +13,8 @@ import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.BuildingUserFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +82,10 @@ public class UserService {
 
     public void addUsersBuilding(UUID userId, UUID buildingId){
         userRepository.addBuilding(userId, buildingId);
+    }
+
+    public List<BuildingUserResponse> getUsersInBuilding(Pagination pagination, BuildingUserFilter filter) {
+        return userRepository.findUsersInBuilding(pagination, filter);
     }
 
     public List<ResidentToAdd> getUsersWithoutBuilding() {

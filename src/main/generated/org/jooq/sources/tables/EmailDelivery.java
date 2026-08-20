@@ -173,7 +173,7 @@ public class EmailDelivery extends TableImpl<EmailDeliveryRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_EMAIL_DELIVERY_UNFINISHED);
+        return Arrays.asList(Indexes.IDX_EMAIL_DELIVERY_UNFINISHED, Indexes.IDX_EMAIL_DELIVERY_USER_TYPE);
     }
 
     @Override

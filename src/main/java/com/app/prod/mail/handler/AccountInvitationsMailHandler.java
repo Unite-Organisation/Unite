@@ -10,7 +10,7 @@ import com.app.prod.mail.service.MailDeliveryService;
 import com.app.prod.mail.template.MailTemplate;
 import com.app.prod.mail.template.MailTemplateProcessor;
 import com.app.prod.user.events.AccountInvitation;
-import com.app.prod.user.events.PendingAccountsCreatedEvent;
+import com.app.prod.user.events.AccountsInvitedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PendingAccountsMailHandler implements EventHandler<PendingAccountsCreatedEvent> {
+public class AccountInvitationsMailHandler implements EventHandler<AccountsInvitedEvent> {
 
     private final MailDeliveryService mailDeliveryService;
     private final MailTemplateProcessor mailTemplateRenderer;
@@ -30,7 +30,7 @@ public class PendingAccountsMailHandler implements EventHandler<PendingAccountsC
     private final ActivationProperties activationProperties;
 
     @Override
-    public void handle(PendingAccountsCreatedEvent event) {
+    public void handle(AccountsInvitedEvent event) {
         log.info("Sending {} invitations for building {}", event.invitations().size(), event.buildingId());
 
         for (AccountInvitation invitation : event.invitations()) {
@@ -44,8 +44,8 @@ public class PendingAccountsMailHandler implements EventHandler<PendingAccountsC
     }
 
     @Override
-    public Class<PendingAccountsCreatedEvent> eventType() {
-        return PendingAccountsCreatedEvent.class;
+    public Class<AccountsInvitedEvent> eventType() {
+        return AccountsInvitedEvent.class;
     }
 
     private MailContent content(AccountInvitation invitation) {

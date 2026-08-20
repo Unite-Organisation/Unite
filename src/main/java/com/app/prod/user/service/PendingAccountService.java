@@ -7,12 +7,14 @@ import com.app.prod.eventbus.EventBus;
 import com.app.prod.user.dto.BulkCreationRequest;
 import com.app.prod.user.dto.BulkCreationResponse;
 import com.app.prod.user.dto.CreatedAccount;
+import com.app.prod.user.dto.ExistingAccount;
+import com.app.prod.user.dto.ReinvitedAccount;
 import com.app.prod.user.dto.SkippedEmail;
 import com.app.prod.user.enums.SkipReason;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.events.AccountInvitation;
-import com.app.prod.user.events.PendingAccountsCreatedEvent;
+import com.app.prod.user.events.AccountsInvitedEvent;
 import com.app.prod.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -50,40 +53,60 @@ public class PendingAccountService {
     public BulkCreationResponse createPendingAccounts(BuildingScope scope, BulkCreationRequest request) {
         List<SkippedEmail> skipped = new ArrayList<>();
         Set<String> requested = deduplicate(request.emails(), skipped);
-        Set<String> taken = userRepository.findExistingEmails(requested);
+        Map<String, ExistingAccount> existing = findExisting(requested);
 
-        List<String> toCreate = requested.stream()
-                .filter(email -> {
-                    boolean alreadyUsed = taken.contains(email);
-                    if (alreadyUsed) {
-                        skipped.add(new SkippedEmail(email, SkipReason.EMAIL_ALREADY_USED));
-                    }
-                    return !alreadyUsed;
-                })
-                .toList();
+        List<ReinvitedAccount> reinvited = new ArrayList<>();
+        List<String> toCreate = new ArrayList<>();
 
-        if (toCreate.isEmpty()) {
-            log.info("No accounts to create in building {}, all {} addresses skipped", scope.buildingId(), skipped.size());
-            return new BulkCreationResponse(List.of(), skipped);
+        for (String email : requested) {
+            ExistingAccount account = existing.get(email);
+
+            if (account == null) {
+                toCreate.add(email);
+            } else if (account.awaitsAnInvitationThatNeverArrived()) {
+                reinvited.add(new ReinvitedAccount(account.userId(), account.email()));
+            } else {
+                skipped.add(new SkippedEmail(email, skipReasonFor(account)));
+            }
         }
 
         List<AppUserRecord> accounts = toCreate.stream()
                 .map(email -> pendingAccount(email, scope.buildingId()))
                 .toList();
-        userRepository.insertMany(accounts);
 
-        publishInvitations(scope, accounts);
+        if (accounts.isEmpty() && reinvited.isEmpty()) {
+            log.info("Nothing to invite in building {}, all {} addresses skipped", scope.buildingId(), skipped.size());
+            return new BulkCreationResponse(List.of(), List.of(), skipped);
+        }
 
-        log.info("Created {} pending accounts in building {}, skipped {}", accounts.size(), scope.buildingId(), skipped.size());
+        if (!accounts.isEmpty()) {
+            userRepository.insertMany(accounts);
+        }
+
+        publishInvitations(scope, accounts, reinvited);
+
+        log.info("Building {}: created {} pending accounts, re-invited {}, skipped {}",
+                scope.buildingId(), accounts.size(), reinvited.size(), skipped.size());
         return new BulkCreationResponse(
                 accounts.stream().map(account -> new CreatedAccount(account.getId(), account.getEmail())).toList(),
+                reinvited,
                 skipped
         );
     }
 
-    private void publishInvitations(BuildingScope scope, List<AppUserRecord> accounts) {
-        Map<UUID, String> emailsByUser = accounts.stream()
-                .collect(Collectors.toMap(AppUserRecord::getId, AppUserRecord::getEmail));
+    private Map<String, ExistingAccount> findExisting(Set<String> requested) {
+        return userRepository.findAccountsByEmails(requested).stream()
+                .collect(Collectors.toMap(ExistingAccount::email, Function.identity()));
+    }
+
+    private static SkipReason skipReasonFor(ExistingAccount account) {
+        return account.status() == UserStatus.ACTIVE ? SkipReason.EMAIL_ALREADY_USED : SkipReason.INVITATION_ALREADY_SENT;
+    }
+
+    private void publishInvitations(BuildingScope scope, List<AppUserRecord> accounts, List<ReinvitedAccount> reinvited) {
+        Map<UUID, String> emailsByUser = new LinkedHashMap<>();
+        accounts.forEach(account -> emailsByUser.put(account.getId(), account.getEmail()));
+        reinvited.forEach(account -> emailsByUser.put(account.userId(), account.email()));
 
         List<IssuedActivationToken> tokens = activationTokenService.issueFor(List.copyOf(emailsByUser.keySet()));
         List<AccountInvitation> invitations = tokens.stream()
@@ -95,7 +118,7 @@ public class PendingAccountService {
                 ))
                 .toList();
 
-        eventBus.publish(new PendingAccountsCreatedEvent(scope.buildingId(), invitations));
+        eventBus.publish(new AccountsInvitedEvent(scope.buildingId(), invitations));
     }
 
     private static Set<String> deduplicate(List<String> emails, List<SkippedEmail> skipped) {

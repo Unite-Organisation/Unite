@@ -35,6 +35,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.mail.MailSendException;
 
 import java.time.Duration;
 import java.util.List;
@@ -79,6 +80,7 @@ class PendingAccountInvitationIT extends IntegrationTest {
     @BeforeEach
     void setUp() {
         mailSender.clear();
+        mailSender.rejectAll(false);
 
         var area = areaPersistenceFactory.getNewArea().withRandomValues().buildAndSave();
         buildingId = buildingPersistenceFactory.getNewBuilding().withRandomValues().areaId(area.getId()).buildAndSave().getId();
@@ -147,6 +149,75 @@ class PendingAccountInvitationIT extends IntegrationTest {
         assertThat(response.created()).hasSize(1);
         assertThat(response.skipped()).singleElement()
                 .satisfies(skipped -> assertThat(skipped.reason()).isEqualTo(SkipReason.DUPLICATED_IN_REQUEST));
+        assertThat(mailSender.sent()).hasSize(1);
+    }
+
+    @Test
+    void anInvitationThatNeverArrivedIsRetriedWithoutASecondAccount() {
+        String address = email();
+        mailSender.rejectAll(true);
+        UUID userId = invite(address).created().getFirst().userId();
+
+        mailSender.rejectAll(false);
+        mailSender.clear();
+        BulkCreationResponse retry = invite(address);
+
+        assertThat(retry.created()).isEmpty();
+        assertThat(retry.skipped()).isEmpty();
+        assertThat(retry.reinvited()).singleElement().satisfies(account -> {
+            assertThat(account.email()).isEqualTo(address);
+            assertThat(account.userId()).isEqualTo(userId);
+        });
+        assertThat(accountFor(address).getId()).isEqualTo(userId);
+
+        assertThat(mailSender.sent()).hasSize(1);
+        activationService.activate(activation(onlyToken(), "retried-" + UUID.randomUUID().toString().substring(0, 6)));
+        assertThat(accountFor(address).getStatus()).isEqualTo(UserStatus.ACTIVE.name());
+    }
+
+    @Test
+    void bothInvitationsAreRecordedAsSeparateDeliveries() {
+        String address = email();
+        mailSender.rejectAll(true);
+        invite(address);
+
+        mailSender.rejectAll(false);
+        invite(address);
+
+        List<EmailDeliveryResponse> deliveries = emailDeliveryRepository.findDeliveries(null).stream()
+                .filter(delivery -> delivery.email().equals(address))
+                .toList();
+
+        assertThat(deliveries).hasSize(2);
+        assertThat(deliveries).extracting(EmailDeliveryResponse::status)
+                .containsExactlyInAnyOrder(EmailDeliveryStatus.FAILED, EmailDeliveryStatus.SENT);
+    }
+
+    @Test
+    void anInvitationThatDidArriveIsNotRepeated() {
+        String address = email();
+        invite(address);
+        mailSender.clear();
+
+        BulkCreationResponse retry = invite(address);
+
+        assertThat(retry.created()).isEmpty();
+        assertThat(retry.reinvited()).isEmpty();
+        assertThat(retry.skipped()).singleElement()
+                .satisfies(skipped -> assertThat(skipped.reason()).isEqualTo(SkipReason.INVITATION_ALREADY_SENT));
+        assertThat(mailSender.sent()).isEmpty();
+    }
+
+    @Test
+    void aPendingAccountNobodyEverMailedGetsAnInvitation() {
+        var pending = userPersistanceFactory.getNewUser().withRandomValues()
+                .buildingId(buildingId)
+                .status(UserStatus.CREATED.name())
+                .buildAndSave();
+
+        BulkCreationResponse response = invite(pending.getEmail());
+
+        assertThat(response.reinvited()).extracting(account -> account.userId()).containsExactly(pending.getId());
         assertThat(mailSender.sent()).hasSize(1);
     }
 
@@ -246,10 +317,18 @@ class PendingAccountInvitationIT extends IntegrationTest {
     static class RecordingMailSender implements MailSender {
 
         private final Queue<MailMessage> sent = new ConcurrentLinkedQueue<>();
+        private volatile boolean rejectAll;
 
         @Override
         public void send(MailMessage message) {
+            if (rejectAll) {
+                throw new MailSendException("mailbox unavailable");
+            }
             sent.add(message);
+        }
+
+        void rejectAll(boolean rejectAll) {
+            this.rejectAll = rejectAll;
         }
 
         List<MailMessage> sent() {

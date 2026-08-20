@@ -2,7 +2,13 @@ package com.app.prod.user.repository;
 
 import com.app.prod.area.enums.AreaType;
 import com.app.prod.building.dto.HomePageResponse;
+import com.app.prod.mail.dto.DeliverySummary;
+import com.app.prod.mail.enums.EmailDeliveryStatus;
+import com.app.prod.mail.enums.EmailDeliveryType;
+import com.app.prod.mail.repository.EmailDeliveryFields;
 import com.app.prod.user.dto.BasicUserData;
+import com.app.prod.user.dto.BuildingUserResponse;
+import com.app.prod.user.dto.ExistingAccount;
 import com.app.prod.user.dto.PotentialContactResponse;
 import com.app.prod.user.dto.ResidentToAdd;
 import com.app.prod.user.dto.UserMetaInfo;
@@ -10,7 +16,9 @@ import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.BuildingUserFilter;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.impl.DSL;
@@ -20,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static com.app.prod.user.enums.UserStatus.ACTIVE;
@@ -52,15 +59,18 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
         );
     }
 
-    /**
-     * Compared in lower case, because that is how invitations normalise addresses - otherwise the
-     * same person could be invited again under a different capitalisation.
-     */
-    public Set<String> findExistingEmails(Collection<String> emails) {
-        return dslContext.select(APP_USER.EMAIL)
+    public List<ExistingAccount> findAccountsByEmails(Collection<String> emails) {
+        Field<String> lastInvitation = EmailDeliveryFields.lastDeliveryStatus(APP_USER.ID, EmailDeliveryType.USER_CREATION);
+
+        return dslContext.select(APP_USER.ID, APP_USER.EMAIL, APP_USER.STATUS, lastInvitation)
                 .from(APP_USER)
                 .where(DSL.lower(APP_USER.EMAIL).in(emails))
-                .fetchSet(record -> record.get(APP_USER.EMAIL).toLowerCase(Locale.ROOT));
+                .fetch(record -> new ExistingAccount(
+                        record.get(APP_USER.ID),
+                        record.get(APP_USER.EMAIL).toLowerCase(Locale.ROOT),
+                        UserStatus.valueOf(record.get(APP_USER.STATUS)),
+                        record.get(lastInvitation) == null ? null : EmailDeliveryStatus.valueOf(record.get(lastInvitation))
+                ));
     }
 
     public void activateUser(UUID userId, String username, String password, String firstName, String lastName){
@@ -111,6 +121,40 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                       basicUserData,
                       record.get(BUILDING.ID),
                       record.get(BUILDING.NAME)
+                    );
+                });
+    }
+
+    public List<BuildingUserResponse> findUsersInBuilding(Pagination pagination, BuildingUserFilter filter) {
+        Field<DeliverySummary> invitation = EmailDeliveryFields.lastDelivery(APP_USER.ID, EmailDeliveryType.USER_CREATION);
+
+        return dslContext.select(
+                        APP_USER.ID,
+                        APP_USER.FIRST_NAME,
+                        APP_USER.LAST_NAME,
+                        APP_USER.USERNAME,
+                        APP_USER.EMAIL,
+                        APP_USER.STATUS,
+                        APP_USER.CREATED_AT,
+                        invitation
+                )
+                .from(APP_USER)
+                .where(filter.parseFilter())
+                .orderBy(APP_USER.CREATED_AT.desc(), APP_USER.ID)
+                .offset(pagination.getOffset())
+                .limit(pagination.pageSize())
+                .fetch(record -> {
+                    UserStatus status = UserStatus.valueOf(record.get(APP_USER.STATUS));
+
+                    return new BuildingUserResponse(
+                            record.get(APP_USER.ID),
+                            record.get(APP_USER.FIRST_NAME),
+                            record.get(APP_USER.LAST_NAME),
+                            record.get(APP_USER.USERNAME),
+                            record.get(APP_USER.EMAIL),
+                            status,
+                            record.get(APP_USER.CREATED_AT),
+                            status == UserStatus.ACTIVE ? null : record.get(invitation)
                     );
                 });
     }
