@@ -1,5 +1,7 @@
 package com.app.prod.utils;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
 
 public enum AppProfile {
@@ -22,6 +24,6 @@ public enum AppProfile {
                 return profile;
             }
         }
-        throw new IllegalApplicationStateException("Profile not found: " + profileName);
+        throw new IllegalApplicationStateException(AppError.of(Code.APP_PROFILE_NOT_FOUND));
     }
 }

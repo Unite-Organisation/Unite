@@ -32,9 +32,11 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
+import org.jooq.sources.tables.ActivationToken.ActivationTokenPath;
 import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.BuildingManager.BuildingManagerPath;
 import org.jooq.sources.tables.ConversationMember.ConversationMemberPath;
+import org.jooq.sources.tables.EmailDelivery.EmailDeliveryPath;
 import org.jooq.sources.tables.FacilityReservation.FacilityReservationPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Message.MessagePath;
@@ -47,6 +49,7 @@ import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.RefreshToken.RefreshTokenPath;
 import org.jooq.sources.tables.Request.RequestPath;
 import org.jooq.sources.tables.RequestDonor.RequestDonorPath;
+import org.jooq.sources.tables.UserInteraction.UserInteractionPath;
 import org.jooq.sources.tables.UserRole.UserRolePath;
 import org.jooq.sources.tables.records.AppUserRecord;
 
@@ -80,12 +83,12 @@ public class AppUser extends TableImpl<AppUserRecord> {
     /**
      * The column <code>public.app_user.first_name</code>.
      */
-    public final TableField<AppUserRecord, String> FIRST_NAME = createField(DSL.name("first_name"), SQLDataType.VARCHAR(20).nullable(false), this, "");
+    public final TableField<AppUserRecord, String> FIRST_NAME = createField(DSL.name("first_name"), SQLDataType.VARCHAR(20), this, "");
 
     /**
      * The column <code>public.app_user.last_name</code>.
      */
-    public final TableField<AppUserRecord, String> LAST_NAME = createField(DSL.name("last_name"), SQLDataType.VARCHAR(20).nullable(false), this, "");
+    public final TableField<AppUserRecord, String> LAST_NAME = createField(DSL.name("last_name"), SQLDataType.VARCHAR(20), this, "");
 
     /**
      * The column <code>public.app_user.email</code>.
@@ -228,6 +231,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
         return _userRole;
     }
 
+    private transient ActivationTokenPath _activationToken;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.activation_token</code> table
+     */
+    public ActivationTokenPath activationToken() {
+        if (_activationToken == null)
+            _activationToken = new ActivationTokenPath(this, null, Keys.ACTIVATION_TOKEN__ACTIVATION_TOKEN_USER_ID_FKEY.getInverseKey());
+
+        return _activationToken;
+    }
+
     private transient BuildingManagerPath _buildingManager;
 
     /**
@@ -252,6 +268,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _conversationMember = new ConversationMemberPath(this, null, Keys.CONVERSATION_MEMBER__CONVERSATION_MEMBER_USER_ID_FKEY.getInverseKey());
 
         return _conversationMember;
+    }
+
+    private transient EmailDeliveryPath _emailDelivery;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.email_delivery</code> table
+     */
+    public EmailDeliveryPath emailDelivery() {
+        if (_emailDelivery == null)
+            _emailDelivery = new EmailDeliveryPath(this, null, Keys.EMAIL_DELIVERY__EMAIL_DELIVERY_USER_ID_FKEY.getInverseKey());
+
+        return _emailDelivery;
     }
 
     private transient FacilityReservationPath _facilityReservation;
@@ -405,6 +434,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _request = new RequestPath(this, null, Keys.REQUEST__REQUEST_USER_IN_NEED_FKEY.getInverseKey());
 
         return _request;
+    }
+
+    private transient UserInteractionPath _userInteraction;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.user_interaction</code> table
+     */
+    public UserInteractionPath userInteraction() {
+        if (_userInteraction == null)
+            _userInteraction = new UserInteractionPath(this, null, Keys.USER_INTERACTION__USER_INTERACTION_USER_ID_FKEY.getInverseKey());
+
+        return _userInteraction;
     }
 
     @Override

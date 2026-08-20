@@ -8,7 +8,6 @@ import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PollFilter;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.Record1;
 import org.jooq.impl.DSL;
 import org.jooq.sources.tables.Poll;
 import org.jooq.sources.tables.records.PollRecord;
@@ -82,7 +81,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
                 .join(APP_USER).on(APP_USER.ID.eq(POLL.CREATED_BY))
                 .join(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
                 .where(POLL.ID.in(subQuery))
-                .and(pollFilter.parseFilterAnd())
+                .and(pollFilter.parseFilter())
                 .orderBy(POLL.END_TIME)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())

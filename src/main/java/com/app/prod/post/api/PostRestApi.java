@@ -1,27 +1,23 @@
 package com.app.prod.post.api;
 
+import com.app.prod.access.BuildingScope;
 import com.app.prod.post.dto.AnnouncementRequest;
 import com.app.prod.post.dto.EventRequest;
+import com.app.prod.post.dto.PostFilterRequest;
 import com.app.prod.post.dto.PostResponse;
-import com.app.prod.post.enums.PostType;
 import com.app.prod.post.service.AnnouncementService;
 import com.app.prod.post.service.EventService;
 import com.app.prod.post.service.PostFilteringService;
 import com.app.prod.post.service.PostService;
-import com.app.prod.config.security.GlobalSecurityManager;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
 import com.app.prod.utils.shared.EntityCreatedResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("post")
@@ -30,53 +26,27 @@ import java.util.UUID;
 public class PostRestApi {
 
     private final PostService postService;
-    private final GlobalSecurityManager globalSecurityManager;
     private final EventService eventService;
     private final AnnouncementService announcementService;
     private final PostFilteringService postFilteringService;
 
     @GetMapping()
-    public List<PostResponse> getPosts(
-            @Valid @ModelAttribute Pagination pagination,
-            @RequestParam(required = false) PostType postType
-    ){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        PostFilter filter = postFilteringService.prepareFilter(postType);
-        return postService.getPosts(pagination, userId, filter);
+    @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT', 'ADMIN')")
+    public List<PostResponse> getPosts(BuildingScope scope, @Valid @ModelAttribute PostFilterRequest request){
+        PostFilter filter = postFilteringService.prepareFilter(scope, request);
+        return postService.getPosts(request.pagination(), scope, filter);
     }
 
-    @PatchMapping("/{id}/image")
-    @PreAuthorize("hasRole('MANAGER')")
-    public void addImageForPost(
-            @PathVariable UUID id,
-            @RequestParam("file") MultipartFile photo
-    ){
-        postService.addImageForPost(photo, id);
-    }
-
-    @GetMapping("/{id}/image")
-    public ResponseEntity<byte[]> getPostPhoto(@PathVariable UUID id){
-        var dataPair = postService.getPostPhoto(id);
-
-        return ResponseEntity.ok()
-                .contentType(dataPair.getRight())
-                .body(dataPair.getLeft());
-    }
-
-    /* Announcements */
     @PostMapping("/announcement")
     @PreAuthorize("hasRole('MANAGER')")
-    public EntityCreatedResponse createAnnouncement(@RequestBody AnnouncementRequest request){
-        var userId = globalSecurityManager.getCurrentUser().getId();
-        return announcementService.createAnnouncement(request, userId);
+    public EntityCreatedResponse createAnnouncement(BuildingScope scope, @Valid @RequestBody AnnouncementRequest request){
+        return announcementService.createAnnouncement(request, scope);
     }
 
-    /* Events */
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
-    public EntityCreatedResponse createEvent(@RequestBody EventRequest request){
-        var user = globalSecurityManager.getCurrentUser();
-        return eventService.createEvent(request, user);
+    public EntityCreatedResponse createEvent(BuildingScope scope, @Valid @RequestBody EventRequest request){
+        return eventService.createEvent(request, scope);
     }
 
 }

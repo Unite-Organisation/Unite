@@ -7,6 +7,7 @@ package org.jooq.sources.tables.records;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 import org.jooq.sources.tables.Post;
@@ -49,185 +50,199 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
     }
 
     /**
-     * Setter for <code>public.post.area_id</code>.
-     */
-    public void setAreaId(UUID value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.post.area_id</code>.
-     */
-    public UUID getAreaId() {
-        return (UUID) get(2);
-    }
-
-    /**
      * Setter for <code>public.post.building_id</code>.
      */
     public void setBuildingId(UUID value) {
-        set(3, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>public.post.building_id</code>.
      */
     public UUID getBuildingId() {
-        return (UUID) get(3);
+        return (UUID) get(2);
     }
 
     /**
      * Setter for <code>public.post.created_by</code>.
      */
     public void setCreatedBy(UUID value) {
-        set(4, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.post.created_by</code>.
      */
     public UUID getCreatedBy() {
-        return (UUID) get(4);
+        return (UUID) get(3);
     }
 
     /**
      * Setter for <code>public.post.created_at</code>.
      */
     public void setCreatedAt(LocalDateTime value) {
-        set(5, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.post.created_at</code>.
      */
     public LocalDateTime getCreatedAt() {
-        return (LocalDateTime) get(5);
+        return (LocalDateTime) get(4);
     }
 
     /**
      * Setter for <code>public.post.content</code>.
      */
     public void setContent(String value) {
-        set(6, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.post.content</code>.
      */
     public String getContent() {
-        return (String) get(6);
-    }
-
-    /**
-     * Setter for <code>public.post.image_reference</code>.
-     */
-    public void setImageReference(String value) {
-        set(7, value);
-    }
-
-    /**
-     * Getter for <code>public.post.image_reference</code>.
-     */
-    public String getImageReference() {
-        return (String) get(7);
+        return (String) get(5);
     }
 
     /**
      * Setter for <code>public.post.related_date</code>.
      */
     public void setRelatedDate(LocalDateTime value) {
-        set(8, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>public.post.related_date</code>.
      */
     public LocalDateTime getRelatedDate() {
-        return (LocalDateTime) get(8);
+        return (LocalDateTime) get(6);
     }
 
     /**
      * Setter for <code>public.post.post_type</code>.
      */
     public void setPostType(String value) {
-        set(9, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>public.post.post_type</code>.
      */
     public String getPostType() {
-        return (String) get(9);
+        return (String) get(7);
     }
 
     /**
      * Setter for <code>public.post.start_date_time</code>.
      */
     public void setStartDateTime(LocalDateTime value) {
-        set(10, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>public.post.start_date_time</code>.
      */
     public LocalDateTime getStartDateTime() {
-        return (LocalDateTime) get(10);
+        return (LocalDateTime) get(8);
     }
 
     /**
      * Setter for <code>public.post.end_date_time</code>.
      */
     public void setEndDateTime(LocalDateTime value) {
-        set(11, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>public.post.end_date_time</code>.
      */
     public LocalDateTime getEndDateTime() {
-        return (LocalDateTime) get(11);
+        return (LocalDateTime) get(9);
     }
 
     /**
      * Setter for <code>public.post.location_name</code>.
      */
     public void setLocationName(String value) {
-        set(12, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>public.post.location_name</code>.
      */
     public String getLocationName() {
-        return (String) get(12);
+        return (String) get(10);
     }
 
     /**
      * Setter for <code>public.post.online_url</code>.
      */
     public void setOnlineUrl(String value) {
-        set(13, value);
+        set(11, value);
     }
 
     /**
      * Getter for <code>public.post.online_url</code>.
      */
     public String getOnlineUrl() {
-        return (String) get(13);
+        return (String) get(11);
     }
 
     /**
      * Setter for <code>public.post.max_attendees</code>.
      */
     public void setMaxAttendees(Integer value) {
-        set(14, value);
+        set(12, value);
     }
 
     /**
      * Getter for <code>public.post.max_attendees</code>.
      */
     public Integer getMaxAttendees() {
-        return (Integer) get(14);
+        return (Integer) get(12);
+    }
+
+    /**
+     * Setter for <code>public.post.attachments</code>.
+     */
+    public void setAttachments(JSONB value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>public.post.attachments</code>.
+     */
+    public JSONB getAttachments() {
+        return (JSONB) get(13);
+    }
+
+    /**
+     * Setter for <code>public.post.visible_from</code>.
+     */
+    public void setVisibleFrom(LocalDateTime value) {
+        set(14, value);
+    }
+
+    /**
+     * Getter for <code>public.post.visible_from</code>.
+     */
+    public LocalDateTime getVisibleFrom() {
+        return (LocalDateTime) get(14);
+    }
+
+    /**
+     * Setter for <code>public.post.visible_to</code>.
+     */
+    public void setVisibleTo(LocalDateTime value) {
+        set(15, value);
+    }
+
+    /**
+     * Getter for <code>public.post.visible_to</code>.
+     */
+    public LocalDateTime getVisibleTo() {
+        return (LocalDateTime) get(15);
     }
 
     // -------------------------------------------------------------------------
@@ -253,17 +268,15 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
     /**
      * Create a detached, initialised PostRecord
      */
-    public PostRecord(UUID id, String name, UUID areaId, UUID buildingId, UUID createdBy, LocalDateTime createdAt, String content, String imageReference, LocalDateTime relatedDate, String postType, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees) {
+    public PostRecord(UUID id, String name, UUID buildingId, UUID createdBy, LocalDateTime createdAt, String content, LocalDateTime relatedDate, String postType, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, JSONB attachments, LocalDateTime visibleFrom, LocalDateTime visibleTo) {
         super(Post.POST);
 
         setId(id);
         setName(name);
-        setAreaId(areaId);
         setBuildingId(buildingId);
         setCreatedBy(createdBy);
         setCreatedAt(createdAt);
         setContent(content);
-        setImageReference(imageReference);
         setRelatedDate(relatedDate);
         setPostType(postType);
         setStartDateTime(startDateTime);
@@ -271,6 +284,9 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
         setLocationName(locationName);
         setOnlineUrl(onlineUrl);
         setMaxAttendees(maxAttendees);
+        setAttachments(attachments);
+        setVisibleFrom(visibleFrom);
+        setVisibleTo(visibleTo);
         resetChangedOnNotNull();
     }
 }

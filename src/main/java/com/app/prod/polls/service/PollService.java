@@ -1,6 +1,8 @@
 package com.app.prod.polls.service;
 
 import com.app.prod.area.service.AreaService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.polls.dto.PollRequest;
 import com.app.prod.polls.dto.PollResponse;
@@ -107,11 +109,7 @@ public class PollService {
 
 
     public PollRecord findById(UUID pollId){
-        return pollRepository.findById(pollId).orElseThrow(
-                () -> new EntityNotPresentException(
-                        String.format("Poll with id: %s does not exist", pollId),
-                        Poll.class.getSimpleName()
-                )
-        );
+        return pollRepository.findById(pollId)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.POLL_NOT_FOUND)));
     }
 }

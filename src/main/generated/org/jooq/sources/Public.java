@@ -10,12 +10,14 @@ import java.util.List;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
+import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -34,6 +36,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 
 
@@ -49,6 +52,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.activation_token</code>.
+     */
+    public final ActivationToken ACTIVATION_TOKEN = ActivationToken.ACTIVATION_TOKEN;
 
     /**
      * The table <code>public.app_user</code>.
@@ -79,6 +87,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.conversation_member</code>.
      */
     public final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
+
+    /**
+     * The table <code>public.email_delivery</code>.
+     */
+    public final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
 
     /**
      * The table <code>public.facility</code>.
@@ -171,6 +184,11 @@ public class Public extends SchemaImpl {
     public final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
 
     /**
+     * The table <code>public.user_interaction</code>.
+     */
+    public final UserInteraction USER_INTERACTION = UserInteraction.USER_INTERACTION;
+
+    /**
      * The table <code>public.user_role</code>.
      */
     public final UserRole USER_ROLE = UserRole.USER_ROLE;
@@ -191,12 +209,14 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            ActivationToken.ACTIVATION_TOKEN,
             AppUser.APP_USER,
             Area.AREA,
             Building.BUILDING,
             BuildingManager.BUILDING_MANAGER,
             Conversation.CONVERSATION,
             ConversationMember.CONVERSATION_MEMBER,
+            EmailDelivery.EMAIL_DELIVERY,
             Facility.FACILITY,
             FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
@@ -215,6 +235,7 @@ public class Public extends SchemaImpl {
             RefreshToken.REFRESH_TOKEN,
             Request.REQUEST,
             RequestDonor.REQUEST_DONOR,
+            UserInteraction.USER_INTERACTION,
             UserRole.USER_ROLE
         );
     }

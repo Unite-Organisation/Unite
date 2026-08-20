@@ -1,36 +1,26 @@
 package com.app.prod.requests.service;
 
 import com.app.prod.building.service.BuildingService;
-import com.app.prod.conversation.service.ConversationService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.requests.dto.RequestHelpRequest;
-import com.app.prod.requests.dto.RequestHelpResponse;
 import com.app.prod.requests.dto.RequestRequest;
 import com.app.prod.requests.dto.RequestResponse;
 import com.app.prod.requests.enums.RequestStatus;
 import com.app.prod.requests.mappers.RequestMapper;
-import com.app.prod.requests.repository.RequestDonorRepository;
 import com.app.prod.requests.repository.RequestRepository;
 import com.app.prod.utils.filters.RequestFilter;
-import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.impl.DSL;
-import org.jooq.sources.tables.AppUser;
-import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.records.AppUserRecord;
-import org.jooq.sources.tables.records.RequestDonorRecord;
 import org.jooq.sources.tables.records.RequestRecord;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static com.app.prod.requests.enums.RequestStatus.CANCELLED_BY_AUTHOR;
 
 @Service
 @RequiredArgsConstructor
@@ -50,10 +40,8 @@ public class RequestService {
     }
 
     public RequestRecord getRequest(UUID requestId){
-        return requestRepository.findById(requestId).orElseThrow(() -> new EntityNotPresentException(
-                String.format("Request with id %s not found", requestId),
-                Request.class.getSimpleName()
-        ));
+        return requestRepository.findById(requestId)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.REQUEST_NOT_FOUND)));
     }
 
     public List<RequestResponse> getAllRequests(AppUserRecord user, RequestStatus status) {

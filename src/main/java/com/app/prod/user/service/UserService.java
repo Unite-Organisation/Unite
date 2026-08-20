@@ -2,8 +2,9 @@ package com.app.prod.user.service;
 
 import com.app.prod.authorization.service.ActivationService;
 import com.app.prod.config.security.jwt.JwtService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.internal.clients.ChattingServiceClient;
 import com.app.prod.internal.dtos.UserDto;
 import com.app.prod.job.async.AsyncJobRunner;
 import com.app.prod.job.jobs.SyncUserJob;
@@ -12,11 +13,11 @@ import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
-import com.app.prod.utils.PasswordGenerator;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.BuildingUserFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -84,44 +84,8 @@ public class UserService {
         userRepository.addBuilding(userId, buildingId);
     }
 
-    public BulkCreationResponse bulkCreation(BulkCreationRequest request) {
-        List<PersonToBeCreated> failedCreations = new ArrayList<>();
-
-        for(PersonToBeCreated personToBeCreated : request.personToBeCreateds()){
-            int status = userRepository.insertOne(createNewNonActiveUser(personToBeCreated));
-            if(status == 0){
-                log.warn("User {} {} was not created.", personToBeCreated.firstName(), personToBeCreated.lastName());
-                failedCreations.add(personToBeCreated);
-            }
-            else{
-                log.info("User {} {} was has been created.", personToBeCreated.firstName(), personToBeCreated.lastName());
-            }
-        }
-
-        return BulkCreationResponse.builder()
-                .success(failedCreations.isEmpty())
-                .failedCreations(failedCreations)
-                .build();
-    }
-
-    private AppUserRecord createNewNonActiveUser(PersonToBeCreated personToBeCreated){
-        String temporaryUsername = personToBeCreated.firstName().toLowerCase().charAt(0) + "." + personToBeCreated.lastName();
-        var standardRole = userRoleService.getUserRoleId(UserRole.RESIDENT);
-        var id = UUID.randomUUID();
-        LocalDateTime now = LocalDateTime.now(clock);
-
-        return new AppUserRecord(
-                id,
-                personToBeCreated.firstName(),
-                personToBeCreated.lastName(),
-                null,
-                temporaryUsername,
-                PasswordGenerator.generatePassword(),
-                standardRole,
-                UserStatus.CREATED.name(),
-                now,
-                personToBeCreated.buildingId()
-        );
+    public List<BuildingUserResponse> getUsersInBuilding(Pagination pagination, BuildingUserFilter filter) {
+        return userRepository.findUsersInBuilding(pagination, filter);
     }
 
     public List<ResidentToAdd> getUsersWithoutBuilding() {
@@ -145,11 +109,7 @@ public class UserService {
     }
 
     public AppUserRecord findById(UUID userId){
-        return userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotPresentException(
-                        String.format("User with id: %s does not exist.", userId),
-                        AppUser.class.getSimpleName()
-                )
-        );
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.USER_NOT_FOUND)));
     }
 }

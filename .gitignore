@@ -33,3 +33,7 @@ build/
 
 /src/main/resources/uploads/
 .env
+/src/main/resources/*.json
+
+/src/main/resources/gcp-account-file.json
+gcp-account-file.json

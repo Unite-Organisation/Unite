@@ -5,6 +5,8 @@ import java.util.UUID;
 public record ResidentToAdd(
         String firstName,
         String lastName,
-        UUID userId
+        UUID userId,
+        String username,
+        String email
 ) {
 }

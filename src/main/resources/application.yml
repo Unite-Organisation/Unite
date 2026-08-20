@@ -1,22 +1,26 @@
 spring:
+  profiles:
+    default: dev
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  flyway:
+    locations: classpath:db/migration
+  mail:
+    properties:
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
+
 server:
   servlet:
     context-path: /v1/api
-  port: ${PORT:8080}
 
-jwt:
-  secret: ${JWT_SECRET}
-  expiration-ms: ${JWT_EXPIRATION_TIME}
-  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_TIME}
+security:
+  enabled: true
 
-services:
-  chatting:
-    url: ${CHATTING_SERVICE_URL}
-    apikey: ${CHATTING_API_KEY}
+storage:
+  upload-url-ttl: 15m
+  download-url-ttl: 15m
+  max-file-size: 50MB

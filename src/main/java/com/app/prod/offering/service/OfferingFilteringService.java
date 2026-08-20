@@ -1,11 +1,9 @@
 package com.app.prod.offering.service;
 
 import com.app.prod.area.service.AreaService;
-import com.app.prod.building.service.BuildingService;
 import com.app.prod.offering.enums.OfferingCategory;
+import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.OfferingFilter;
-import com.app.prod.utils.filters.PriceFilter;
-import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
@@ -22,20 +20,15 @@ public class OfferingFilteringService {
     public OfferingFilter prepareFilter(
             AppUserRecord user,
             OfferingCategory category,
-            BigDecimal price,
-            PriceFilter.PriceModifier modifier
+            BigDecimal price, ComparisonFilter.Modifier modifier
     ) {
 
         var areaId = areaService.getUserArea(user);
-        PriceFilter priceFilter = PriceFilter.builder()
-                .price(Optional.ofNullable(price))
-                .priceModifier(modifier)
-                .build();
 
         return OfferingFilter.builder()
                 .category(Optional.ofNullable(category))
                 .areaId(Optional.ofNullable(areaId))
-                .price(priceFilter)
+                .price(ComparisonFilter.of(price, modifier))
                 .build();
     }
 }

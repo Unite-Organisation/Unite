@@ -1,14 +1,16 @@
 package com.app.prod.post.dto;
 
+import com.app.prod.interaction.dto.InteractionSummary;
 import com.app.prod.post.enums.PostType;
+import com.app.prod.storage.dto.FileResponse;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record PostResponse(
         UUID id,
         String name,
-        UUID areaId,
         UUID buildingId,
         UUID createdBy,
         String content,
@@ -20,6 +22,10 @@ public record PostResponse(
         String locationName,
         String onlineUrl,
         Integer maxAttendees,
-        Boolean photoPresent
+        Integer attendeesCount,
+        LocalDateTime visibleFrom,
+        LocalDateTime visibleTo,
+        List<FileResponse> files,
+        List<InteractionSummary> interactions
 ) {
 }

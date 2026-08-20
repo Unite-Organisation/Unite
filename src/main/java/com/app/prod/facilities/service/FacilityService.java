@@ -1,18 +1,18 @@
 package com.app.prod.facilities.service;
 
 import com.app.prod.building.repository.BuildingsManagersRepository;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
-import com.app.prod.facilities.dto.BuildingFacilitiesResponse;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.facilities.repository.FacilityRepository;
-import com.app.prod.user.enums.UserRole;
-import com.app.prod.user.service.UserRoleService;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.FacilityFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.FacilityRecord;
-import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class FacilityService {
         validate.building(buildingId);
 
         if(!buildingsManagersRepository.managerManagesBuilding(buildingId, userId)){
-            throw new BadRequestException(String.format("User %s has not access to building %s", userId, buildingId));
+            throw new BadRequestException(AppError.of(Code.MANAGER_NO_ACCESS));
         }
 
         List<FacilityRecord> records = request.facilities().stream()
@@ -51,7 +51,7 @@ public class FacilityService {
         return String.format("Added %s facilities.", records.size());
     }
 
-    public BuildingFacilitiesResponse getFacilities(AppUserRecord user) {
-        return new BuildingFacilitiesResponse(facilityRepository.getFacilities(user.getId()));
+    public List<FacilityResponse> getFacilities(Pagination pagination, FacilityFilter filter) {
+        return facilityRepository.findFacilities(pagination, filter);
     }
 }
