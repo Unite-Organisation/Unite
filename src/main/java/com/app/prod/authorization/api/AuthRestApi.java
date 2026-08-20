@@ -12,6 +12,7 @@ import com.app.prod.utils.HttpUtils;
 import com.app.prod.utils.SimpleResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -72,7 +73,7 @@ public class AuthRestApi {
     }
 
     @PutMapping("/activate")
-    public ResponseEntity<TokenResponse> activate(@RequestBody UserActivateRequest request){
+    public ResponseEntity<TokenResponse> activate(@Valid @RequestBody UserActivateRequest request){
         String token = userService.activate(request);
         var tokenResponse = new TokenResponse(token);
         return ResponseEntity.ok(tokenResponse);

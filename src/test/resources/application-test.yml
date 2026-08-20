@@ -5,9 +5,36 @@ spring:
         enabled: false
       storage:
         enabled: false
+  mail:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
 
 storage:
   bucket: test-bucket
   upload-url-ttl: 15m
   download-url-ttl: 15m
   max-file-size: 50MB
+
+jwt:
+  secret: test-only-jwt-secret-0123456789-0123456789-0123456789
+  expiration-ms: 300000000
+  refresh-expiration-ms: 604800000
+
+services:
+  chatting:
+    url: http://localhost:8081/v1/api/chat
+    apikey: test-chatting-api-key
+
+mail:
+  from: no-reply@unite.test
+  from-name: Unite
+  locale: pl
+
+activation:
+  link-base-url: http://localhost:3000/activate
+  token-ttl: 7d

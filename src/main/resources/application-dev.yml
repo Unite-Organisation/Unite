@@ -1,12 +1,49 @@
-security:
-  enabled: true
-
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/production
+    username: postgres
+    password: postgres
+  cloud:
+    gcp:
+      project-id: unite-488210
+      credentials:
+        location: classpath:gcp-account-file.json
   flyway:
-    locations: classpath:db/migration
+    enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: derquv@gmail.com
+    password: ""
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
 
-# classpath:db/test-data
+server:
+  port: 8080
 
 springdoc:
   swagger-ui:
     enabled: true
+
+jwt:
+  secret: local-dev-only-jwt-secret-do-not-use-in-production-0123456789
+  expiration-ms: 300000000
+  refresh-expiration-ms: 604800000
+
+storage:
+  bucket: unite-eu-bucket
+
+services:
+  chatting:
+    url: http://localhost:8081/v1/api/chat
+    apikey: local-dev-chatting-api-key
+
+mail:
+  from: no-reply@unite.local
+  from-name: Unite
+  locale: pl
+
+activation:
+  link-base-url: http://localhost:3000/activate
+  token-ttl: 7d
