@@ -9,12 +9,14 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
+import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -35,12 +37,14 @@ import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
 import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
+import org.jooq.sources.tables.records.ActivationTokenRecord;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.AreaRecord;
 import org.jooq.sources.tables.records.BuildingManagerRecord;
 import org.jooq.sources.tables.records.BuildingRecord;
 import org.jooq.sources.tables.records.ConversationMemberRecord;
 import org.jooq.sources.tables.records.ConversationRecord;
+import org.jooq.sources.tables.records.EmailDeliveryRecord;
 import org.jooq.sources.tables.records.FacilityRecord;
 import org.jooq.sources.tables.records.FacilityReservationRecord;
 import org.jooq.sources.tables.records.FlywaySchemaHistoryRecord;
@@ -74,6 +78,8 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<ActivationTokenRecord> ACTIVATION_TOKEN_PKEY = Internal.createUniqueKey(ActivationToken.ACTIVATION_TOKEN, DSL.name("activation_token_pkey"), new TableField[] { ActivationToken.ACTIVATION_TOKEN.ID }, true);
+    public static final UniqueKey<ActivationTokenRecord> ACTIVATION_TOKEN_TOKEN_HASH_KEY = Internal.createUniqueKey(ActivationToken.ACTIVATION_TOKEN, DSL.name("activation_token_token_hash_key"), new TableField[] { ActivationToken.ACTIVATION_TOKEN.TOKEN_HASH }, true);
     public static final UniqueKey<AppUserRecord> APP_USER_EMAIL_KEY = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_email_key"), new TableField[] { AppUser.APP_USER.EMAIL }, true);
     public static final UniqueKey<AppUserRecord> APP_USER_PKEY = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_pkey"), new TableField[] { AppUser.APP_USER.ID }, true);
     public static final UniqueKey<AppUserRecord> APP_USER_USERNAME_KEY = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_username_key"), new TableField[] { AppUser.APP_USER.USERNAME }, true);
@@ -82,6 +88,8 @@ public class Keys {
     public static final UniqueKey<BuildingManagerRecord> BUILDING_MANAGER_PKEY = Internal.createUniqueKey(BuildingManager.BUILDING_MANAGER, DSL.name("building_manager_pkey"), new TableField[] { BuildingManager.BUILDING_MANAGER.ID }, true);
     public static final UniqueKey<ConversationRecord> CONVERSATION_PKEY = Internal.createUniqueKey(Conversation.CONVERSATION, DSL.name("conversation_pkey"), new TableField[] { Conversation.CONVERSATION.ID }, true);
     public static final UniqueKey<ConversationMemberRecord> CONVERSATION_MEMBER_PKEY = Internal.createUniqueKey(ConversationMember.CONVERSATION_MEMBER, DSL.name("conversation_member_pkey"), new TableField[] { ConversationMember.CONVERSATION_MEMBER.ID }, true);
+    public static final UniqueKey<EmailDeliveryRecord> EMAIL_DELIVERY_PKEY = Internal.createUniqueKey(EmailDelivery.EMAIL_DELIVERY, DSL.name("email_delivery_pkey"), new TableField[] { EmailDelivery.EMAIL_DELIVERY.ID }, true);
+    public static final UniqueKey<EmailDeliveryRecord> UQ_EMAIL_DELIVERY = Internal.createUniqueKey(EmailDelivery.EMAIL_DELIVERY, DSL.name("uq_email_delivery"), new TableField[] { EmailDelivery.EMAIL_DELIVERY.DELIVERY_TYPE, EmailDelivery.EMAIL_DELIVERY.REFERENCE_ID, EmailDelivery.EMAIL_DELIVERY.USER_ID }, true);
     public static final UniqueKey<FacilityRecord> FACILITY_PKEY = Internal.createUniqueKey(Facility.FACILITY, DSL.name("facility_pkey"), new TableField[] { Facility.FACILITY.ID }, true);
     public static final UniqueKey<FacilityReservationRecord> FACILITY_RESERVATION_FACILITY_ID_START_TIME_END_TIME_KEY = Internal.createUniqueKey(FacilityReservation.FACILITY_RESERVATION, DSL.name("facility_reservation_facility_id_start_time_end_time_key"), new TableField[] { FacilityReservation.FACILITY_RESERVATION.FACILITY_ID, FacilityReservation.FACILITY_RESERVATION.START_TIME, FacilityReservation.FACILITY_RESERVATION.END_TIME }, true);
     public static final UniqueKey<FacilityReservationRecord> FACILITY_RESERVATION_PKEY = Internal.createUniqueKey(FacilityReservation.FACILITY_RESERVATION, DSL.name("facility_reservation_pkey"), new TableField[] { FacilityReservation.FACILITY_RESERVATION.ID }, true);
@@ -112,6 +120,7 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<ActivationTokenRecord, AppUserRecord> ACTIVATION_TOKEN__ACTIVATION_TOKEN_USER_ID_FKEY = Internal.createForeignKey(ActivationToken.ACTIVATION_TOKEN, DSL.name("activation_token_user_id_fkey"), new TableField[] { ActivationToken.ACTIVATION_TOKEN.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<AppUserRecord, BuildingRecord> APP_USER__APP_USER_BUILDING_ID_FKEY = Internal.createForeignKey(AppUser.APP_USER, DSL.name("app_user_building_id_fkey"), new TableField[] { AppUser.APP_USER.BUILDING_ID }, Keys.BUILDING_PKEY, new TableField[] { Building.BUILDING.ID }, true);
     public static final ForeignKey<AppUserRecord, UserRoleRecord> APP_USER__APP_USER_USER_ROLE_FKEY = Internal.createForeignKey(AppUser.APP_USER, DSL.name("app_user_user_role_fkey"), new TableField[] { AppUser.APP_USER.USER_ROLE }, Keys.USER_ROLE_PKEY, new TableField[] { UserRole.USER_ROLE.ID }, true);
     public static final ForeignKey<BuildingRecord, AreaRecord> BUILDING__BUILDING_AREA_ID_FKEY = Internal.createForeignKey(Building.BUILDING, DSL.name("building_area_id_fkey"), new TableField[] { Building.BUILDING.AREA_ID }, Keys.AREA_PKEY, new TableField[] { Area.AREA.ID }, true);
@@ -119,6 +128,7 @@ public class Keys {
     public static final ForeignKey<BuildingManagerRecord, AppUserRecord> BUILDING_MANAGER__BUILDING_MANAGER_USER_ID_FKEY = Internal.createForeignKey(BuildingManager.BUILDING_MANAGER, DSL.name("building_manager_user_id_fkey"), new TableField[] { BuildingManager.BUILDING_MANAGER.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<ConversationMemberRecord, ConversationRecord> CONVERSATION_MEMBER__CONVERSATION_MEMBER_CONVERSATION_ID_FKEY = Internal.createForeignKey(ConversationMember.CONVERSATION_MEMBER, DSL.name("conversation_member_conversation_id_fkey"), new TableField[] { ConversationMember.CONVERSATION_MEMBER.CONVERSATION_ID }, Keys.CONVERSATION_PKEY, new TableField[] { Conversation.CONVERSATION.ID }, true);
     public static final ForeignKey<ConversationMemberRecord, AppUserRecord> CONVERSATION_MEMBER__CONVERSATION_MEMBER_USER_ID_FKEY = Internal.createForeignKey(ConversationMember.CONVERSATION_MEMBER, DSL.name("conversation_member_user_id_fkey"), new TableField[] { ConversationMember.CONVERSATION_MEMBER.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
+    public static final ForeignKey<EmailDeliveryRecord, AppUserRecord> EMAIL_DELIVERY__EMAIL_DELIVERY_USER_ID_FKEY = Internal.createForeignKey(EmailDelivery.EMAIL_DELIVERY, DSL.name("email_delivery_user_id_fkey"), new TableField[] { EmailDelivery.EMAIL_DELIVERY.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<FacilityRecord, BuildingRecord> FACILITY__FACILITY_BUILDING_ID_FKEY = Internal.createForeignKey(Facility.FACILITY, DSL.name("facility_building_id_fkey"), new TableField[] { Facility.FACILITY.BUILDING_ID }, Keys.BUILDING_PKEY, new TableField[] { Building.BUILDING.ID }, true);
     public static final ForeignKey<FacilityReservationRecord, FacilityRecord> FACILITY_RESERVATION__FACILITY_RESERVATION_FACILITY_ID_FKEY = Internal.createForeignKey(FacilityReservation.FACILITY_RESERVATION, DSL.name("facility_reservation_facility_id_fkey"), new TableField[] { FacilityReservation.FACILITY_RESERVATION.FACILITY_ID }, Keys.FACILITY_PKEY, new TableField[] { Facility.FACILITY.ID }, true);
     public static final ForeignKey<FacilityReservationRecord, AppUserRecord> FACILITY_RESERVATION__FACILITY_RESERVATION_USER_ID_FKEY = Internal.createForeignKey(FacilityReservation.FACILITY_RESERVATION, DSL.name("facility_reservation_user_id_fkey"), new TableField[] { FacilityReservation.FACILITY_RESERVATION.USER_ID }, Keys.APP_USER_PKEY, new TableField[] { AppUser.APP_USER.ID }, true);

@@ -1,8 +1,5 @@
 package com.app.prod.authorization.service;
 
-import com.app.prod.exceptions.AppError;
-import com.app.prod.exceptions.Code;
-import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.user.dto.UserActivateRequest;
 import com.app.prod.user.repository.UserRepository;
 import com.app.prod.utils.validators.Validate;
@@ -11,24 +8,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ActivationService {
 
     private final UserRepository userRepository;
+    private final ActivationTokenService activationTokenService;
     private final BCryptPasswordEncoder encoder;
     private final Validate validate;
 
     public void activate(UserActivateRequest request){
-        if(!userRepository.temporaryCredentialsAreValid(request.temporaryLogin(), request.temporaryPassword())){
-            throw new BadRequestException(AppError.of(Code.BAD_CREDENTIALS));
-        }
+        UUID userId = activationTokenService.consume(request.token());
 
         validate.thatUsernameIsFree(request.username());
 
         String encodedPassword = encoder.encode(request.password());
-        userRepository.activateUser(request.temporaryLogin(), request.email(), request.username(), encodedPassword);
-        log.info("User {} has been activated", request.username());
+        userRepository.activateUser(userId, request.username(), encodedPassword, request.firstName(), request.lastName());
+        log.info("User {} has been activated as {}", userId, request.username());
     }
 }

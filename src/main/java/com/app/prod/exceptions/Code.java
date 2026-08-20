@@ -48,9 +48,16 @@ public enum Code {
     INTERACTION_NOT_SUPPORTED("interaction_not_supported", "Interaction is not supported for this entity"),
     EVENT_MAX_ATTENDEES("event_max_attendees", "Reached limit of event attendees"),
 
+    ACTIVATION_TOKEN_INVALID("activation_token_invalid", "Activation link is not valid"),
+    ACTIVATION_TOKEN_EXPIRED("activation_token_expired", "Activation link has expired"),
+    ACTIVATION_TOKEN_USED("activation_token_used", "Activation link has already been used"),
+
     //errors
+    EVENT_HANDLER_NOT_FOUND("event_handler_not_found", "No handler registered for event"),
+    EVENT_HANDLER_DUPLICATED("event_handler_duplicated", "Event is handled by more than one handler"),
     JSON_SERIALIZATION_ERROR("json_serialization_error", "Could not read or write json data"),
     INTERNAL_CONNECTION_ERROR("internal_connection", "Internal connection error"),
+    MAIL_SENDING_FAILED("mail_sending_failed", "Mail could not be sent"),
     APP_PROFILE_NOT_FOUND("app_profile_not_found", "App profile not found"),
     REFRESH_TOKEN_ERROR("refresh_token_error", "Refresh token error");
 

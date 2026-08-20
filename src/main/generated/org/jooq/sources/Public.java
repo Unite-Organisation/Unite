@@ -10,12 +10,14 @@ import java.util.List;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
+import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -52,6 +54,11 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.activation_token</code>.
+     */
+    public final ActivationToken ACTIVATION_TOKEN = ActivationToken.ACTIVATION_TOKEN;
+
+    /**
      * The table <code>public.app_user</code>.
      */
     public final AppUser APP_USER = AppUser.APP_USER;
@@ -80,6 +87,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.conversation_member</code>.
      */
     public final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
+
+    /**
+     * The table <code>public.email_delivery</code>.
+     */
+    public final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
 
     /**
      * The table <code>public.facility</code>.
@@ -197,12 +209,14 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            ActivationToken.ACTIVATION_TOKEN,
             AppUser.APP_USER,
             Area.AREA,
             Building.BUILDING,
             BuildingManager.BUILDING_MANAGER,
             Conversation.CONVERSATION,
             ConversationMember.CONVERSATION_MEMBER,
+            EmailDelivery.EMAIL_DELIVERY,
             Facility.FACILITY,
             FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(content)" th:lang="${#locale.language}" lang="pl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${appName}">Unite</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;600&display=swap"
+          rel="stylesheet"/>
+</head>
+<body style="margin:0; padding:0; background-color:#f7f3ee; font-family:'Outfit',Helvetica,Arial,sans-serif; color:#1e1a16;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background-color:#f7f3ee; padding:40px 12px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="max-width:560px; background-color:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #ddd4c6;">
+                <tr>
+                    <td style="background-color:#ede7dc; padding:22px 32px; border-bottom:1px solid #ddd4c6;">
+                        <span th:text="${appName}"
+                              style="font-family:'DM Serif Display',Georgia,'Times New Roman',serif; color:#c0563a; font-size:24px; letter-spacing:0.3px;">Unite</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:36px 32px;">
+                        <th:block th:replace="${content}"></th:block>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background-color:#f7f3ee; padding:20px 32px; border-top:1px solid #ddd4c6;">
+                        <p th:text="#{mail.common.footer(${appName})}"
+                           style="margin:0; font-size:12px; line-height:18px; color:#7a6f64;">
+                            Wiadomosc wygenerowana automatycznie.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -4,12 +4,14 @@
 package org.jooq.sources;
 
 
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
+import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -37,6 +39,11 @@ import org.jooq.sources.tables.UserRole;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.activation_token</code>.
+     */
+    public static final ActivationToken ACTIVATION_TOKEN = ActivationToken.ACTIVATION_TOKEN;
 
     /**
      * The table <code>public.app_user</code>.
@@ -67,6 +74,11 @@ public class Tables {
      * The table <code>public.conversation_member</code>.
      */
     public static final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
+
+    /**
+     * The table <code>public.email_delivery</code>.
+     */
+    public static final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
 
     /**
      * The table <code>public.facility</code>.
