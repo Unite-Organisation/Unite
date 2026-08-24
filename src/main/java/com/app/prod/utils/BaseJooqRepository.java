@@ -55,4 +55,11 @@ public abstract class BaseJooqRepository<T extends Table<R>, R extends Updatable
                 .fetch();
     }
 
+    protected static <R1 extends org.jooq.Record> ResultQuery<R1> paginated(SelectLimitStep<R1> query, Pagination pagination){
+        if (pagination == null) {
+            return query;
+        }
+        return query.offset(pagination.getOffset()).limit(pagination.pageSize());
+    }
+
 }

@@ -18,6 +18,7 @@ public enum Code {
     POLL_NOT_FINISHED("poll_not_finished", "Poll is not finished yet"),
     MANAGER_CANNOT_VOTE("manager_cannot_vote", "Manager cannot vote"),
     MANAGER_NO_ACCESS("manager_no_access", "Manager no access"),
+    NOT_OWN_RESOURCE("not_own_resource", "You dont have access to this resource"),
     USER_NOT_FOUND("user_not_found", "User not found"),
     BAD_CREDENTIALS("bad_credentials", "Bad credentials"),
     USERNAME_TAKEN("username_taken", "Username is taken"),

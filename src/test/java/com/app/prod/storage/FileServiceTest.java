@@ -31,13 +31,11 @@ import java.util.UUID;
 import static com.app.prod.storage.ContextStoragePrefix.ANNOUNCEMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -135,14 +133,14 @@ class FileServiceTest {
     }
 
     @Test
-    void shouldRejectKeyThatIsNotPending() {
+    void shouldAcceptAlsoValidatedKeys() {
         String confirmedKey = StorageKeys.build(ANNOUNCEMENT, USER_ID, "cat.jpg");
         when(storage.find(confirmedKey)).thenReturn(Optional.of(new StoredObject(confirmedKey, "image/jpeg", ONE_MEGABYTE)));
 
-        assertThatThrownBy(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(confirmedKey)))
-                .isInstanceOf(BadRequestException.class);
-        verify(storage, never()).find(anyString());
-        verify(storage, never()).move(anyString(), anyString());
+        assertThatCode(() -> fileService.confirmUploaded(ANNOUNCEMENT, USER_ID, List.of(confirmedKey)))
+                .doesNotThrowAnyException();
+
+        verify(storage, times(1)).find(confirmedKey);
     }
 
     @Test

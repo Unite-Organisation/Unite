@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AccountInvitationsMailHandler implements EventHandler<AccountsInvitedEvent> {
+public class AccountInvitationsMailEventHandler implements EventHandler<AccountsInvitedEvent> {
 
     private final MailDeliveryService mailDeliveryService;
     private final MailTemplateProcessor mailTemplateRenderer;

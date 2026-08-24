@@ -113,15 +113,6 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     }
 
     @Test
-    void shouldRejectKeyThatIsAlreadyConfirmed() {
-        var confirmedKey = StorageKeys.build(ContextStoragePrefix.ANNOUNCEMENT, managerId, "cat.jpg");
-        storage.put(confirmedKey, "image/jpeg", ONE_MEGABYTE);
-
-        assertThatThrownBy(() -> announcementService.createAnnouncement(request("Reused", List.of(confirmedKey)), managerScope))
-                .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
     void shouldReturnEmptyFileListWhenAnnouncementHasNoAttachments() {
         announcementService.createAnnouncement(request("No photos", null), managerScope);
 
@@ -176,7 +167,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     }
 
     private AnnouncementRequest request(String name, List<String> fileKeys) {
-        return new AnnouncementRequest(name, "content", null, PostType.ANNOUNCEMENT, null, null, fileKeys);
+        return new AnnouncementRequest(null, name, "content", null, PostType.ANNOUNCEMENT, null, null, fileKeys);
     }
 
     private PostResponse onlyAnnouncementFor(UUID userId) {

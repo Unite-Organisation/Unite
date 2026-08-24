@@ -136,12 +136,12 @@ public class Post extends TableImpl<PostRecord> {
     /**
      * The column <code>public.post.visible_from</code>.
      */
-    public final TableField<PostRecord, LocalDateTime> VISIBLE_FROM = createField(DSL.name("visible_from"), SQLDataType.LOCALDATETIME(6), this, "");
+    public final TableField<PostRecord, LocalDateTime> VISIBLE_FROM = createField(DSL.name("visible_from"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "");
 
     /**
      * The column <code>public.post.visible_to</code>.
      */
-    public final TableField<PostRecord, LocalDateTime> VISIBLE_TO = createField(DSL.name("visible_to"), SQLDataType.LOCALDATETIME(6), this, "");
+    public final TableField<PostRecord, LocalDateTime> VISIBLE_TO = createField(DSL.name("visible_to"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "");
 
     private Post(Name alias, Table<PostRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -252,7 +252,7 @@ public class Post extends TableImpl<PostRecord> {
     @Override
     public List<Check<PostRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("visible_window_valid"), "(((visible_from IS NULL) OR (visible_to IS NULL) OR (visible_from <= visible_to)))", true)
+            Internal.createCheck(this, DSL.name("visible_window_valid"), "((visible_from <= visible_to))", true)
         );
     }
 

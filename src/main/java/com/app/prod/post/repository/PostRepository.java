@@ -35,7 +35,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
     public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
         Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, viewerId);
 
-        return dslContext.select(
+        var query = dslContext.select(
                         POST.ID,
                         POST.NAME,
                         POST.BUILDING_ID,
@@ -56,9 +56,9 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                 )
                 .from(POST)
                 .where(filter.parseFilter())
-                .orderBy(POST.CREATED_AT)
-                .offset(pagination.getOffset())
-                .limit(pagination.pageSize())
+                .orderBy(POST.CREATED_AT);
+
+        return paginated(query, pagination)
                 .fetch(record -> {
                     List<InteractionSummary> postInteractions = record.get(interactions);
 

@@ -34,7 +34,7 @@ public class PostRestApi {
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT', 'ADMIN')")
     public List<PostResponse> getPosts(BuildingScope scope, @Valid @ModelAttribute PostFilterRequest request){
         PostFilter filter = postFilteringService.prepareFilter(scope, request);
-        return postService.getPosts(request.pagination(), scope, filter);
+        return postService.getPosts(filter, request.pagination(), scope);
     }
 
     @PostMapping("/announcement")
@@ -47,6 +47,18 @@ public class PostRestApi {
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
     public EntityCreatedResponse createEvent(BuildingScope scope, @Valid @RequestBody EventRequest request){
         return eventService.createEvent(request, scope);
+    }
+
+    @PutMapping("/announcement/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
+    public PostResponse updateAnnouncement(BuildingScope scope, @Valid @RequestBody AnnouncementRequest request) {
+        return announcementService.updateAnnouncement(scope, request);
+    }
+
+    @PutMapping("/event/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
+    public PostResponse updateEvent(BuildingScope scope, @Valid @RequestBody EventRequest request) {
+        return eventService.updateEvent(scope, request);
     }
 
 }

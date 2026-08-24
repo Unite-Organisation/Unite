@@ -63,9 +63,15 @@ public class FileService {
         validateNoDuplicates(keys);
 
         List<StoredObject> pending = keys.stream()
+                .filter(StorageKeys::isPending)
                 .map(key -> validatePending(context, userId, key))
                 .toList();
-        List<StoredFile> attachments = promoteAll(pending, LocalDateTime.now(clock));
+        List<StoredObject> validated = keys.stream()
+                .filter(key -> !StorageKeys.isPending(key))
+                .map(key -> validateUploaded(context, userId, key))
+                .toList();
+
+        List<StoredFile> attachments = promoteAll(pending, validated, LocalDateTime.now(clock));
 
         log.info("Confirmed {} uploaded files for context {}", attachments.size(), context);
         return jsonbService.toJsonb(attachments);
@@ -77,9 +83,13 @@ public class FileService {
     }
 
     public List<FileResponse> toResponses(JSONB attachments) {
-        return jsonbService.listFromJsonb(attachments, StoredFile.class).stream()
+        return toStoredFiles(attachments).stream()
                 .map(file -> new FileResponse(file.key(), storage.getPrivateFileUrl(file.key()), file.contentType()))
                 .toList();
+    }
+
+    public List<StoredFile> toStoredFiles(JSONB attachments) {
+        return jsonbService.listFromJsonb(attachments, StoredFile.class);
     }
 
     private StoredObject validatePending(ContextStoragePrefix context, UUID userId, String key) {
@@ -95,7 +105,15 @@ public class FileService {
         return object;
     }
 
-    private List<StoredFile> promoteAll(List<StoredObject> pending, LocalDateTime now) {
+    private StoredObject validateUploaded(ContextStoragePrefix context, UUID userId, String key) {
+        StoredObject object = storage.find(key)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.FILE_NOT_FOUND, "File %s was not uploaded".formatted(key))));
+
+        validateStoredObject(context, object);
+        return object;
+    }
+
+    private List<StoredFile> promoteAll(List<StoredObject> pending, List<StoredObject> validated, LocalDateTime now) {
         List<StoredFile> promoted = new ArrayList<>();
 
         try {
@@ -103,6 +121,9 @@ public class FileService {
                 String confirmedKey = StorageKeys.confirmedKeyOf(object.key());
                 storage.move(object.key(), confirmedKey);
                 promoted.add(new StoredFile(confirmedKey, object.contentType(), object.size(), now));
+            }
+            for (StoredObject object : validated) {
+                promoted.add(new StoredFile(object.key(), object.contentType(), object.size(), now));
             }
             return List.copyOf(promoted);
         } catch (RuntimeException exception) {
@@ -112,7 +133,7 @@ public class FileService {
         }
     }
 
-    private void safeDelete(String key) {
+    public void safeDelete(String key) {
         try {
             storage.delete(key);
         } catch (RuntimeException exception) {

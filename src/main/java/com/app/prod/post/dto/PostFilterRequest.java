@@ -18,7 +18,8 @@ import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public class PostFilterRequest extends FilterRequest {
+public class  PostFilterRequest extends FilterRequest {
+    private UUID id;
     private PostType postType;
     private UUID createdBy;
 
