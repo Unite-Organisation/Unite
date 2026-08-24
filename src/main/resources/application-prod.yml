@@ -8,4 +8,4 @@ spring:
 
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
