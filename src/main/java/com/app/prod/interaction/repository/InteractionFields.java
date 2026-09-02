@@ -3,6 +3,8 @@ package com.app.prod.interaction.repository;
 import com.app.prod.interaction.dto.InteractionSummary;
 import com.app.prod.interaction.enums.InteractionEntityType;
 import com.app.prod.interaction.enums.InteractionType;
+import com.app.prod.utils.filters.Related;
+import org.jooq.Condition;
 import org.jooq.Field;
 
 import java.util.List;
@@ -29,5 +31,13 @@ public class InteractionFields {
                         record.get(interactionCount),
                         record.get(reactedByCurrentUser)
                 )));
+    }
+
+    public static Condition reactedBy(Field<UUID> entityId, InteractionEntityType entityType, InteractionType interactionType, UUID userId) {
+        return Related.existsIn(USER_INTERACTION,
+                USER_INTERACTION.ENTITY_ID.eq(entityId),
+                USER_INTERACTION.ENTITY_TYPE.eq(entityType.name()),
+                USER_INTERACTION.INTERACTION_TYPE.eq(interactionType.name()),
+                USER_INTERACTION.USER_ID.eq(userId));
     }
 }

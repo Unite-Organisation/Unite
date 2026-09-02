@@ -3,13 +3,13 @@ package com.app.prod.post.service;
 import com.app.prod.access.BuildingScope;
 import com.app.prod.post.dto.PostFilterRequest;
 import com.app.prod.utils.filters.ComparisonFilter;
+import com.app.prod.utils.filters.Filter;
 import com.app.prod.utils.filters.PostFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -30,9 +30,10 @@ public class PostFilteringService {
         }
 
         return PostFilter.builder()
-                .buildingId(scope.buildingId())
-                .createdBy(Optional.ofNullable(request.getCreatedBy()))
-                .postType(Optional.ofNullable(request.getPostType()))
+                .buildingId(Filter.of(scope.buildingId()))
+                .createdBy(Filter.of(request.getCreatedBy()))
+                .postType(Filter.of(request.getPostType()))
+                .attendedBy(Filter.of(request.getAttendedBy()))
                 .visibleFrom(visibleFromFilter)
                 .visibleTo(visibleToFilter)
                 .build();

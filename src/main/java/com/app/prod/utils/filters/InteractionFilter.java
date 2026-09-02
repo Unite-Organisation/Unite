@@ -6,29 +6,27 @@ import lombok.Builder;
 import org.jooq.Condition;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.app.prod.utils.filters.Criteria.match;
+import static com.app.prod.utils.filters.Criteria.matchEnum;
 import static org.jooq.sources.Tables.USER_INTERACTION;
 
 @Builder
 public class InteractionFilter implements PredicateFilter {
-    Optional<InteractionEntityType> entityType;
-    Optional<UUID> entityId;
-    Optional<InteractionType> interactionType;
-    ComparisonFilter<LocalDateTime> createdAt;
+    Filter<InteractionEntityType> entityType;
+    Filter<UUID> entityId;
+    Filter<InteractionType> interactionType;
+    Filter<LocalDateTime> createdAt;
 
     @Override
     public List<Condition> combineConditions() {
-        List<Condition> conditionList = new ArrayList<>();
-
-        entityType.ifPresent(r -> conditionList.add(USER_INTERACTION.ENTITY_TYPE.eq(r.name())));
-        entityId.ifPresent(r -> conditionList.add(USER_INTERACTION.ENTITY_ID.eq(r)));
-        interactionType.ifPresent(r -> conditionList.add(USER_INTERACTION.INTERACTION_TYPE.eq(r.name())));
-        createdAt.toCondition(USER_INTERACTION.CREATED_AT).ifPresent(conditionList::add);
-
-        return conditionList;
+        return Criteria.of(
+                matchEnum(USER_INTERACTION.ENTITY_TYPE, entityType),
+                match(USER_INTERACTION.ENTITY_ID, entityId),
+                matchEnum(USER_INTERACTION.INTERACTION_TYPE, interactionType),
+                match(USER_INTERACTION.CREATED_AT, createdAt)
+        );
     }
 }

@@ -25,6 +25,7 @@ public enum Code {
     UNKNOWN_ERROR("unknown_error", "Unknown error occurred"),
     VALIDATION_ERROR("validation_error", "Request is not valid"),
     CONFLICTING_FILTERS("conflicting_filters", "Filter parameters exclude each other"),
+    MANDATORY_FILTER_MISSING("mandatory_filter_missing", "Mandatory filter value is missing"),
     JWT_TOKEN_EXPIRED("jwt_token_expired", "Authorization token has expired"),
     ACCESS_DENIED("access_denied", "Access denied"),
     BUILDING_ACCESS_DENIED("building_access_denied", "No access to this building"),

@@ -1,15 +1,17 @@
 package com.app.prod.utils.filters;
 
-import lombok.Builder;
 import org.jooq.Condition;
 import org.jooq.Field;
 
 import java.util.Optional;
 
-@Builder
-public class ComparisonFilter<T> {
-    public Optional<T> value;
-    public Modifier modifier;
+/**
+ * A {@link Filter} comparing with an operator instead of equality - the value plus the
+ * {@code <field>Modifier} request param that says which way to compare it.
+ */
+public class ComparisonFilter<T> extends Filter<T> {
+
+    private final Modifier modifier;
 
     public enum Modifier {
         LESS_OR_EQUAL_THAN,
@@ -17,31 +19,25 @@ public class ComparisonFilter<T> {
         EQUAL
     }
 
-    public boolean isEmpty() {
-        return value.isEmpty();
-    }
-
-    public static <T> ComparisonFilter<T> empty() {
-        return ComparisonFilter.of(null, null);
+    private ComparisonFilter(T value, Modifier modifier) {
+        super(value);
+        this.modifier = modifier == null ? Modifier.EQUAL : modifier;
     }
 
     public static <T> ComparisonFilter<T> of(T value, Modifier modifier) {
-        return ComparisonFilter.<T>builder()
-                .value(Optional.ofNullable(value))
-                .modifier(modifier == null ? Modifier.EQUAL : modifier)
-                .build();
+        return new ComparisonFilter<>(value, modifier);
     }
 
-    public Optional<Condition> toCondition(Field<T> field) {
-        if (isEmpty()) {
-            return Optional.empty();
-        }
+    public static <T> ComparisonFilter<T> empty() {
+        return new ComparisonFilter<>(null, null);
+    }
 
-        var effective = modifier == null ? Modifier.EQUAL : modifier;
-        return value.map(r -> switch (effective) {
-            case LESS_OR_EQUAL_THAN -> field.le(r);
-            case GREATER_OR_EQUAL_THAN -> field.ge(r);
-            case EQUAL -> field.eq(r);
+    @Override
+    public Optional<Condition> toCondition(Field<T> field) {
+        return value().map(v -> switch (modifier) {
+            case LESS_OR_EQUAL_THAN -> field.le(v);
+            case GREATER_OR_EQUAL_THAN -> field.ge(v);
+            case EQUAL -> field.eq(v);
         });
     }
 }

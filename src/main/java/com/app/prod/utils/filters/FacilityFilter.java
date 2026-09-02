@@ -4,30 +4,29 @@ import com.app.prod.facilities.enums.FacilityType;
 import lombok.Builder;
 import org.jooq.Condition;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.app.prod.utils.filters.Criteria.match;
+import static com.app.prod.utils.filters.Criteria.matchEnum;
+import static com.app.prod.utils.filters.Criteria.required;
 import static org.jooq.sources.Tables.FACILITY;
 
 @Builder
 public class FacilityFilter implements PredicateFilter {
-    UUID buildingId;
-    Optional<FacilityType> facilityType;
-    Optional<Boolean> requiresApproval;
-    ComparisonFilter<Integer> capacity;
+    Filter<UUID> buildingId;
+    Filter<FacilityType> facilityType;
+    Filter<Boolean> requiresApproval;
+    Filter<Integer> capacity;
 
     @Override
     public List<Condition> combineConditions() {
-        List<Condition> conditionList = new ArrayList<>();
-
-        conditionList.add(FACILITY.BUILDING_ID.eq(buildingId));
-        facilityType.ifPresent(type -> conditionList.add(FACILITY.TYPE.eq(type.name())));
-        requiresApproval.ifPresent(flag -> conditionList.add(FACILITY.REQUIRES_APPROVAL.eq(flag)));
-        capacity.toCondition(FACILITY.CAPACITY).ifPresent(conditionList::add);
-
-        return conditionList;
+        return Criteria.of(
+                required(FACILITY.BUILDING_ID, buildingId),
+                matchEnum(FACILITY.TYPE, facilityType),
+                match(FACILITY.REQUIRES_APPROVAL, requiresApproval),
+                match(FACILITY.CAPACITY, capacity)
+        );
     }
 
 }

@@ -3,13 +3,13 @@ package com.app.prod.offering.service;
 import com.app.prod.area.service.AreaService;
 import com.app.prod.offering.enums.OfferingCategory;
 import com.app.prod.utils.filters.ComparisonFilter;
+import com.app.prod.utils.filters.Filter;
 import com.app.prod.utils.filters.OfferingFilter;
 import lombok.RequiredArgsConstructor;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -26,8 +26,8 @@ public class OfferingFilteringService {
         var areaId = areaService.getUserArea(user);
 
         return OfferingFilter.builder()
-                .category(Optional.ofNullable(category))
-                .areaId(Optional.ofNullable(areaId))
+                .category(Filter.of(category))
+                .areaId(Filter.of(areaId))
                 .price(ComparisonFilter.of(price, modifier))
                 .build();
     }
