@@ -21,6 +21,7 @@ import com.app.prod.storage.dto.FileResponse;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.ComparisonFilter;
+import com.app.prod.utils.filters.Filter;
 import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -78,10 +78,9 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
 
         managerScope = TestBuildingScope.of(buildingId, managerId, UserRole.MANAGER);
         filter = PostFilter.builder()
-                .buildingId(buildingId)
-                .postType(Optional.of(PostType.ANNOUNCEMENT))
-                .createdBy(Optional.empty())
-                .visibleFrom(ComparisonFilter.empty())
+                .buildingId(Filter.of(buildingId))
+                .postType(Filter.of(PostType.ANNOUNCEMENT))
+                                .visibleFrom(ComparisonFilter.empty())
                 .visibleTo(ComparisonFilter.empty())
                 .build();
     }

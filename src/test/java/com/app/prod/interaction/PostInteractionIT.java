@@ -203,6 +203,38 @@ public class PostInteractionIT extends IntegrationTest {
                 .containsExactly(1);
     }
 
+    @Test
+    void shouldReturnOnlyPostsTheGivenUserAttends() {
+        var attended = event("Barbecue").getId();
+        event("Cleanup");
+
+        interactionService.addInteraction(residentScope, attending(attended));
+
+        assertThat(attendedBy(residentId)).containsExactly("Barbecue");
+        assertThat(attendedBy(otherResidentId)).isEmpty();
+    }
+
+    @Test
+    void shouldStopReturningPostOnceAttendanceIsWithdrawn() {
+        var eventId = event("Meeting").getId();
+
+        interactionService.addInteraction(residentScope, attending(eventId));
+        assertThat(attendedBy(residentId)).containsExactly("Meeting");
+
+        interactionService.removeInteraction(residentScope, POST, eventId, ATTENDING);
+        assertThat(attendedBy(residentId)).isEmpty();
+    }
+
+    @Test
+    void shouldReturnPostWithManyAttendeesOnce() {
+        var eventId = event("Party").getId();
+
+        interactionService.addInteraction(residentScope, attending(eventId));
+        interactionService.addInteraction(otherResidentScope, attending(eventId));
+
+        assertThat(attendedBy(residentId)).containsExactly("Party");
+    }
+
     private static <T> T get(Future<T> future) {
         try {
             return future.get(10, TimeUnit.SECONDS);
@@ -222,6 +254,15 @@ public class PostInteractionIT extends IntegrationTest {
                 .map(PostResponse::interactions)
                 .findFirst()
                 .orElseThrow();
+    }
+
+    private List<String> attendedBy(UUID userId) {
+        var request = PostFilterRequest.builder().attendedBy(userId).build();
+        var filter = postFilteringService.prepareFilter(residentScope, request);
+
+        return postRepository.findPosts(residentId, pagination(), filter).stream()
+                .map(PostResponse::name)
+                .toList();
     }
 
     private Pagination pagination() {

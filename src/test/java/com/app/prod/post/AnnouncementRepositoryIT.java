@@ -14,6 +14,7 @@ import com.app.prod.post.repository.PostRepository;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.ComparisonFilter;
+import com.app.prod.utils.filters.Filter;
 import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.app.prod.post.enums.PostType.ANNOUNCEMENT;
@@ -146,10 +146,9 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
 
     private PostFilter filter(BuildingScope scope, PostType postType){
         return PostFilter.builder()
-                .buildingId(scope.buildingId())
-                .postType(Optional.of(postType))
-                .createdBy(Optional.empty())
-                .visibleFrom(ComparisonFilter.empty())
+                .buildingId(Filter.of(scope.buildingId()))
+                .postType(Filter.of(postType))
+                                .visibleFrom(ComparisonFilter.empty())
                 .visibleTo(ComparisonFilter.empty())
                 .build();
     }

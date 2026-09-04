@@ -21,6 +21,7 @@ import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME
 public class PostFilterRequest extends FilterRequest {
     private PostType postType;
     private UUID createdBy;
+    private UUID attendedBy;
 
     @DateTimeFormat(iso = DATE_TIME)
     private LocalDateTime visibleFrom;

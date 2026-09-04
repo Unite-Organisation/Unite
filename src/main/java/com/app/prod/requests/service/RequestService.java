@@ -9,6 +9,7 @@ import com.app.prod.requests.dto.RequestResponse;
 import com.app.prod.requests.enums.RequestStatus;
 import com.app.prod.requests.mappers.RequestMapper;
 import com.app.prod.requests.repository.RequestRepository;
+import com.app.prod.utils.filters.Filter;
 import com.app.prod.utils.filters.RequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -58,9 +58,9 @@ public class RequestService {
 
     private RequestFilter prepareFilter(UUID areaId, RequestStatus status, UUID creator){
         return RequestFilter.builder()
-                .areaId(Optional.ofNullable(areaId))
-                .status(Optional.ofNullable(status))
-                .requestCreatorId(Optional.ofNullable(creator))
+                .areaId(Filter.of(areaId))
+                .status(Filter.of(status))
+                .requestCreatorId(Filter.of(creator))
                 .build();
     }
 }

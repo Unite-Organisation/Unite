@@ -4,33 +4,34 @@ import lombok.Builder;
 import org.jooq.Condition;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.app.prod.utils.filters.Criteria.always;
+import static com.app.prod.utils.filters.Criteria.match;
+import static com.app.prod.utils.filters.Criteria.required;
 import static org.jooq.sources.Tables.FACILITY_RESERVATION;
 
 @Builder
 public class FacilityReservationFilter implements PredicateFilter {
-    UUID facilityId;
-    LocalDate day;
-    Optional<UUID> userId;
+    Filter<UUID> facilityId;
+    Filter<LocalDate> day;
+    Filter<UUID> userId;
 
     @Override
     public List<Condition> combineConditions() {
-        List<Condition> conditionList = new ArrayList<>();
+        LocalDate requestedDay = getDay();
 
-        conditionList.add(FACILITY_RESERVATION.FACILITY_ID.eq(facilityId));
-        conditionList.add(FACILITY_RESERVATION.START_TIME.lt(day.plusDays(1).atStartOfDay()));
-        conditionList.add(FACILITY_RESERVATION.END_TIME.gt(day.atStartOfDay()));
-        userId.ifPresent(id -> conditionList.add(FACILITY_RESERVATION.USER_ID.eq(id)));
-
-        return conditionList;
+        return Criteria.of(
+                required(FACILITY_RESERVATION.FACILITY_ID, facilityId),
+                always(FACILITY_RESERVATION.START_TIME.lt(requestedDay.plusDays(1).atStartOfDay())),
+                always(FACILITY_RESERVATION.END_TIME.gt(requestedDay.atStartOfDay())),
+                match(FACILITY_RESERVATION.USER_ID, userId)
+        );
     }
 
     public LocalDate getDay() {
-        return day;
+        return day == null ? Filter.<LocalDate>empty().require("day") : day.require("day");
     }
 
 }
