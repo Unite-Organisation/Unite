@@ -30,7 +30,6 @@ public class Indexes {
     public static final Index IDX_ACTIVATION_TOKEN_USER = Internal.createIndex(DSL.name("idx_activation_token_user"), ActivationToken.ACTIVATION_TOKEN, new OrderField[] { ActivationToken.ACTIVATION_TOKEN.USER_ID }, false);
     public static final Index IDX_BUILDING_MANAGER_USER_BUILDING = Internal.createIndex(DSL.name("idx_building_manager_user_building"), BuildingManager.BUILDING_MANAGER, new OrderField[] { BuildingManager.BUILDING_MANAGER.USER_ID, BuildingManager.BUILDING_MANAGER.BUILDING_ID }, true);
     public static final Index IDX_EMAIL_DELIVERY_UNFINISHED = Internal.createIndex(DSL.name("idx_email_delivery_unfinished"), EmailDelivery.EMAIL_DELIVERY, new OrderField[] { EmailDelivery.EMAIL_DELIVERY.STATUS }, false);
-    public static final Index IDX_EMAIL_DELIVERY_USER_TYPE = Internal.createIndex(DSL.name("idx_email_delivery_user_type"), EmailDelivery.EMAIL_DELIVERY, new OrderField[] { EmailDelivery.EMAIL_DELIVERY.USER_ID, EmailDelivery.EMAIL_DELIVERY.DELIVERY_TYPE, EmailDelivery.EMAIL_DELIVERY.CREATED_AT.desc() }, false);
     public static final Index IDX_POST_BUILDING_CREATED = Internal.createIndex(DSL.name("idx_post_building_created"), Post.POST, new OrderField[] { Post.POST.BUILDING_ID, Post.POST.CREATED_AT }, false);
     public static final Index IDX_USER_INTERACTION_USER = Internal.createIndex(DSL.name("idx_user_interaction_user"), UserInteraction.USER_INTERACTION, new OrderField[] { UserInteraction.USER_INTERACTION.USER_ID }, false);
 }

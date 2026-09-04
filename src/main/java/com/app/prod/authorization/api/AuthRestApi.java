@@ -30,7 +30,7 @@ public class AuthRestApi {
     private final AuthenticationService authenticationService;
     private final ApplicationInfo applicationInfo;
 
-//    @PostMapping("/register")
+    @PostMapping("/register")
     @Deprecated(forRemoval = true)
     public ResponseEntity<SimpleResponse> register(@RequestBody UserRegisterRequest request) {
         userService.register(request);

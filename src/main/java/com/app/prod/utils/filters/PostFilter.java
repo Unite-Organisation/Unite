@@ -19,7 +19,8 @@ import static org.jooq.sources.Tables.POST;
 
 @Builder
 public class PostFilter implements PredicateFilter {
-    Filter<UUID> buildingId;   // from the authorized BuildingScope, must be present
+    Filter<UUID> id;
+    Filter<UUID> buildingId;
     Filter<UUID> createdBy;
     Filter<PostType> postType;
     Filter<LocalDateTime> visibleFrom;
@@ -30,6 +31,7 @@ public class PostFilter implements PredicateFilter {
     public List<Condition> combineConditions() {
         return Criteria.of(
                 required(POST.BUILDING_ID, buildingId),
+                match(POST.ID, id),
                 match(POST.CREATED_BY, createdBy),
                 matchEnum(POST.POST_TYPE, postType),
                 match(POST.VISIBLE_FROM, visibleFrom),
