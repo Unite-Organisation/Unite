@@ -13,6 +13,8 @@ public record EventRequest(
         @NotBlank String content,
         LocalDateTime relatedDate,
         @NotNull PostType postType,
+        @NotNull LocalDateTime visibleFrom,
+        @NotNull LocalDateTime visibleTo,
         LocalDateTime startDate,
         LocalDateTime endDate,
         String location,

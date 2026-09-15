@@ -32,7 +32,7 @@ public class AnnouncementService {
     private final Clock clock;
 
     public EntityCreatedResponse createAnnouncement(AnnouncementRequest request, BuildingScope scope) {
-        validateVisibilityWindow(request.visibleFrom(), request.visibleTo());
+        VisibilityWindow.validate(request.visibleFrom(), request.visibleTo());
 
         var attachments = fileService.confirmUploaded(ContextStoragePrefix.ANNOUNCEMENT, scope.userId(), request.fileKeys());
         var now = LocalDateTime.now(clock);
@@ -49,21 +49,10 @@ public class AnnouncementService {
         return new EntityCreatedResponse(id);
     }
 
-    private static void validateVisibilityWindow(LocalDateTime visibleFrom, LocalDateTime visibleTo) {
-        if (visibleFrom == null || visibleTo == null) {
-            return;
-        }
-
-        if (visibleFrom.isAfter(visibleTo)) {
-            log.warn("Visible from: {} is after visible to: {}", visibleFrom, visibleTo);
-            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, String.format("%s is after %s", visibleFrom, visibleTo)));
-        }
-    }
-
     @Transactional
     public void updateAnnouncement(UUID id, AnnouncementRequest request, BuildingScope scope) {
         assertAnnouncement(request.postType());
-        validateVisibilityWindow(request.visibleFrom(), request.visibleTo());
+        VisibilityWindow.validate(request.visibleFrom(), request.visibleTo());
 
         PostRecord post = postRepository.findInBuildingForUpdate(scope.buildingId(), id)
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.POST_NOT_FOUND)));

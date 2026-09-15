@@ -36,6 +36,8 @@ public class AnnouncementMapper {
         record.setLocationName(request.location());
         record.setOnlineUrl(request.onlineUrl());
         record.setMaxAttendees(request.maxAttendees());
+        record.setVisibleFrom(request.visibleFrom());
+        record.setVisibleTo(request.visibleTo());
 
         return record;
     }

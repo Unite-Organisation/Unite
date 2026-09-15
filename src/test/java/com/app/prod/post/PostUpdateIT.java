@@ -183,9 +183,55 @@ public class PostUpdateIT extends IntegrationTest {
     }
 
     @Test
+    void shouldUpdateEventVisibilityWindow() {
+        var event = event("Before").maxAttendees(10).buildAndSave();
+
+        eventService.updateEvent(
+                event.getId(),
+                eventRequest("After", now.minusDays(1), now.plusDays(30), now.plusDays(2), now.plusDays(3), "Rooftop", null, 10),
+                managerScope
+        );
+
+        var updated = reload(event.getId());
+        assertThat(updated.getVisibleFrom()).isEqualTo(now.minusDays(1));
+        assertThat(updated.getVisibleTo()).isEqualTo(now.plusDays(30));
+    }
+
+    @Test
+    void shouldRejectEventVisibleFromAfterVisibleTo() {
+        var event = event("Before").maxAttendees(10).buildAndSave();
+        var request = eventRequest("After", now.plusDays(10), now.plusDays(1), now.plusDays(2), now.plusDays(3), "Rooftop", null, 10);
+
+        assertThatThrownBy(() -> eventService.updateEvent(event.getId(), request, managerScope))
+                .isInstanceOf(BadRequestException.class);
+
+        assertThat(reload(event.getId()).getName()).isEqualTo("Before");
+    }
+
+    @Test
+    void shouldCreateEventWithVisibilityWindow() {
+        var request = eventRequest("Created", now.minusDays(1), now.plusDays(7), now.plusDays(2), now.plusDays(3), "Rooftop", null, 10);
+
+        var created = eventService.createEvent(request, managerScope);
+
+        var saved = reload(created.entityId());
+        assertThat(saved.getPostType()).isEqualTo(EVENT.name());
+        assertThat(saved.getVisibleFrom()).isEqualTo(now.minusDays(1));
+        assertThat(saved.getVisibleTo()).isEqualTo(now.plusDays(7));
+    }
+
+    @Test
+    void shouldRejectCreatingEventVisibleFromAfterVisibleTo() {
+        var request = eventRequest("Created", now.plusDays(10), now.plusDays(1), now.plusDays(2), now.plusDays(3), "Rooftop", null, 10);
+
+        assertThatThrownBy(() -> eventService.createEvent(request, managerScope))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
     void shouldRejectEventUpdateCarryingAnotherPostType() {
         var event = event("Before").maxAttendees(10).buildAndSave();
-        var request = new EventRequest("After", "Updated content", null, ANNOUNCEMENT, now, now.plusDays(1), null, null, 10, null);
+        var request = new EventRequest("After", "Updated content", null, ANNOUNCEMENT, now, now.plusDays(1), now, now.plusDays(1), null, null, 10, null);
 
         assertThatThrownBy(() -> eventService.updateEvent(event.getId(), request, managerScope))
                 .isInstanceOf(BadRequestException.class);
@@ -295,7 +341,11 @@ public class PostUpdateIT extends IntegrationTest {
     }
 
     private EventRequest eventRequest(String name, LocalDateTime startDate, LocalDateTime endDate, String location, String onlineUrl, Integer maxAttendees) {
-        return new EventRequest(name, "Updated content", null, EVENT, startDate, endDate, location, onlineUrl, maxAttendees, null);
+        return eventRequest(name, now, now.plusDays(1), startDate, endDate, location, onlineUrl, maxAttendees);
+    }
+
+    private EventRequest eventRequest(String name, LocalDateTime visibleFrom, LocalDateTime visibleTo, LocalDateTime startDate, LocalDateTime endDate, String location, String onlineUrl, Integer maxAttendees) {
+        return new EventRequest(name, "Updated content", null, EVENT, visibleFrom, visibleTo, startDate, endDate, location, onlineUrl, maxAttendees, null);
     }
 
     private void attend(UUID eventId, int attendees) {

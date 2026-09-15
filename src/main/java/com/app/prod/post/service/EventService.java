@@ -37,6 +37,8 @@ public class EventService {
     private final Clock clock;
 
     public EntityCreatedResponse createEvent(EventRequest request, BuildingScope scope) {
+        VisibilityWindow.validate(request.visibleFrom(), request.visibleTo());
+
         var attachments = fileService.confirmUploaded(ContextStoragePrefix.EVENT, scope.userId(), request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
@@ -55,6 +57,7 @@ public class EventService {
     @Transactional
     public void updateEvent(UUID id, EventRequest request, BuildingScope scope) {
         assertEvent(request.postType());
+        VisibilityWindow.validate(request.visibleFrom(), request.visibleTo());
 
         PostRecord event = postRepository.findInBuildingForUpdate(scope.buildingId(), id)
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.POST_NOT_FOUND)));
@@ -66,6 +69,8 @@ public class EventService {
         event.setEndDateTime(request.endDate());
         event.setLocationName(request.location());
         event.setOnlineUrl(request.onlineUrl());
+        event.setVisibleFrom(request.visibleFrom());
+        event.setVisibleTo(request.visibleTo());
 
         if (!Objects.equals(event.getMaxAttendees(), request.maxAttendees())) {
             assertLimitFitsAttendees(id, request.maxAttendees());
