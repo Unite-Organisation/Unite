@@ -52,6 +52,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<ApiErrorResponse> handleException(AuthenticationFailedException e, HttpServletRequest request){
+        log.info("Authentication failed. Exception content: {}", e.getMessage());
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.UNAUTHORIZED, e.getAppErrors(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
     @ExceptionHandler(EmptyFileException.class)
     public ResponseEntity<ApiErrorResponse> handleException(EmptyFileException e, HttpServletRequest request){
         log.error("Bad request - file empty. Exception content: {}", e.getMessage());

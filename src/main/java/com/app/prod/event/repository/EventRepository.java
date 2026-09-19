@@ -19,6 +19,20 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
         super(dsl, EVENT, EVENT.ID);
     }
 
+    public Optional<EventRecord> findForUpdate(UUID eventId) {
+        return dslContext.selectFrom(EVENT)
+                .where(EVENT.ID.eq(eventId))
+                .forUpdate()
+                .fetchOptional();
+    }
+
+    public Optional<UUID> findIdBySlug(String slug) {
+        return dslContext.select(EVENT.ID)
+                .from(EVENT)
+                .where(EVENT.PUBLIC_SLUG.eq(slug))
+                .fetchOptional(EVENT.ID);
+    }
+
     public Optional<EventResponse> findBySlug(String slug) {
         return dslContext.select(
                         EVENT.PUBLIC_SLUG,

@@ -1,14 +1,14 @@
 package com.app.prod.post.service;
 
 import com.app.prod.access.BuildingScope;
+import com.app.prod.event.repository.EventRepository;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
-import com.app.prod.interaction.enums.InteractionEntityType;
-import com.app.prod.interaction.enums.InteractionType;
-import com.app.prod.interaction.repository.InteractionRepository;
-import com.app.prod.post.dto.EventRequest;
+import com.app.prod.post.dto.EventPostUpdateRequest;
+import com.app.prod.post.dto.EventPublishRequest;
 import com.app.prod.post.enums.PostType;
 import com.app.prod.post.mappers.AnnouncementMapper;
 import com.app.prod.post.repository.PostRepository;
@@ -23,83 +23,64 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Events in the building feed. The event exists on its own (created through the public event endpoints),
+ * publishing it adds a post that points at it.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class EventService {
 
     private final PostRepository postRepository;
-    private final InteractionRepository interactionRepository;
+    private final EventRepository eventRepository;
     private final FileService fileService;
     private final Clock clock;
 
-    public EntityCreatedResponse createEvent(EventRequest request, BuildingScope scope) {
+    public EntityCreatedResponse publishEvent(EventPublishRequest request, BuildingScope scope) {
         VisibilityWindow.validate(request.visibleFrom(), request.visibleTo());
+
+        UUID eventId = eventRepository.findIdBySlug(request.slug())
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
+
+        if (postRepository.existsForEvent(eventId)) {
+            throw new DataAlreadyExistsException(AppError.of(Code.EVENT_ALREADY_PUBLISHED));
+        }
 
         var attachments = fileService.confirmUploaded(ContextStoragePrefix.EVENT, scope.userId(), request.fileKeys());
         var now = LocalDateTime.now(clock);
         var id = UUID.randomUUID();
 
         try {
-            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, scope, now, id, attachments));
+            postRepository.insertOne(AnnouncementMapper.fromRequestToRecordEvent(request, scope, now, id, eventId, attachments));
         } catch (RuntimeException exception) {
             fileService.discard(attachments);
             throw exception;
         }
 
-        log.info("Created event with name: {} in building: {}", request.name(), scope.buildingId());
+        log.info("Published event {} in building: {}", eventId, scope.buildingId());
         return new EntityCreatedResponse(id);
     }
 
     @Transactional
-    public void updateEvent(UUID id, EventRequest request, BuildingScope scope) {
-        assertEvent(request.postType());
+    public void updateEventPost(UUID id, EventPostUpdateRequest request, BuildingScope scope) {
         VisibilityWindow.validate(request.visibleFrom(), request.visibleTo());
 
-        PostRecord event = postRepository.findInBuildingForUpdate(scope.buildingId(), id)
+        PostRecord post = postRepository.findInBuildingForUpdate(scope.buildingId(), id)
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.POST_NOT_FOUND)));
 
-        event.setName(request.name());
-        event.setContent(request.content());
-        event.setRelatedDate(request.relatedDate());
-        event.setStartDateTime(request.startDate());
-        event.setEndDateTime(request.endDate());
-        event.setLocationName(request.location());
-        event.setOnlineUrl(request.onlineUrl());
-        event.setVisibleFrom(request.visibleFrom());
-        event.setVisibleTo(request.visibleTo());
-
-        if (!Objects.equals(event.getMaxAttendees(), request.maxAttendees())) {
-            assertLimitFitsAttendees(id, request.maxAttendees());
-            event.setMaxAttendees(request.maxAttendees());
+        if (post.getEventId() == null) {
+            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, String.format("Post %s is not an %s", id, PostType.EVENT)));
         }
+
+        post.setVisibleFrom(request.visibleFrom());
+        post.setVisibleTo(request.visibleTo());
 
         //TODO: files update not supported yet
-        postRepository.update(event);
-        log.info("Updated event: {} in building: {}", id, scope.buildingId());
-    }
-
-    private void assertLimitFitsAttendees(UUID eventId, Integer maxAttendees) {
-        if (maxAttendees == null) {
-            return;
-        }
-
-        int attendeesCount = interactionRepository.countInteractions(InteractionEntityType.POST, eventId, InteractionType.ATTENDING);
-        if (attendeesCount > maxAttendees) {
-            throw new BadRequestException(AppError.of(
-                    Code.EVENT_MAX_ATTENDEES,
-                    String.format("%s attendees are already signed up, limit cannot be lowered to %s", attendeesCount, maxAttendees)
-            ));
-        }
-    }
-
-    private static void assertEvent(PostType postType) {
-        if (postType != PostType.EVENT) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, String.format("%s is not an %s", postType, PostType.EVENT)));
-        }
+        postRepository.update(post);
+        log.info("Updated event post: {} in building: {}", id, scope.buildingId());
     }
 
 }

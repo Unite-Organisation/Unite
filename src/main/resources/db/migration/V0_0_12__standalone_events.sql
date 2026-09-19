@@ -1,11 +1,10 @@
--- An event is its own entity, so it can exist outside any building: anyone holding its link can join.
--- A building event is an event plus a post that shows it in the building feed.
+-- An event is its own entity, independent of any building: anyone holding its link can join.
+-- Publishing an event in a building feed is a post pointing at it - the post carries the building.
 
 CREATE TABLE event
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     public_slug      VARCHAR(16)  NOT NULL UNIQUE,
-    building_id      UUID REFERENCES building (id) ON DELETE CASCADE,
     name             VARCHAR(256) NOT NULL,
     description      TEXT,
     start_date_time  TIMESTAMP,
@@ -23,8 +22,6 @@ CREATE TABLE event
     CONSTRAINT event_waitlist_needs_limit
         CHECK (NOT waitlist_enabled OR max_attendees IS NOT NULL)
 );
-
-CREATE INDEX idx_event_building ON event (building_id) WHERE building_id IS NOT NULL;
 
 -- One row per person per event, whether they came from Unite (user_id) or from the link (pin_hash).
 -- Everything attached to a person inside an event (sessions, later messages) references this row only.
