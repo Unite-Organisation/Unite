@@ -134,115 +134,59 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
     }
 
     /**
-     * Setter for <code>public.post.start_date_time</code>.
-     */
-    public void setStartDateTime(LocalDateTime value) {
-        set(8, value);
-    }
-
-    /**
-     * Getter for <code>public.post.start_date_time</code>.
-     */
-    public LocalDateTime getStartDateTime() {
-        return (LocalDateTime) get(8);
-    }
-
-    /**
-     * Setter for <code>public.post.end_date_time</code>.
-     */
-    public void setEndDateTime(LocalDateTime value) {
-        set(9, value);
-    }
-
-    /**
-     * Getter for <code>public.post.end_date_time</code>.
-     */
-    public LocalDateTime getEndDateTime() {
-        return (LocalDateTime) get(9);
-    }
-
-    /**
-     * Setter for <code>public.post.location_name</code>.
-     */
-    public void setLocationName(String value) {
-        set(10, value);
-    }
-
-    /**
-     * Getter for <code>public.post.location_name</code>.
-     */
-    public String getLocationName() {
-        return (String) get(10);
-    }
-
-    /**
-     * Setter for <code>public.post.online_url</code>.
-     */
-    public void setOnlineUrl(String value) {
-        set(11, value);
-    }
-
-    /**
-     * Getter for <code>public.post.online_url</code>.
-     */
-    public String getOnlineUrl() {
-        return (String) get(11);
-    }
-
-    /**
-     * Setter for <code>public.post.max_attendees</code>.
-     */
-    public void setMaxAttendees(Integer value) {
-        set(12, value);
-    }
-
-    /**
-     * Getter for <code>public.post.max_attendees</code>.
-     */
-    public Integer getMaxAttendees() {
-        return (Integer) get(12);
-    }
-
-    /**
      * Setter for <code>public.post.attachments</code>.
      */
     public void setAttachments(JSONB value) {
-        set(13, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>public.post.attachments</code>.
      */
     public JSONB getAttachments() {
-        return (JSONB) get(13);
+        return (JSONB) get(8);
     }
 
     /**
      * Setter for <code>public.post.visible_from</code>.
      */
     public void setVisibleFrom(LocalDateTime value) {
-        set(14, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>public.post.visible_from</code>.
      */
     public LocalDateTime getVisibleFrom() {
-        return (LocalDateTime) get(14);
+        return (LocalDateTime) get(9);
     }
 
     /**
      * Setter for <code>public.post.visible_to</code>.
      */
     public void setVisibleTo(LocalDateTime value) {
-        set(15, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>public.post.visible_to</code>.
      */
     public LocalDateTime getVisibleTo() {
-        return (LocalDateTime) get(15);
+        return (LocalDateTime) get(10);
+    }
+
+    /**
+     * Setter for <code>public.post.event_id</code>.
+     */
+    public void setEventId(UUID value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>public.post.event_id</code>.
+     */
+    public UUID getEventId() {
+        return (UUID) get(11);
     }
 
     // -------------------------------------------------------------------------
@@ -268,7 +212,7 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
     /**
      * Create a detached, initialised PostRecord
      */
-    public PostRecord(UUID id, String name, UUID buildingId, UUID createdBy, LocalDateTime createdAt, String content, LocalDateTime relatedDate, String postType, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, JSONB attachments, LocalDateTime visibleFrom, LocalDateTime visibleTo) {
+    public PostRecord(UUID id, String name, UUID buildingId, UUID createdBy, LocalDateTime createdAt, String content, LocalDateTime relatedDate, String postType, JSONB attachments, LocalDateTime visibleFrom, LocalDateTime visibleTo, UUID eventId) {
         super(Post.POST);
 
         setId(id);
@@ -279,14 +223,10 @@ public class PostRecord extends UpdatableRecordImpl<PostRecord> {
         setContent(content);
         setRelatedDate(relatedDate);
         setPostType(postType);
-        setStartDateTime(startDateTime);
-        setEndDateTime(endDateTime);
-        setLocationName(locationName);
-        setOnlineUrl(onlineUrl);
-        setMaxAttendees(maxAttendees);
         setAttachments(attachments);
         setVisibleFrom(visibleFrom);
         setVisibleTo(visibleTo);
+        setEventId(eventId);
         resetChangedOnNotNull();
     }
 }

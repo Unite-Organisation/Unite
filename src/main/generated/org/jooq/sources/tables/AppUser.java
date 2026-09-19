@@ -37,6 +37,7 @@ import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.BuildingManager.BuildingManagerPath;
 import org.jooq.sources.tables.ConversationMember.ConversationMemberPath;
 import org.jooq.sources.tables.EmailDelivery.EmailDeliveryPath;
+import org.jooq.sources.tables.EventMember.EventMemberPath;
 import org.jooq.sources.tables.FacilityReservation.FacilityReservationPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Message.MessagePath;
@@ -281,6 +282,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
             _emailDelivery = new EmailDeliveryPath(this, null, Keys.EMAIL_DELIVERY__EMAIL_DELIVERY_USER_ID_FKEY.getInverseKey());
 
         return _emailDelivery;
+    }
+
+    private transient EventMemberPath _eventMember;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.event_member</code> table
+     */
+    public EventMemberPath eventMember() {
+        if (_eventMember == null)
+            _eventMember = new EventMemberPath(this, null, Keys.EVENT_MEMBER__EVENT_MEMBER_USER_ID_FKEY.getInverseKey());
+
+        return _eventMember;
     }
 
     private transient FacilityReservationPath _facilityReservation;

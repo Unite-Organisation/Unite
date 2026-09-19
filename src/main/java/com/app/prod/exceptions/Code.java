@@ -5,6 +5,7 @@ import lombok.Getter;
 public enum Code {
     CONVERSATION_NOT_FOUND("conversation_not_found", "Conversation not found"),
     POST_NOT_FOUND("post_not_found", "Post not found"),
+    EVENT_NOT_FOUND("event_not_found", "Event not found"),
     AREA_NOT_FOUND("area_not_found", "Area not found"),
     FACILITY_NOT_FOUND("facility_not_found", "Facility not found"),
     NOTIFICATION_NOT_FOUND("notification_not_found", "Notification not found"),

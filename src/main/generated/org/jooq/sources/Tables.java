@@ -12,6 +12,9 @@ import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
 import org.jooq.sources.tables.EmailDelivery;
+import org.jooq.sources.tables.Event;
+import org.jooq.sources.tables.EventMember;
+import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -79,6 +82,21 @@ public class Tables {
      * The table <code>public.email_delivery</code>.
      */
     public static final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
+
+    /**
+     * The table <code>public.event</code>.
+     */
+    public static final Event EVENT = Event.EVENT;
+
+    /**
+     * The table <code>public.event_member</code>.
+     */
+    public static final EventMember EVENT_MEMBER = EventMember.EVENT_MEMBER;
+
+    /**
+     * The table <code>public.event_member_session</code>.
+     */
+    public static final EventMemberSession EVENT_MEMBER_SESSION = EventMemberSession.EVENT_MEMBER_SESSION;
 
     /**
      * The table <code>public.facility</code>.
