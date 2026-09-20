@@ -20,6 +20,7 @@ import org.jooq.sources.tables.ConversationMember;
 import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.Event;
 import org.jooq.sources.tables.EventMember;
+import org.jooq.sources.tables.EventMemberMetadata;
 import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
@@ -105,6 +106,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.event_member</code>.
      */
     public final EventMember EVENT_MEMBER = EventMember.EVENT_MEMBER;
+
+    /**
+     * The table <code>public.event_member_metadata</code>.
+     */
+    public final EventMemberMetadata EVENT_MEMBER_METADATA = EventMemberMetadata.EVENT_MEMBER_METADATA;
 
     /**
      * The table <code>public.event_member_session</code>.
@@ -237,6 +243,7 @@ public class Public extends SchemaImpl {
             EmailDelivery.EMAIL_DELIVERY,
             Event.EVENT,
             EventMember.EVENT_MEMBER,
+            EventMemberMetadata.EVENT_MEMBER_METADATA,
             EventMemberSession.EVENT_MEMBER_SESSION,
             Facility.FACILITY,
             FacilityReservation.FACILITY_RESERVATION,

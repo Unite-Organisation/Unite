@@ -1,12 +1,16 @@
 package com.app.prod.event.repository;
 
+import com.app.prod.event.dto.EventMemberRow;
+import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.utils.BaseJooqRepository;
+import com.app.prod.utils.filters.EventMemberFilter;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.EventMember;
 import org.jooq.sources.tables.records.EventMemberRecord;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +19,8 @@ import static org.jooq.sources.Tables.EVENT_MEMBER;
 
 @Repository
 public class EventMemberRepository extends BaseJooqRepository<EventMember, EventMemberRecord, UUID> {
+
+    private static final int MAX_MEMBERS = 1000;
 
     protected EventMemberRepository(DSLContext dsl) {
         super(dsl, EVENT_MEMBER, EVENT_MEMBER.ID);
@@ -53,5 +59,24 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                         .and(EVENT_MEMBER.STATUS.eq(status.name()))
                         .fetchOneInto(Integer.class)
         ).orElse(0);
+    }
+
+    public List<EventMemberRow> findMembers(EventMemberFilter filter) {
+        return dslContext.select(
+                        EVENT_MEMBER.ID,
+                        EVENT_MEMBER.DISPLAY_NAME,
+                        EVENT_MEMBER.ROLE,
+                        EVENT_MEMBER.STATUS
+                )
+                .from(EVENT_MEMBER)
+                .where(filter.parseFilter())
+                .orderBy(EVENT_MEMBER.DISPLAY_NAME, EVENT_MEMBER.ID)
+                .limit(MAX_MEMBERS)
+                .fetch(record -> new EventMemberRow(
+                        record.get(EVENT_MEMBER.ID),
+                        record.get(EVENT_MEMBER.DISPLAY_NAME),
+                        EventMemberRole.valueOf(record.get(EVENT_MEMBER.ROLE)),
+                        EventMemberStatus.valueOf(record.get(EVENT_MEMBER.STATUS))
+                ));
     }
 }

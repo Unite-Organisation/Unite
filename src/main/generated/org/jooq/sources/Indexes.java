@@ -12,6 +12,7 @@ import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.EventMember;
+import org.jooq.sources.tables.EventMemberMetadata;
 import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Post;
@@ -34,6 +35,7 @@ public class Indexes {
     public static final Index IDX_EMAIL_DELIVERY_UNFINISHED = Internal.createIndex(DSL.name("idx_email_delivery_unfinished"), EmailDelivery.EMAIL_DELIVERY, new OrderField[] { EmailDelivery.EMAIL_DELIVERY.STATUS }, false);
     public static final Index IDX_EVENT_MEMBER_APP_USER = Internal.createIndex(DSL.name("idx_event_member_app_user"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.USER_ID }, false);
     public static final Index IDX_EVENT_MEMBER_HOST = Internal.createIndex(DSL.name("idx_event_member_host"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID }, true);
+    public static final Index IDX_EVENT_MEMBER_METADATA_DEVICE = Internal.createIndex(DSL.name("idx_event_member_metadata_device"), EventMemberMetadata.EVENT_MEMBER_METADATA, new OrderField[] { EventMemberMetadata.EVENT_MEMBER_METADATA.MEMBER_ID, EventMemberMetadata.EVENT_MEMBER_METADATA.DEVICE_KEY }, true);
     public static final Index IDX_EVENT_MEMBER_SESSION_MEMBER = Internal.createIndex(DSL.name("idx_event_member_session_member"), EventMemberSession.EVENT_MEMBER_SESSION, new OrderField[] { EventMemberSession.EVENT_MEMBER_SESSION.MEMBER_ID }, false);
     public static final Index IDX_EVENT_MEMBER_STATUS = Internal.createIndex(DSL.name("idx_event_member_status"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.STATUS, EventMember.EVENT_MEMBER.STATUS_CHANGED_AT }, false);
     public static final Index IDX_EVENT_MEMBER_USER = Internal.createIndex(DSL.name("idx_event_member_user"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.USER_ID }, true);

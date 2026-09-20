@@ -1,10 +1,12 @@
 package com.app.prod.event.service;
 
+import com.app.prod.event.device.DeviceSignals;
 import com.app.prod.event.dto.CreateEventRequest;
 import com.app.prod.event.dto.EventResponse;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.mappers.EventMapper;
+import com.app.prod.event.repository.EventMemberMetadataRepository;
 import com.app.prod.event.repository.EventMemberRepository;
 import com.app.prod.event.repository.EventRepository;
 import com.app.prod.event.web.EventCaller;
@@ -31,6 +33,7 @@ public class PublicEventService {
 
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
+    private final EventMemberMetadataRepository eventMemberMetadataRepository;
     private final EventSessionService eventSessionService;
     private final ReturnCodes returnCodes;
     private final Clock clock;
@@ -45,7 +48,7 @@ public class PublicEventService {
     }
 
     @Transactional
-    public CreatedEvent createEvent(CreateEventRequest request, EventCaller caller) {
+    public CreatedEvent createEvent(CreateEventRequest request, EventCaller caller, DeviceSignals device) {
         validate(request, caller);
 
         var now = LocalDateTime.now(clock);
@@ -58,6 +61,7 @@ public class PublicEventService {
                 .map(user -> EventMapper.uniteMember(eventId, user, EventMemberRole.HOST, EventMemberStatus.GOING, now))
                 .orElseGet(() -> EventMapper.guestMember(eventId, request.displayName(), code.hash(), EventMemberRole.HOST, EventMemberStatus.GOING, now));
         eventMemberRepository.insertOne(host);
+        eventMemberMetadataRepository.save(host.getId(), device, now);
 
         String sessionToken = eventSessionService.open(host.getId(), now);
 

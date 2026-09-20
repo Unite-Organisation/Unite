@@ -1,9 +1,15 @@
 package com.app.prod.event.service;
 
+import com.app.prod.event.device.DeviceSignals;
+import com.app.prod.event.device.MembershipScorer;
+import com.app.prod.event.dto.EventMemberResponse;
+import com.app.prod.event.dto.EventMemberRow;
+import com.app.prod.event.dto.EventMembersRequest;
 import com.app.prod.event.dto.OpenSessionRequest;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.mappers.EventMapper;
+import com.app.prod.event.repository.EventMemberMetadataRepository;
 import com.app.prod.event.repository.EventMemberRepository;
 import com.app.prod.event.repository.EventRepository;
 import com.app.prod.event.web.EventCaller;
@@ -14,6 +20,9 @@ import com.app.prod.exceptions.exceptions.AuthenticationFailedException;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
+import com.app.prod.utils.Pagination;
+import com.app.prod.utils.filters.EventMemberFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.AppUserRecord;
@@ -25,13 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Who is in an event and with which status. Every change locks the event row first, so capacity checks,
- * waitlist promotion and new names never race each other.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -42,25 +50,27 @@ public class EventMembershipService {
 
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
+    private final EventMemberMetadataRepository eventMemberMetadataRepository;
+    private final MembershipScorer membershipScorer;
     private final EventSessionService eventSessionService;
     private final ReturnCodes returnCodes;
     private final Clock clock;
 
     @Transactional(noRollbackFor = AuthenticationFailedException.class)
-    public OpenedSession openSession(String slug, EventCaller caller, OpenSessionRequest request) {
+    public OpenedSession openSession(String slug, EventCaller caller, OpenSessionRequest request, DeviceSignals device) {
         EventRecord event = eventRepository.findBySlugForUpdate(slug)
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
         LocalDateTime now = LocalDateTime.now(clock);
 
         OpenedSession opened = caller.uniteUser()
-                .map(user -> openUniteSession(event.getId(), user, now))
-                .orElseGet(() -> openGuestSession(event.getId(), request, now));
+                .map(user -> openUniteSession(event.getId(), user, now, device))
+                .orElseGet(() -> openGuestSession(event.getId(), request, now, device));
 
         log.info("{} event session for member of event {} ({})", opened.joined() ? "Joined with" : "Reopened", event.getId(), opened.member().origin());
         return opened;
     }
 
-    private OpenedSession openUniteSession(UUID eventId, AppUserRecord user, LocalDateTime now) {
+    private OpenedSession openUniteSession(UUID eventId, AppUserRecord user, LocalDateTime now, DeviceSignals device) {
         Optional<EventMemberRecord> existing = eventMemberRepository.findUniteMember(eventId, user.getId());
         EventMemberRecord member = existing.orElseGet(() -> {
             EventMemberRecord created = EventMapper.uniteMember(eventId, user, EventMemberRole.MEMBER, EventMemberStatus.UNDECIDED, now);
@@ -68,11 +78,12 @@ public class EventMembershipService {
             return created;
         });
 
+        eventMemberMetadataRepository.save(member.getId(), device, now);
         String sessionToken = eventSessionService.open(member.getId(), now);
         return new OpenedSession(existing.isEmpty(), EventMapper.toResponse(member), null, sessionToken);
     }
 
-    private OpenedSession openGuestSession(UUID eventId, OpenSessionRequest request, LocalDateTime now) {
+    private OpenedSession openGuestSession(UUID eventId, OpenSessionRequest request, LocalDateTime now, DeviceSignals device) {
         String displayName = Optional.ofNullable(request)
                 .map(OpenSessionRequest::displayName)
                 .map(String::trim)
@@ -83,6 +94,7 @@ public class EventMembershipService {
         if (existing.isPresent()) {
             EventMemberRecord member = existing.get();
             verifyReturnCode(member, request.returnCode(), now);
+            eventMemberMetadataRepository.save(member.getId(), device, now);
             String sessionToken = eventSessionService.open(member.getId(), now);
             return new OpenedSession(false, EventMapper.toResponse(member), null, sessionToken);
         }
@@ -90,6 +102,7 @@ public class EventMembershipService {
         ReturnCodes.IssuedCode code = returnCodes.issue();
         EventMemberRecord member = EventMapper.guestMember(eventId, displayName, code.hash(), EventMemberRole.MEMBER, EventMemberStatus.UNDECIDED, now);
         eventMemberRepository.insertOne(member);
+        eventMemberMetadataRepository.save(member.getId(), device, now);
 
         String sessionToken = eventSessionService.open(member.getId(), now);
         return new OpenedSession(true, EventMapper.toResponse(member), code.code(), sessionToken);
@@ -180,5 +193,36 @@ public class EventMembershipService {
         member.setStatus(status.name());
         member.setStatusChangedAt(now);
         eventMemberRepository.update(member);
+    }
+
+    public List<EventMemberResponse> findMembers(EventMemberFilter filter, EventMembersRequest request, DeviceSignals caller) {
+        List<EventMemberRow> members = eventMemberRepository.findMembers(filter);
+
+        if (request.isSortedByCallerMembershipProbability()) {
+            members = sortedByProbability(members, filter, caller);
+        }
+
+        Pagination pagination = request.pagination();
+        return members.stream()
+                .skip(pagination.getOffset())
+                .limit(pagination.pageSize())
+                .map(member -> new EventMemberResponse(
+                        member.displayName(),
+                        member.role() == EventMemberRole.HOST,
+                        member.status()
+                ))
+                .toList();
+    }
+
+    private List<EventMemberRow> sortedByProbability(List<EventMemberRow> members, EventMemberFilter filter, DeviceSignals caller) {
+        UUID eventId = filter.getEventId().value()
+                .orElseThrow(() -> new IllegalApplicationStateException(AppError.of(Code.MANDATORY_FILTER_MISSING, "eventId")));
+        Map<UUID, List<DeviceSignals>> devices = eventMemberMetadataRepository.findByEvent(eventId);
+
+        return members.stream()
+                .sorted(Comparator.comparingInt(
+                        (EventMemberRow member) -> membershipScorer.bestScore(caller, devices.getOrDefault(member.id(), List.of()))
+                ).reversed())
+                .toList();
     }
 }

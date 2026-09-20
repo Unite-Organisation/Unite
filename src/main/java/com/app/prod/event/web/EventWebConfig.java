@@ -13,10 +13,12 @@ public class EventWebConfig implements WebMvcConfigurer {
 
     private final EventCallerArgumentResolver eventCallerArgumentResolver;
     private final EventScopeArgumentResolver eventScopeArgumentResolver;
+    private final RequestSignalsArgumentResolver requestSignalsArgumentResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(eventCallerArgumentResolver);
         resolvers.add(eventScopeArgumentResolver);
+        resolvers.add(requestSignalsArgumentResolver);
     }
 }

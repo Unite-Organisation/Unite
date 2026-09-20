@@ -38,6 +38,7 @@ import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
 import org.jooq.sources.tables.AppUser.AppUserPath;
 import org.jooq.sources.tables.Event.EventPath;
+import org.jooq.sources.tables.EventMemberMetadata.EventMemberMetadataPath;
 import org.jooq.sources.tables.EventMemberSession.EventMemberSessionPath;
 import org.jooq.sources.tables.records.EventMemberRecord;
 
@@ -227,6 +228,19 @@ public class EventMember extends TableImpl<EventMemberRecord> {
             _appUser = new AppUserPath(this, Keys.EVENT_MEMBER__EVENT_MEMBER_USER_ID_FKEY, null);
 
         return _appUser;
+    }
+
+    private transient EventMemberMetadataPath _eventMemberMetadata;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.event_member_metadata</code> table
+     */
+    public EventMemberMetadataPath eventMemberMetadata() {
+        if (_eventMemberMetadata == null)
+            _eventMemberMetadata = new EventMemberMetadataPath(this, null, Keys.EVENT_MEMBER_METADATA__EVENT_MEMBER_METADATA_MEMBER_ID_FKEY.getInverseKey());
+
+        return _eventMemberMetadata;
     }
 
     private transient EventMemberSessionPath _eventMemberSession;
