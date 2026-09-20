@@ -17,6 +17,7 @@ public record PostResponse(
         LocalDateTime relatedDate,
         LocalDateTime createdAt,
         PostType postType,
+        String eventSlug,
         LocalDateTime startDate,
         LocalDateTime endDate,
         String locationName,

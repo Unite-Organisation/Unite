@@ -22,6 +22,7 @@ BUILDING_NOT_FOUND("building_not_found", "Building not found"),
 | `BadRequestException`              | 400    |
 | `EmptyFileException`               | 400    |
 | `InvalidFileExtensionException`    | 400    |
+| `AuthenticationFailedException`    | 401    |
 | `UnauthorizedDataAccessException`  | 403    |
 | `EntityNotPresentException`        | 404    |
 | `DataAlreadyExistsException`       | 409    |

@@ -2,7 +2,8 @@ package com.app.prod.post.api;
 
 import com.app.prod.access.BuildingScope;
 import com.app.prod.post.dto.AnnouncementRequest;
-import com.app.prod.post.dto.EventRequest;
+import com.app.prod.post.dto.EventPostUpdateRequest;
+import com.app.prod.post.dto.EventPublishRequest;
 import com.app.prod.post.dto.PostFilterRequest;
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.service.AnnouncementService;
@@ -47,8 +48,8 @@ public class PostRestApi {
 
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
-    public EntityCreatedResponse createEvent(BuildingScope scope, @Valid @RequestBody EventRequest request){
-        return eventService.createEvent(request, scope);
+    public EntityCreatedResponse publishEvent(BuildingScope scope, @Valid @RequestBody EventPublishRequest request){
+        return eventService.publishEvent(request, scope);
     }
 
     @PutMapping("/announcement/{id}")
@@ -60,8 +61,8 @@ public class PostRestApi {
 
     @PutMapping("/event/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT')")
-    public ResponseEntity<Void> updateEvent(BuildingScope scope, @PathVariable UUID id, @Valid @RequestBody EventRequest request){
-        eventService.updateEvent(id, request, scope);
+    public ResponseEntity<Void> updateEvent(BuildingScope scope, @PathVariable UUID id, @Valid @RequestBody EventPostUpdateRequest request){
+        eventService.updateEventPost(id, request, scope);
         return ResponseEntity.ok(null);
     }
 

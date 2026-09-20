@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record AnnouncementRequest(
-        @NotBlank String name,
+        @NotBlank @Size(max = 256) String name,
         @NotBlank String content,
         LocalDateTime relatedDate,
         @NotNull PostType postType,

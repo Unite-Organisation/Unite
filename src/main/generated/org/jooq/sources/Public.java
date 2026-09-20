@@ -18,6 +18,10 @@ import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
 import org.jooq.sources.tables.EmailDelivery;
+import org.jooq.sources.tables.Event;
+import org.jooq.sources.tables.EventMember;
+import org.jooq.sources.tables.EventMemberMetadata;
+import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -92,6 +96,26 @@ public class Public extends SchemaImpl {
      * The table <code>public.email_delivery</code>.
      */
     public final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
+
+    /**
+     * The table <code>public.event</code>.
+     */
+    public final Event EVENT = Event.EVENT;
+
+    /**
+     * The table <code>public.event_member</code>.
+     */
+    public final EventMember EVENT_MEMBER = EventMember.EVENT_MEMBER;
+
+    /**
+     * The table <code>public.event_member_metadata</code>.
+     */
+    public final EventMemberMetadata EVENT_MEMBER_METADATA = EventMemberMetadata.EVENT_MEMBER_METADATA;
+
+    /**
+     * The table <code>public.event_member_session</code>.
+     */
+    public final EventMemberSession EVENT_MEMBER_SESSION = EventMemberSession.EVENT_MEMBER_SESSION;
 
     /**
      * The table <code>public.facility</code>.
@@ -217,6 +241,10 @@ public class Public extends SchemaImpl {
             Conversation.CONVERSATION,
             ConversationMember.CONVERSATION_MEMBER,
             EmailDelivery.EMAIL_DELIVERY,
+            Event.EVENT,
+            EventMember.EVENT_MEMBER,
+            EventMemberMetadata.EVENT_MEMBER_METADATA,
+            EventMemberSession.EVENT_MEMBER_SESSION,
             Facility.FACILITY,
             FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,

@@ -1,8 +1,8 @@
 package com.app.prod.post.repository;
 
+import com.app.prod.event.repository.EventMemberFields;
 import com.app.prod.interaction.dto.InteractionSummary;
 import com.app.prod.interaction.enums.InteractionEntityType;
-import com.app.prod.interaction.enums.InteractionType;
 import com.app.prod.interaction.repository.InteractionFields;
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.enums.PostType;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.jooq.impl.DSL.coalesce;
 import static org.jooq.sources.Tables.*;
 
 @Repository
@@ -34,63 +35,62 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
 
     public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
         Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, viewerId);
+        Field<Integer> attendeesCount = EventMemberFields.goingCount(POST.EVENT_ID).as("attendees_count");
+        Field<String> name = coalesce(POST.NAME, EVENT.NAME).as("name");
+        Field<String> content = coalesce(POST.CONTENT, EVENT.DESCRIPTION).as("content");
 
         return dslContext.select(
                         POST.ID,
-                        POST.NAME,
+                        name,
                         POST.BUILDING_ID,
                         POST.CREATED_BY,
-                        POST.CONTENT,
+                        content,
                         POST.RELATED_DATE,
                         POST.CREATED_AT,
                         POST.POST_TYPE,
-                        POST.START_DATE_TIME,
-                        POST.END_DATE_TIME,
-                        POST.LOCATION_NAME,
-                        POST.ONLINE_URL,
-                        POST.MAX_ATTENDEES,
+                        EVENT.PUBLIC_SLUG,
+                        EVENT.START_DATE_TIME,
+                        EVENT.END_DATE_TIME,
+                        EVENT.LOCATION_NAME,
+                        EVENT.ONLINE_URL,
+                        EVENT.MAX_ATTENDEES,
+                        attendeesCount,
                         POST.VISIBLE_FROM,
                         POST.VISIBLE_TO,
                         POST.ATTACHMENTS,
                         interactions
                 )
                 .from(POST)
+                .leftJoin(EVENT).on(EVENT.ID.eq(POST.EVENT_ID))
                 .where(filter.parseFilter())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetch(record -> {
-                    List<InteractionSummary> postInteractions = record.get(interactions);
-
-                    return new PostResponse(
+                .fetch(record -> new PostResponse(
                         record.get(POST.ID),
-                        record.get(POST.NAME),
+                        record.get(name),
                         record.get(POST.BUILDING_ID),
                         record.get(POST.CREATED_BY),
-                        record.get(POST.CONTENT),
+                        record.get(content),
                         record.get(POST.RELATED_DATE),
                         record.get(POST.CREATED_AT),
                         PostType.valueOf(record.get(POST.POST_TYPE)),
-                        record.get(POST.START_DATE_TIME),
-                        record.get(POST.END_DATE_TIME),
-                        record.get(POST.LOCATION_NAME),
-                        record.get(POST.ONLINE_URL),
-                        record.get(POST.MAX_ATTENDEES),
-                        countOf(postInteractions, InteractionType.ATTENDING),
+                        record.get(EVENT.PUBLIC_SLUG),
+                        record.get(EVENT.START_DATE_TIME),
+                        record.get(EVENT.END_DATE_TIME),
+                        record.get(EVENT.LOCATION_NAME),
+                        record.get(EVENT.ONLINE_URL),
+                        record.get(EVENT.MAX_ATTENDEES),
+                        record.get(attendeesCount),
                         record.get(POST.VISIBLE_FROM),
                         record.get(POST.VISIBLE_TO),
                         fileService.toResponses(record.get(POST.ATTACHMENTS)),
-                        postInteractions
-                    );
-                });
+                        record.get(interactions)
+                ));
     }
 
-    private static Integer countOf(List<InteractionSummary> interactions, InteractionType interactionType) {
-        return interactions.stream()
-                .filter(summary -> summary.interactionType() == interactionType)
-                .map(InteractionSummary::count)
-                .findFirst()
-                .orElse(0);
+    public boolean existsForEvent(UUID eventId) {
+        return dslContext.fetchExists(POST, POST.EVENT_ID.eq(eventId));
     }
 
     public Optional<PostRecord> findInBuildingForUpdate(UUID buildingId, UUID postId) {

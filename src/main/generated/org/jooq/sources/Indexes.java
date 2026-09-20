@@ -11,6 +11,9 @@ import org.jooq.impl.Internal;
 import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.EmailDelivery;
+import org.jooq.sources.tables.EventMember;
+import org.jooq.sources.tables.EventMemberMetadata;
+import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.UserInteraction;
@@ -30,6 +33,12 @@ public class Indexes {
     public static final Index IDX_ACTIVATION_TOKEN_USER = Internal.createIndex(DSL.name("idx_activation_token_user"), ActivationToken.ACTIVATION_TOKEN, new OrderField[] { ActivationToken.ACTIVATION_TOKEN.USER_ID }, false);
     public static final Index IDX_BUILDING_MANAGER_USER_BUILDING = Internal.createIndex(DSL.name("idx_building_manager_user_building"), BuildingManager.BUILDING_MANAGER, new OrderField[] { BuildingManager.BUILDING_MANAGER.USER_ID, BuildingManager.BUILDING_MANAGER.BUILDING_ID }, true);
     public static final Index IDX_EMAIL_DELIVERY_UNFINISHED = Internal.createIndex(DSL.name("idx_email_delivery_unfinished"), EmailDelivery.EMAIL_DELIVERY, new OrderField[] { EmailDelivery.EMAIL_DELIVERY.STATUS }, false);
+    public static final Index IDX_EVENT_MEMBER_APP_USER = Internal.createIndex(DSL.name("idx_event_member_app_user"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.USER_ID }, false);
+    public static final Index IDX_EVENT_MEMBER_HOST = Internal.createIndex(DSL.name("idx_event_member_host"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID }, true);
+    public static final Index IDX_EVENT_MEMBER_METADATA_DEVICE = Internal.createIndex(DSL.name("idx_event_member_metadata_device"), EventMemberMetadata.EVENT_MEMBER_METADATA, new OrderField[] { EventMemberMetadata.EVENT_MEMBER_METADATA.MEMBER_ID, EventMemberMetadata.EVENT_MEMBER_METADATA.DEVICE_KEY }, true);
+    public static final Index IDX_EVENT_MEMBER_SESSION_MEMBER = Internal.createIndex(DSL.name("idx_event_member_session_member"), EventMemberSession.EVENT_MEMBER_SESSION, new OrderField[] { EventMemberSession.EVENT_MEMBER_SESSION.MEMBER_ID }, false);
+    public static final Index IDX_EVENT_MEMBER_STATUS = Internal.createIndex(DSL.name("idx_event_member_status"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.STATUS, EventMember.EVENT_MEMBER.STATUS_CHANGED_AT }, false);
+    public static final Index IDX_EVENT_MEMBER_USER = Internal.createIndex(DSL.name("idx_event_member_user"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.USER_ID }, true);
     public static final Index IDX_POST_BUILDING_CREATED = Internal.createIndex(DSL.name("idx_post_building_created"), Post.POST, new OrderField[] { Post.POST.BUILDING_ID, Post.POST.CREATED_AT }, false);
     public static final Index IDX_USER_INTERACTION_USER = Internal.createIndex(DSL.name("idx_user_interaction_user"), UserInteraction.USER_INTERACTION, new OrderField[] { UserInteraction.USER_INTERACTION.USER_ID }, false);
 }

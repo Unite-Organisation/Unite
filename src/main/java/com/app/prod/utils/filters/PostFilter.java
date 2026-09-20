@@ -1,8 +1,6 @@
 package com.app.prod.utils.filters;
 
-import com.app.prod.interaction.enums.InteractionEntityType;
-import com.app.prod.interaction.enums.InteractionType;
-import com.app.prod.interaction.repository.InteractionFields;
+import com.app.prod.event.repository.EventMemberFields;
 import com.app.prod.post.enums.PostType;
 import lombok.Builder;
 import org.jooq.Condition;
@@ -36,8 +34,7 @@ public class PostFilter implements PredicateFilter {
                 matchEnum(POST.POST_TYPE, postType),
                 match(POST.VISIBLE_FROM, visibleFrom),
                 match(POST.VISIBLE_TO, visibleTo),
-                when(attendedBy, userId -> InteractionFields.reactedBy(
-                        POST.ID, InteractionEntityType.POST, InteractionType.ATTENDING, userId))
+                when(attendedBy, userId -> EventMemberFields.goingBy(POST.EVENT_ID, userId))
         );
     }
 

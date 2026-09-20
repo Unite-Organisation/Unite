@@ -39,6 +39,7 @@ import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
 import org.jooq.sources.tables.AppUser.AppUserPath;
 import org.jooq.sources.tables.Building.BuildingPath;
+import org.jooq.sources.tables.Event.EventPath;
 import org.jooq.sources.tables.records.PostRecord;
 
 
@@ -71,7 +72,7 @@ public class Post extends TableImpl<PostRecord> {
     /**
      * The column <code>public.post.name</code>.
      */
-    public final TableField<PostRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(256).nullable(false), this, "");
+    public final TableField<PostRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(256), this, "");
 
     /**
      * The column <code>public.post.building_id</code>.
@@ -91,7 +92,7 @@ public class Post extends TableImpl<PostRecord> {
     /**
      * The column <code>public.post.content</code>.
      */
-    public final TableField<PostRecord, String> CONTENT = createField(DSL.name("content"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<PostRecord, String> CONTENT = createField(DSL.name("content"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.post.related_date</code>.
@@ -102,31 +103,6 @@ public class Post extends TableImpl<PostRecord> {
      * The column <code>public.post.post_type</code>.
      */
     public final TableField<PostRecord, String> POST_TYPE = createField(DSL.name("post_type"), SQLDataType.VARCHAR(50).nullable(false), this, "");
-
-    /**
-     * The column <code>public.post.start_date_time</code>.
-     */
-    public final TableField<PostRecord, LocalDateTime> START_DATE_TIME = createField(DSL.name("start_date_time"), SQLDataType.LOCALDATETIME(6), this, "");
-
-    /**
-     * The column <code>public.post.end_date_time</code>.
-     */
-    public final TableField<PostRecord, LocalDateTime> END_DATE_TIME = createField(DSL.name("end_date_time"), SQLDataType.LOCALDATETIME(6), this, "");
-
-    /**
-     * The column <code>public.post.location_name</code>.
-     */
-    public final TableField<PostRecord, String> LOCATION_NAME = createField(DSL.name("location_name"), SQLDataType.VARCHAR(256), this, "");
-
-    /**
-     * The column <code>public.post.online_url</code>.
-     */
-    public final TableField<PostRecord, String> ONLINE_URL = createField(DSL.name("online_url"), SQLDataType.VARCHAR(2048), this, "");
-
-    /**
-     * The column <code>public.post.max_attendees</code>.
-     */
-    public final TableField<PostRecord, Integer> MAX_ATTENDEES = createField(DSL.name("max_attendees"), SQLDataType.INTEGER, this, "");
 
     /**
      * The column <code>public.post.attachments</code>.
@@ -142,6 +118,11 @@ public class Post extends TableImpl<PostRecord> {
      * The column <code>public.post.visible_to</code>.
      */
     public final TableField<PostRecord, LocalDateTime> VISIBLE_TO = createField(DSL.name("visible_to"), SQLDataType.LOCALDATETIME(6), this, "");
+
+    /**
+     * The column <code>public.post.event_id</code>.
+     */
+    public final TableField<PostRecord, UUID> EVENT_ID = createField(DSL.name("event_id"), SQLDataType.UUID, this, "");
 
     private Post(Name alias, Table<PostRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -221,8 +202,13 @@ public class Post extends TableImpl<PostRecord> {
     }
 
     @Override
+    public List<UniqueKey<PostRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.POST_EVENT_ID_KEY);
+    }
+
+    @Override
     public List<ForeignKey<PostRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY);
+        return Arrays.asList(Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY, Keys.POST__POST_EVENT_ID_FKEY);
     }
 
     private transient BuildingPath _building;
@@ -247,6 +233,18 @@ public class Post extends TableImpl<PostRecord> {
             _appUser = new AppUserPath(this, Keys.POST__POST_CREATED_BY_FKEY, null);
 
         return _appUser;
+    }
+
+    private transient EventPath _event;
+
+    /**
+     * Get the implicit join path to the <code>public.event</code> table.
+     */
+    public EventPath event() {
+        if (_event == null)
+            _event = new EventPath(this, Keys.POST__POST_EVENT_ID_FKEY, null);
+
+        return _event;
     }
 
     @Override
