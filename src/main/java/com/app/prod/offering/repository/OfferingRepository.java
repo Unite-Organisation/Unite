@@ -39,7 +39,7 @@ public class OfferingRepository extends BaseJooqRepository<Offering, OfferingRec
                 .from(OFFERING)
                 .leftJoin(APP_USER).on(OFFERING.USER_PROVIDER.eq(APP_USER.ID))
                 .leftJoin(USER_ROLE).on(APP_USER.USER_ROLE.eq(USER_ROLE.ID))
-                .where(filter.parseFilterAnd())
+                .where(filter.parseFilter())
                 .and(OFFERING.IS_ACTIVE.eq(Boolean.TRUE))
                 .fetch(record -> {
                     boolean createByUser = record.get(OFFERING.USER_PROVIDER).equals(userId);

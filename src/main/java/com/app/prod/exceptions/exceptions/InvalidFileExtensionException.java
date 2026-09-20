@@ -1,7 +1,9 @@
 package com.app.prod.exceptions.exceptions;
 
-public class InvalidFileExtensionException extends RuntimeException {
-    public InvalidFileExtensionException(String message) {
-        super(message);
+import com.app.prod.exceptions.AppError;
+
+public class InvalidFileExtensionException  extends AppException {
+    public InvalidFileExtensionException(AppError... errors) {
+        super(errors);
     }
 }

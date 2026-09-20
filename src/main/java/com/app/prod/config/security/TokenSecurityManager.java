@@ -10,10 +10,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 
 @Component
 @RequiredArgsConstructor
 public class TokenSecurityManager implements GlobalSecurityManager {
+
+    private static final String ROLE_PREFIX = "ROLE_";
 
     private final UserService userService;
 
@@ -52,9 +56,19 @@ public class TokenSecurityManager implements GlobalSecurityManager {
 
         return auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .map(UserRole::valueOf)
+                .map(TokenSecurityManager::toUserRole)
+                .flatMap(Optional::stream)
                 .findFirst()
                 .orElseThrow(() -> new AccessDeniedException("User does not have any role"));
+    }
+
+    private static Optional<UserRole> toUserRole(String authority) {
+        String roleName = authority.startsWith(ROLE_PREFIX) ? authority.substring(ROLE_PREFIX.length()) : authority;
+        try {
+            return Optional.of(UserRole.valueOf(roleName));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
 }

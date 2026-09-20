@@ -1,10 +1,13 @@
 package com.app.prod.user.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public record UserActivateRequest(
-        String temporaryLogin,
-        String temporaryPassword,
-        String username,
-        String email,
-        String password
+        @NotBlank String token,
+        @NotBlank @Size(max = 20) String username,
+        @NotBlank String password,
+        @NotBlank @Size(max = 20) String firstName,
+        @NotBlank @Size(max = 20) String lastName
 ) {
 }

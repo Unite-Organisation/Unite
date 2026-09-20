@@ -4,12 +4,18 @@
 package org.jooq.sources;
 
 
+import org.jooq.sources.tables.ActivationToken;
 import org.jooq.sources.tables.AppUser;
 import org.jooq.sources.tables.Area;
 import org.jooq.sources.tables.Building;
 import org.jooq.sources.tables.BuildingManager;
 import org.jooq.sources.tables.Conversation;
 import org.jooq.sources.tables.ConversationMember;
+import org.jooq.sources.tables.EmailDelivery;
+import org.jooq.sources.tables.Event;
+import org.jooq.sources.tables.EventMember;
+import org.jooq.sources.tables.EventMemberMetadata;
+import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -28,6 +34,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 
 
@@ -36,6 +43,11 @@ import org.jooq.sources.tables.UserRole;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.activation_token</code>.
+     */
+    public static final ActivationToken ACTIVATION_TOKEN = ActivationToken.ACTIVATION_TOKEN;
 
     /**
      * The table <code>public.app_user</code>.
@@ -66,6 +78,31 @@ public class Tables {
      * The table <code>public.conversation_member</code>.
      */
     public static final ConversationMember CONVERSATION_MEMBER = ConversationMember.CONVERSATION_MEMBER;
+
+    /**
+     * The table <code>public.email_delivery</code>.
+     */
+    public static final EmailDelivery EMAIL_DELIVERY = EmailDelivery.EMAIL_DELIVERY;
+
+    /**
+     * The table <code>public.event</code>.
+     */
+    public static final Event EVENT = Event.EVENT;
+
+    /**
+     * The table <code>public.event_member</code>.
+     */
+    public static final EventMember EVENT_MEMBER = EventMember.EVENT_MEMBER;
+
+    /**
+     * The table <code>public.event_member_metadata</code>.
+     */
+    public static final EventMemberMetadata EVENT_MEMBER_METADATA = EventMemberMetadata.EVENT_MEMBER_METADATA;
+
+    /**
+     * The table <code>public.event_member_session</code>.
+     */
+    public static final EventMemberSession EVENT_MEMBER_SESSION = EventMemberSession.EVENT_MEMBER_SESSION;
 
     /**
      * The table <code>public.facility</code>.
@@ -156,6 +193,11 @@ public class Tables {
      * The table <code>public.request_donor</code>.
      */
     public static final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
+
+    /**
+     * The table <code>public.user_interaction</code>.
+     */
+    public static final UserInteraction USER_INTERACTION = UserInteraction.USER_INTERACTION;
 
     /**
      * The table <code>public.user_role</code>.

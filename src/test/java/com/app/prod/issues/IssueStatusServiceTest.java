@@ -1,14 +1,18 @@
 package com.app.prod.issues;
 
+import com.app.prod.exceptions.Code;
+import com.app.prod.exceptions.exceptions.AppException;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.issues.service.IssueStatusService;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.app.prod.issues.enums.IssueProcessingStatus.*;
 import static com.app.prod.user.enums.UserRole.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class IssueStatusServiceTest {
 
@@ -25,18 +29,18 @@ public class IssueStatusServiceTest {
 
     @Test
     void shouldThrowException_WhenProvidedStatusIsSubmitted() {
-        assertThatThrownBy(() ->
-                issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, SUBMITTED, RESIDENT)
-        ).isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("It is not possible to change status to SUBMITTED");
+        assertIssueStatusError(
+                () -> issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, SUBMITTED, RESIDENT),
+                "It is not possible to change status to SUBMITTED"
+        );
     }
 
     @Test
     void shouldThrowException_WhenProvidedStatusIsSeenByRecipient() {
-        assertThatThrownBy(() ->
-                issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, SEEN_BY_RECIPIENT, MANAGER)
-        ).isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("It is not possible to change status to SUBMITTED or SEEN_BY_RECIPIENT");
+        assertIssueStatusError(
+                () -> issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, SEEN_BY_RECIPIENT, MANAGER),
+                "It is not possible to change status to SUBMITTED or SEEN_BY_RECIPIENT"
+        );
     }
 
     // -----------------------
@@ -45,10 +49,10 @@ public class IssueStatusServiceTest {
 
     @Test
     void shouldThrowException_WhenResidentTriesToChangeStatusToOtherThanClosed() {
-        assertThatThrownBy(() ->
-                issueStatusService.checkIfStatusUpdateIsPossible(TAKEN_ACTION, RESOLVED, RESIDENT)
-        ).isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Resident can change status only to CLOSED");
+        assertIssueStatusError(
+                () -> issueStatusService.checkIfStatusUpdateIsPossible(TAKEN_ACTION, RESOLVED, RESIDENT),
+                "Resident can change status only to CLOSED"
+        );
     }
 
     @Test
@@ -64,10 +68,10 @@ public class IssueStatusServiceTest {
 
     @Test
     void shouldThrowException_WhenManagerTriesToChangeFromSubmittedToResolved() {
-        assertThatThrownBy(() ->
-                issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, RESOLVED, MANAGER)
-        ).isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("It is not possible to change status to RESOLVED yet");
+        assertIssueStatusError(
+                () -> issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, RESOLVED, MANAGER),
+                "It is not possible to change status to RESOLVED yet"
+        );
     }
 
     @Test
@@ -79,10 +83,10 @@ public class IssueStatusServiceTest {
 
     @Test
     void shouldThrowException_WhenManagerTriesToChangeFromTakenActionToClosed() {
-        assertThatThrownBy(() ->
-                issueStatusService.checkIfStatusUpdateIsPossible(TAKEN_ACTION, CLOSED, MANAGER)
-        ).isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("After issue is marked as TAKEN_ACTION, only state it can change to is RESOLVED");
+        assertIssueStatusError(
+                () -> issueStatusService.checkIfStatusUpdateIsPossible(TAKEN_ACTION, CLOSED, MANAGER),
+                "After issue is marked as TAKEN_ACTION, only state it can change to is RESOLVED"
+        );
     }
 
     @Test
@@ -105,6 +109,18 @@ public class IssueStatusServiceTest {
         assertThatCode(() ->
                 issueStatusService.checkIfStatusUpdateIsPossible(SUBMITTED, RESOLVED, ADMIN)
         ).doesNotThrowAnyException();
+    }
+
+    private static void assertIssueStatusError(ThrowingCallable call, String expectedMessage) {
+        Throwable thrown = catchThrowable(call);
+
+        assertThat(thrown).isInstanceOf(BadRequestException.class);
+        assertThat(((AppException) thrown).getAppErrors())
+                .singleElement()
+                .satisfies(error -> {
+                    assertThat(error.code()).isEqualTo(Code.ISSUE_STATUS_ERROR);
+                    assertThat(error.message()).contains(expectedMessage);
+                });
     }
 
 }

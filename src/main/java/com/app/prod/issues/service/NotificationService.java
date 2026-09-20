@@ -92,7 +92,6 @@ public class NotificationService {
     }
 
     public List<NotificationResponse> getNotifications(UUID managerId) {
-        log.info("Fetching notifications for {}", managerId);
         return notificationRepository.getNotifications(managerId);
     }
 

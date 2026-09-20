@@ -34,7 +34,6 @@ import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Offering.OfferingPath;
 import org.jooq.sources.tables.Poll.PollPath;
-import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.Request.RequestPath;
 import org.jooq.sources.tables.records.AreaRecord;
 
@@ -210,18 +209,6 @@ public class Area extends TableImpl<AreaRecord> {
             _poll = new PollPath(this, null, Keys.POLL__POLL_AREA_ID_FKEY.getInverseKey());
 
         return _poll;
-    }
-
-    private transient PostPath _post;
-
-    /**
-     * Get the implicit to-many join path to the <code>public.post</code> table
-     */
-    public PostPath post() {
-        if (_post == null)
-            _post = new PostPath(this, null, Keys.POST__POST_AREA_ID_FKEY.getInverseKey());
-
-        return _post;
     }
 
     private transient RequestPath _request;

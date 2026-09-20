@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{mail/layout :: page(~{::content})}">
+<body>
+<th:block th:fragment="content">
+    <h1 th:text="#{mail.invitation.title(${appName})}"
+        style="margin:0 0 18px 0; font-family:'DM Serif Display',Georgia,'Times New Roman',serif; font-size:26px; line-height:34px; font-weight:normal; color:#1e1a16;">
+        Witaj w Unite
+    </h1>
+
+    <p th:text="#{mail.invitation.intro(${appName})}"
+       style="margin:0 0 28px 0; font-size:15px; line-height:24px; color:#3d3730;">
+        Zalozylismy dla Ciebie konto.
+    </p>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px 0;">
+        <tr>
+            <td style="background-color:#c0563a; border-radius:10px;">
+                <a th:href="${activationLink}" th:text="#{mail.invitation.cta}"
+                   style="display:inline-block; padding:14px 30px; font-family:'Outfit',Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none;">
+                    Aktywuj konto
+                </a>
+            </td>
+        </tr>
+    </table>
+
+    <p th:text="#{mail.invitation.link-hint}"
+       style="margin:0 0 8px 0; font-size:13px; line-height:20px; color:#7a6f64;">
+        Jesli przycisk nie dziala, skopiuj adres do przegladarki:
+    </p>
+    <p style="margin:0 0 28px 0; font-size:13px; line-height:20px; word-break:break-all;">
+        <a th:href="${activationLink}" th:text="${activationLink}" style="color:#9a3f26;">https://example.com</a>
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="border-top:1px solid #ddd4c6;">
+        <tr>
+            <td style="padding-top:20px;">
+                <p th:text="#{mail.invitation.expires(${expiresInDays})}"
+                   style="margin:0 0 8px 0; font-size:13px; line-height:20px; color:#3d3730;">
+                    Link jest wazny 7 dni.
+                </p>
+            </td>
+        </tr>
+    </table>
+</th:block>
+</body>
+</html>

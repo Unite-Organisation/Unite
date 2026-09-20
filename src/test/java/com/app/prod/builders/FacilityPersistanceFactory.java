@@ -31,6 +31,26 @@ public class FacilityPersistanceFactory {
             return this;
         }
 
+        public Builder name(String name){
+            instance.setName(name);
+            return this;
+        }
+
+        public Builder type(FacilityType type){
+            instance.setType(type.name());
+            return this;
+        }
+
+        public Builder capacity(Integer capacity){
+            instance.setCapacity(capacity);
+            return this;
+        }
+
+        public Builder requiresApproval(Boolean requiresApproval){
+            instance.setRequiresApproval(requiresApproval);
+            return this;
+        }
+
         public Builder withRandomValues(){
             instance.setId(UUID.randomUUID());
             instance.setName("Pool");

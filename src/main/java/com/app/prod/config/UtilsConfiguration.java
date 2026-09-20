@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import javax.sql.DataSource;
 import java.time.Clock;
@@ -36,9 +37,14 @@ public class UtilsConfiguration {
         return mutableClock;
     }
 
+    /**
+     * The DataSource is wrapped, so jOOQ reuses the connection bound to the current Spring
+     * transaction instead of taking a fresh one per query. Without the proxy every statement
+     * commits on its own and {@code @Transactional} - including row locks - has no effect.
+     */
     @Bean
     public DSLContext dslContext(DataSource dataSource){
-        return DSL.using(dataSource, SQLDialect.POSTGRES);
+        return DSL.using(new TransactionAwareDataSourceProxy(dataSource), SQLDialect.POSTGRES);
     }
 
 }

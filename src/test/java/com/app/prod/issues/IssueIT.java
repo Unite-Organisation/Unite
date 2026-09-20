@@ -155,11 +155,14 @@ public class IssueIT extends IntegrationTest {
         assertThat(issues.get(0).getFacilityId()).isNull();
         assertThat(issues.get(0).getPollId()).isNull();
 
-        // Area issues don't create notifications (no area manager yet)
+        // Area issues notify the manager of a building belonging to that area
         var notifications = notificationRepository.findAll().stream()
                 .filter(notification -> notification.getIssueId().equals(issues.get(0).getId()))
                 .toList();
-        assertThat(notifications).isEmpty();
+        assertThat(notifications).hasSize(1);
+        assertThat(notifications.get(0).getIssueId()).isEqualTo(issues.get(0).getId());
+        assertThat(notifications.get(0).getRecipientId()).isEqualTo(manager.getId());
+        assertThat(notifications.get(0).getSeenAt()).isNull();
     }
 
     @Test

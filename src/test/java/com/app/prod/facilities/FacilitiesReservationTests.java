@@ -1,9 +1,10 @@
 package com.app.prod.facilities;
 
-import com.app.prod.config.security.TokenSecurityManager;
 import com.app.prod.exceptions.exceptions.BadRequestException;
+import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
+import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.facilities.dto.ReservationRequest;
-import com.app.prod.facilities.dto.ReserveResponse;
+import com.app.prod.facilities.dto.ReservationResponse;
 import com.app.prod.facilities.enums.ReservationStatus;
 import com.app.prod.facilities.repository.FacilityRepository;
 import com.app.prod.facilities.repository.FacilityReservationsRepository;
@@ -35,6 +36,9 @@ import java.util.stream.Stream;
 import static com.app.prod.facilities.service.ReservationService.MAX_RESERVATION_HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,8 +51,6 @@ public class FacilitiesReservationTests {
     private FacilityRepository facilityRepository;
     @Mock
     private Clock clock;
-    @Mock
-    private TokenSecurityManager tokenSecurityManager;
 
     @InjectMocks
     private ReservationService reservationService;
@@ -99,14 +101,37 @@ public class FacilitiesReservationTests {
         stubClock();
         ReservationRequest request = stubFacilities(start, end, false, 2, List.of());
 
-        ReserveResponse response = reservationService.reserve(request, userId);
-        assertThat(response.success()).isTrue();
-        assertThat(response.reservations()).isNotNull();
-        assertThat(response.reservations()).hasSize(1);
-        assertThat(response.reservations().getFirst().status()).isEqualTo(ReservationStatus.RESERVED.name());
-        assertThat(response.reservations().getFirst().userId()).isEqualTo(userId);
-        assertThat(response.reservations().getFirst().startTime()).isEqualTo(start);
-        assertThat(response.reservations().getFirst().endTime()).isEqualTo(end);
+        ReservationResponse response = reservationService.reserve(request, userId);
+        assertThat(response.status()).isEqualTo(ReservationStatus.RESERVED);
+        assertThat(response.facilityId()).isEqualTo(facilityId);
+        assertThat(response.userId()).isEqualTo(userId);
+        assertThat(response.startTime()).isEqualTo(start);
+        assertThat(response.endTime()).isEqualTo(end);
+    }
+
+    @Test
+    void shouldReserveWithPendingStatusWhenFacilityRequiresApproval(){
+        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 9, 1, 12, 0);
+
+        stubClock();
+        ReservationRequest request = stubFacilities(start, end, true, 2, List.of());
+
+        assertThat(reservationService.reserve(request, userId).status()).isEqualTo(ReservationStatus.PENDING);
+    }
+
+    @Test
+    void shouldFailBecauseFacilityDoesNotExist(){
+        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 9, 1, 12, 0);
+
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.empty());
+
+        ReservationRequest request = new ReservationRequest(facilityId, start, end, null);
+
+        assertThrows(EntityNotPresentException.class,
+                () -> reservationService.reserve(request, userId)
+        );
     }
 
     @Test
@@ -164,14 +189,11 @@ public class FacilitiesReservationTests {
         );
 
         ReservationRequest request = stubFacilities(start, end, false, 2, overlapping);
-        ReserveResponse response = reservationService.reserve(request, userId);
-        assertThat(response.success()).isFalse();
-        assertThat(response.reservations()).isNotNull();
-        assertThat(response.reservations()).isNotEmpty();
-        assertThat(response.reservations().getFirst().facilityId()).isEqualTo(facilityId);
-        assertThat(response.reservations().getFirst().userId()).isEqualTo(userThatReservedBeforeMe);
-        assertThat(response.reservations().getFirst().startTime()).isEqualTo(existingStart);
-        assertThat(response.reservations().getFirst().endTime()).isEqualTo(existingEnd);
+
+        assertThrows(DataAlreadyExistsException.class,
+                () -> reservationService.reserve(request, userId)
+        );
+        verify(facilityReservationsRepository, never()).insertOne(any());
     }
 
     public static Stream<Arguments> overlappingDatesProvider(){

@@ -1,87 +1,111 @@
 package com.app.prod.post.repository;
 
+import com.app.prod.event.repository.EventMemberFields;
+import com.app.prod.interaction.dto.InteractionSummary;
+import com.app.prod.interaction.enums.InteractionEntityType;
+import com.app.prod.interaction.repository.InteractionFields;
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.enums.PostType;
+import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.records.PostRecord;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.jooq.impl.DSL.coalesce;
 import static org.jooq.sources.Tables.*;
 
 @Repository
 public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
-    protected PostRepository(DSLContext dsl) {
+
+    private final FileService fileService;
+
+    protected PostRepository(DSLContext dsl, FileService fileService) {
         super(dsl, POST, POST.ID);
+        this.fileService = fileService;
     }
 
-    public List<PostResponse> findForUser(UUID userId, Pagination pagination, PostFilter filter) {
-        return dslContext.selectDistinct(
+    public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
+        Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, viewerId);
+        Field<Integer> attendeesCount = EventMemberFields.goingCount(POST.EVENT_ID).as("attendees_count");
+        Field<String> name = coalesce(POST.NAME, EVENT.NAME).as("name");
+        Field<String> content = coalesce(POST.CONTENT, EVENT.DESCRIPTION).as("content");
+
+        return dslContext.select(
                         POST.ID,
-                        POST.NAME,
-                        POST.AREA_ID,
+                        name,
                         POST.BUILDING_ID,
                         POST.CREATED_BY,
-                        POST.CONTENT,
+                        content,
                         POST.RELATED_DATE,
                         POST.CREATED_AT,
                         POST.POST_TYPE,
-                        POST.START_DATE_TIME,
-                        POST.END_DATE_TIME,
-                        POST.LOCATION_NAME,
-                        POST.ONLINE_URL,
-                        POST.MAX_ATTENDEES,
-                        POST.IMAGE_REFERENCE
+                        EVENT.PUBLIC_SLUG,
+                        EVENT.START_DATE_TIME,
+                        EVENT.END_DATE_TIME,
+                        EVENT.LOCATION_NAME,
+                        EVENT.ONLINE_URL,
+                        EVENT.MAX_ATTENDEES,
+                        attendeesCount,
+                        POST.VISIBLE_FROM,
+                        POST.VISIBLE_TO,
+                        POST.ATTACHMENTS,
+                        interactions
                 )
-                .from(APP_USER)
-                .join(BUILDING).on(BUILDING.ID.eq(APP_USER.BUILDING_ID))
-                .join(AREA).on(AREA.ID.eq(BUILDING.AREA_ID))
-                .join(POST).on(
-                        POST.BUILDING_ID.eq(BUILDING.ID)
-                                .or(POST.AREA_ID.eq(AREA.ID))
-                )
-                .join(BUILDING_MANAGER).on(BUILDING_MANAGER.BUILDING_ID.eq(BUILDING.ID))
-                .where(APP_USER.ID.eq(userId))
-                .or(BUILDING_MANAGER.USER_ID.eq(userId))
-                .and(filter.parseFilterAnd())
+                .from(POST)
+                .leftJoin(EVENT).on(EVENT.ID.eq(POST.EVENT_ID))
+                .where(filter.parseFilter())
                 .orderBy(POST.CREATED_AT)
                 .offset(pagination.getOffset())
                 .limit(pagination.pageSize())
-                .fetch(record -> {
-                    String imageRef = record.get(POST.IMAGE_REFERENCE);
-                    Boolean imagePresent = imageRef != null && !imageRef.isBlank();
-
-                    return new PostResponse(
+                .fetch(record -> new PostResponse(
                         record.get(POST.ID),
-                        record.get(POST.NAME),
-                        record.get(POST.AREA_ID),
+                        record.get(name),
                         record.get(POST.BUILDING_ID),
                         record.get(POST.CREATED_BY),
-                        record.get(POST.CONTENT),
+                        record.get(content),
                         record.get(POST.RELATED_DATE),
                         record.get(POST.CREATED_AT),
                         PostType.valueOf(record.get(POST.POST_TYPE)),
-                        record.get(POST.START_DATE_TIME),
-                        record.get(POST.END_DATE_TIME),
-                        record.get(POST.LOCATION_NAME),
-                        record.get(POST.ONLINE_URL),
-                        record.get(POST.MAX_ATTENDEES),
-                        imagePresent
-                    );
-                });
+                        record.get(EVENT.PUBLIC_SLUG),
+                        record.get(EVENT.START_DATE_TIME),
+                        record.get(EVENT.END_DATE_TIME),
+                        record.get(EVENT.LOCATION_NAME),
+                        record.get(EVENT.ONLINE_URL),
+                        record.get(EVENT.MAX_ATTENDEES),
+                        record.get(attendeesCount),
+                        record.get(POST.VISIBLE_FROM),
+                        record.get(POST.VISIBLE_TO),
+                        fileService.toResponses(record.get(POST.ATTACHMENTS)),
+                        record.get(interactions)
+                ));
     }
 
-    public void updatePhotoPath(UUID id, String path){
-        dslContext.update(POST)
-                .set(POST.IMAGE_REFERENCE, path)
-                .where(POST.ID.eq(id))
-                .execute();
+    public boolean existsForEvent(UUID eventId) {
+        return dslContext.fetchExists(POST, POST.EVENT_ID.eq(eventId));
+    }
+
+    public Optional<PostRecord> findInBuildingForUpdate(UUID buildingId, UUID postId) {
+        return dslContext.selectFrom(POST)
+                .where(POST.ID.eq(postId))
+                .and(POST.BUILDING_ID.eq(buildingId))
+                .forUpdate()
+                .fetchOptional();
+    }
+
+    public Optional<PostType> findPostTypeInBuilding(UUID buildingId, UUID postId) {
+        return dslContext.select(POST.POST_TYPE)
+                .from(POST)
+                .where(POST.ID.eq(postId))
+                .and(POST.BUILDING_ID.eq(buildingId))
+                .fetchOptional(record -> PostType.valueOf(record.get(POST.POST_TYPE)));
     }
 }

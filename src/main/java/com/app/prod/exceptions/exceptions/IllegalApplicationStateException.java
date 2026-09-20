@@ -1,7 +1,9 @@
 package com.app.prod.exceptions.exceptions;
 
-public class IllegalApplicationStateException extends RuntimeException {
-    public IllegalApplicationStateException(String message) {
-        super(message);
+import com.app.prod.exceptions.AppError;
+
+public class IllegalApplicationStateException  extends AppException {
+    public IllegalApplicationStateException(AppError... errors) {
+        super(errors);
     }
 }

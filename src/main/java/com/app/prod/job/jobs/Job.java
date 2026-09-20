@@ -15,6 +15,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = SyncUserJob.class, name = "SyncUserJob"),
         // add here more jobs in future
 })
-public interface Job extends Runnable{
+public interface Job extends Runnable {
     JobRegistry jobRegistry = SpringContextHolder.getBean(JobRegistry.class);
 }

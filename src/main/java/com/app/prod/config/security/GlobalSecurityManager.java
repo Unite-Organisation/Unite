@@ -1,16 +1,16 @@
-    package com.app.prod.config.security;
+package com.app.prod.config.security;
 
-    import com.app.prod.user.enums.UserRole;
-    import org.jooq.sources.tables.records.AppUserRecord;
+import com.app.prod.user.enums.UserRole;
+import org.jooq.sources.tables.records.AppUserRecord;
 
-    public interface GlobalSecurityManager {
+public interface GlobalSecurityManager {
 
-        boolean currentUserHasRole(String role);
+    boolean currentUserHasRole(String role);
 
-        void checkUserRole(String role);
+    void checkUserRole(String role);
 
-        AppUserRecord getCurrentUser();
+    AppUserRecord getCurrentUser();
 
-        UserRole getUserRole();
+    UserRole getUserRole();
 
-    }
+}

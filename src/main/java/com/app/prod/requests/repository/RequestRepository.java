@@ -5,7 +5,6 @@ import com.app.prod.requests.enums.RequestStatus;
 import com.app.prod.user.dto.UserData;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.filters.RequestFilter;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.records.RequestRecord;
@@ -54,7 +53,7 @@ public class RequestRepository extends BaseJooqRepository<Request, RequestRecord
                 .join(uNeed).on(uNeed.ID.eq(REQUEST.USER_IN_NEED))
                 .leftJoin(REQUEST_DONOR).on(REQUEST_DONOR.REQUEST_ID.eq(REQUEST.ID))
                 .leftJoin(uDonor).on(uDonor.ID.eq(REQUEST_DONOR.DONOR_ID))
-                .where(filter.parseFilterAnd())
+                .where(filter.parseFilter())
                 .fetch()
                 .map(record -> new RequestResponse(
                         record.get(REQUEST.ID),

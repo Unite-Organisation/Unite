@@ -14,7 +14,9 @@ import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Index;
 import org.jooq.InverseForeignKey;
+import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Path;
 import org.jooq.PlainSQL;
@@ -32,11 +34,12 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
+import org.jooq.sources.Indexes;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
 import org.jooq.sources.tables.AppUser.AppUserPath;
-import org.jooq.sources.tables.Area.AreaPath;
 import org.jooq.sources.tables.Building.BuildingPath;
+import org.jooq.sources.tables.Event.EventPath;
 import org.jooq.sources.tables.records.PostRecord;
 
 
@@ -69,17 +72,12 @@ public class Post extends TableImpl<PostRecord> {
     /**
      * The column <code>public.post.name</code>.
      */
-    public final TableField<PostRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(256).nullable(false), this, "");
-
-    /**
-     * The column <code>public.post.area_id</code>.
-     */
-    public final TableField<PostRecord, UUID> AREA_ID = createField(DSL.name("area_id"), SQLDataType.UUID, this, "");
+    public final TableField<PostRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(256), this, "");
 
     /**
      * The column <code>public.post.building_id</code>.
      */
-    public final TableField<PostRecord, UUID> BUILDING_ID = createField(DSL.name("building_id"), SQLDataType.UUID, this, "");
+    public final TableField<PostRecord, UUID> BUILDING_ID = createField(DSL.name("building_id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
      * The column <code>public.post.created_by</code>.
@@ -94,12 +92,7 @@ public class Post extends TableImpl<PostRecord> {
     /**
      * The column <code>public.post.content</code>.
      */
-    public final TableField<PostRecord, String> CONTENT = createField(DSL.name("content"), SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.post.image_reference</code>.
-     */
-    public final TableField<PostRecord, String> IMAGE_REFERENCE = createField(DSL.name("image_reference"), SQLDataType.VARCHAR(2048), this, "");
+    public final TableField<PostRecord, String> CONTENT = createField(DSL.name("content"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.post.related_date</code>.
@@ -112,29 +105,24 @@ public class Post extends TableImpl<PostRecord> {
     public final TableField<PostRecord, String> POST_TYPE = createField(DSL.name("post_type"), SQLDataType.VARCHAR(50).nullable(false), this, "");
 
     /**
-     * The column <code>public.post.start_date_time</code>.
+     * The column <code>public.post.attachments</code>.
      */
-    public final TableField<PostRecord, LocalDateTime> START_DATE_TIME = createField(DSL.name("start_date_time"), SQLDataType.LOCALDATETIME(6), this, "");
+    public final TableField<PostRecord, JSONB> ATTACHMENTS = createField(DSL.name("attachments"), SQLDataType.JSONB.nullable(false).defaultValue(DSL.field(DSL.raw("'[]'::jsonb"), SQLDataType.JSONB)), this, "");
 
     /**
-     * The column <code>public.post.end_date_time</code>.
+     * The column <code>public.post.visible_from</code>.
      */
-    public final TableField<PostRecord, LocalDateTime> END_DATE_TIME = createField(DSL.name("end_date_time"), SQLDataType.LOCALDATETIME(6), this, "");
+    public final TableField<PostRecord, LocalDateTime> VISIBLE_FROM = createField(DSL.name("visible_from"), SQLDataType.LOCALDATETIME(6), this, "");
 
     /**
-     * The column <code>public.post.location_name</code>.
+     * The column <code>public.post.visible_to</code>.
      */
-    public final TableField<PostRecord, String> LOCATION_NAME = createField(DSL.name("location_name"), SQLDataType.VARCHAR(256), this, "");
+    public final TableField<PostRecord, LocalDateTime> VISIBLE_TO = createField(DSL.name("visible_to"), SQLDataType.LOCALDATETIME(6), this, "");
 
     /**
-     * The column <code>public.post.online_url</code>.
+     * The column <code>public.post.event_id</code>.
      */
-    public final TableField<PostRecord, String> ONLINE_URL = createField(DSL.name("online_url"), SQLDataType.VARCHAR(2048), this, "");
-
-    /**
-     * The column <code>public.post.max_attendees</code>.
-     */
-    public final TableField<PostRecord, Integer> MAX_ATTENDEES = createField(DSL.name("max_attendees"), SQLDataType.INTEGER, this, "");
+    public final TableField<PostRecord, UUID> EVENT_ID = createField(DSL.name("event_id"), SQLDataType.UUID, this, "");
 
     private Post(Name alias, Table<PostRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -204,25 +192,23 @@ public class Post extends TableImpl<PostRecord> {
     }
 
     @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.IDX_POST_BUILDING_CREATED);
+    }
+
+    @Override
     public UniqueKey<PostRecord> getPrimaryKey() {
         return Keys.POST_PKEY;
     }
 
     @Override
-    public List<ForeignKey<PostRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.POST__POST_AREA_ID_FKEY, Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY);
+    public List<UniqueKey<PostRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.POST_EVENT_ID_KEY);
     }
 
-    private transient AreaPath _area;
-
-    /**
-     * Get the implicit join path to the <code>public.area</code> table.
-     */
-    public AreaPath area() {
-        if (_area == null)
-            _area = new AreaPath(this, Keys.POST__POST_AREA_ID_FKEY, null);
-
-        return _area;
+    @Override
+    public List<ForeignKey<PostRecord, ?>> getReferences() {
+        return Arrays.asList(Keys.POST__POST_BUILDING_ID_FKEY, Keys.POST__POST_CREATED_BY_FKEY, Keys.POST__POST_EVENT_ID_FKEY);
     }
 
     private transient BuildingPath _building;
@@ -249,10 +235,22 @@ public class Post extends TableImpl<PostRecord> {
         return _appUser;
     }
 
+    private transient EventPath _event;
+
+    /**
+     * Get the implicit join path to the <code>public.event</code> table.
+     */
+    public EventPath event() {
+        if (_event == null)
+            _event = new EventPath(this, Keys.POST__POST_EVENT_ID_FKEY, null);
+
+        return _event;
+    }
+
     @Override
     public List<Check<PostRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("area_or_building_not_both_null_or_not_null_ann"), "((((area_id IS NULL) AND (building_id IS NOT NULL)) OR ((area_id IS NOT NULL) AND (building_id IS NULL))))", true)
+            Internal.createCheck(this, DSL.name("visible_window_valid"), "(((visible_from IS NULL) OR (visible_to IS NULL) OR (visible_from <= visible_to)))", true)
         );
     }
 

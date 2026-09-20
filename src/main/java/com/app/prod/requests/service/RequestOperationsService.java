@@ -1,7 +1,8 @@
 package com.app.prod.requests.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
-import com.app.prod.requests.enums.RequestStatus;
 import com.app.prod.requests.repository.RequestDonorRepository;
 import com.app.prod.requests.repository.RequestRepository;
 import com.app.prod.utils.validators.Validate;
@@ -38,7 +39,7 @@ public class RequestOperationsService {
 
     private void checkIfUserIsDonorForRequest(UUID userId, UUID requestId){
         if(!requestDonorRepository.userIsDonorForRequest(userId, requestId)){
-            throw new BadRequestException(String.format("User %s is not donor for request %s", userId, requestId));
+            throw new BadRequestException(AppError.of(Code.REQUEST_DONOR));
         }
     }
 }

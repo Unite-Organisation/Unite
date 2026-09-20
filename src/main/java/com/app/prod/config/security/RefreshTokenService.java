@@ -1,6 +1,8 @@
 package com.app.prod.config.security;
 
 import com.app.prod.authorization.repository.RefreshTokenRepository;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
 import lombok.Getter;
@@ -107,10 +109,10 @@ public class RefreshTokenService {
         List<RefreshTokenRecord> refreshTokenRecordList = refreshTokenRepository.findByToken(refreshToken);
 
         if (refreshTokenRecordList.isEmpty()) {
-            throw new BadRequestException("Refresh token not found");
+            throw new BadRequestException(AppError.of(Code.REFRESH_TOKEN_ERROR,"Refresh token not found"));
         }
         if (refreshTokenRecordList.size() != 1) {
-            throw new IllegalApplicationStateException("More than one token with same string content");
+            throw new IllegalApplicationStateException(AppError.of(Code.REFRESH_TOKEN_ERROR,"More than one token with same string content"));
         }
 
         return refreshTokenRecordList.getFirst();

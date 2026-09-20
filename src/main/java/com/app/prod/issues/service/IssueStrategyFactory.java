@@ -1,5 +1,7 @@
 package com.app.prod.issues.service;
 
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.issues.dto.StrategyOptions;
 import com.app.prod.issues.strategy.*;
@@ -41,7 +43,7 @@ public class IssueStrategyFactory {
         }
 
         if(strategy == null){
-            throw new BadRequestException("At least one issue option must be chosen");
+            throw new BadRequestException(AppError.of(Code.ISSUE_STRATEGY_NOT_CHOSEN, "At least one issue option must be chosen"));
         }
 
         return strategy;
