@@ -3,6 +3,7 @@ package com.app.prod.event.repository;
 import com.app.prod.event.dto.EventResponse;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.sources.tables.Event;
 import org.jooq.sources.tables.records.EventRecord;
 import org.springframework.stereotype.Repository;
@@ -26,6 +27,13 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
                 .fetchOptional();
     }
 
+    public Optional<EventRecord> findBySlugForUpdate(String slug) {
+        return dslContext.selectFrom(EVENT)
+                .where(EVENT.PUBLIC_SLUG.eq(slug))
+                .forUpdate()
+                .fetchOptional();
+    }
+
     public Optional<UUID> findIdBySlug(String slug) {
         return dslContext.select(EVENT.ID)
                 .from(EVENT)
@@ -34,6 +42,8 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
     }
 
     public Optional<EventResponse> findBySlug(String slug) {
+        Field<Integer> goingCount = EventMemberFields.goingCount(EVENT.ID).as("going_count");
+
         return dslContext.select(
                         EVENT.PUBLIC_SLUG,
                         EVENT.NAME,
@@ -44,6 +54,7 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
                         EVENT.ONLINE_URL,
                         EVENT.MAX_ATTENDEES,
                         EVENT.WAITLIST_ENABLED,
+                        goingCount,
                         EVENT.CREATED_AT
                 )
                 .from(EVENT)
@@ -58,7 +69,9 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
                         record.get(EVENT.ONLINE_URL),
                         record.get(EVENT.MAX_ATTENDEES),
                         record.get(EVENT.WAITLIST_ENABLED),
-                        record.get(EVENT.CREATED_AT)
+                        record.get(goingCount),
+                        record.get(EVENT.CREATED_AT),
+                        null
                 ));
     }
 }

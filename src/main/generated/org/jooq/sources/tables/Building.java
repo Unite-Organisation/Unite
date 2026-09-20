@@ -34,7 +34,6 @@ import org.jooq.sources.Public;
 import org.jooq.sources.tables.AppUser.AppUserPath;
 import org.jooq.sources.tables.Area.AreaPath;
 import org.jooq.sources.tables.BuildingManager.BuildingManagerPath;
-import org.jooq.sources.tables.Event.EventPath;
 import org.jooq.sources.tables.Facility.FacilityPath;
 import org.jooq.sources.tables.Issue.IssuePath;
 import org.jooq.sources.tables.Poll.PollPath;
@@ -211,18 +210,6 @@ public class Building extends TableImpl<BuildingRecord> {
             _buildingManager = new BuildingManagerPath(this, null, Keys.BUILDING_MANAGER__BUILDING_MANAGER_BUILDING_ID_FKEY.getInverseKey());
 
         return _buildingManager;
-    }
-
-    private transient EventPath _event;
-
-    /**
-     * Get the implicit to-many join path to the <code>public.event</code> table
-     */
-    public EventPath event() {
-        if (_event == null)
-            _event = new EventPath(this, null, Keys.EVENT__EVENT_BUILDING_ID_FKEY.getInverseKey());
-
-        return _event;
     }
 
     private transient FacilityPath _facility;

@@ -14,7 +14,6 @@ import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.Name;
 import org.jooq.Path;
@@ -33,10 +32,8 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
-import org.jooq.sources.Indexes;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
-import org.jooq.sources.tables.Building.BuildingPath;
 import org.jooq.sources.tables.EventMember.EventMemberPath;
 import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.records.EventRecord;
@@ -72,11 +69,6 @@ public class Event extends TableImpl<EventRecord> {
      * The column <code>public.event.public_slug</code>.
      */
     public final TableField<EventRecord, String> PUBLIC_SLUG = createField(DSL.name("public_slug"), SQLDataType.VARCHAR(16).nullable(false), this, "");
-
-    /**
-     * The column <code>public.event.building_id</code>.
-     */
-    public final TableField<EventRecord, UUID> BUILDING_ID = createField(DSL.name("building_id"), SQLDataType.UUID, this, "");
 
     /**
      * The column <code>public.event.name</code>.
@@ -191,11 +183,6 @@ public class Event extends TableImpl<EventRecord> {
     }
 
     @Override
-    public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_EVENT_BUILDING);
-    }
-
-    @Override
     public UniqueKey<EventRecord> getPrimaryKey() {
         return Keys.EVENT_PKEY;
     }
@@ -203,23 +190,6 @@ public class Event extends TableImpl<EventRecord> {
     @Override
     public List<UniqueKey<EventRecord>> getUniqueKeys() {
         return Arrays.asList(Keys.EVENT_PUBLIC_SLUG_KEY);
-    }
-
-    @Override
-    public List<ForeignKey<EventRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.EVENT__EVENT_BUILDING_ID_FKEY);
-    }
-
-    private transient BuildingPath _building;
-
-    /**
-     * Get the implicit join path to the <code>public.building</code> table.
-     */
-    public BuildingPath building() {
-        if (_building == null)
-            _building = new BuildingPath(this, Keys.EVENT__EVENT_BUILDING_ID_FKEY, null);
-
-        return _building;
     }
 
     private transient EventMemberPath _eventMember;

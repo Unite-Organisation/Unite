@@ -49,143 +49,129 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
     }
 
     /**
-     * Setter for <code>public.event.building_id</code>.
-     */
-    public void setBuildingId(UUID value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.event.building_id</code>.
-     */
-    public UUID getBuildingId() {
-        return (UUID) get(2);
-    }
-
-    /**
      * Setter for <code>public.event.name</code>.
      */
     public void setName(String value) {
-        set(3, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>public.event.name</code>.
      */
     public String getName() {
-        return (String) get(3);
+        return (String) get(2);
     }
 
     /**
      * Setter for <code>public.event.description</code>.
      */
     public void setDescription(String value) {
-        set(4, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.event.description</code>.
      */
     public String getDescription() {
-        return (String) get(4);
+        return (String) get(3);
     }
 
     /**
      * Setter for <code>public.event.start_date_time</code>.
      */
     public void setStartDateTime(LocalDateTime value) {
-        set(5, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.event.start_date_time</code>.
      */
     public LocalDateTime getStartDateTime() {
-        return (LocalDateTime) get(5);
+        return (LocalDateTime) get(4);
     }
 
     /**
      * Setter for <code>public.event.end_date_time</code>.
      */
     public void setEndDateTime(LocalDateTime value) {
-        set(6, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.event.end_date_time</code>.
      */
     public LocalDateTime getEndDateTime() {
-        return (LocalDateTime) get(6);
+        return (LocalDateTime) get(5);
     }
 
     /**
      * Setter for <code>public.event.location_name</code>.
      */
     public void setLocationName(String value) {
-        set(7, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>public.event.location_name</code>.
      */
     public String getLocationName() {
-        return (String) get(7);
+        return (String) get(6);
     }
 
     /**
      * Setter for <code>public.event.online_url</code>.
      */
     public void setOnlineUrl(String value) {
-        set(8, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>public.event.online_url</code>.
      */
     public String getOnlineUrl() {
-        return (String) get(8);
+        return (String) get(7);
     }
 
     /**
      * Setter for <code>public.event.max_attendees</code>.
      */
     public void setMaxAttendees(Integer value) {
-        set(9, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>public.event.max_attendees</code>.
      */
     public Integer getMaxAttendees() {
-        return (Integer) get(9);
+        return (Integer) get(8);
     }
 
     /**
      * Setter for <code>public.event.waitlist_enabled</code>.
      */
     public void setWaitlistEnabled(Boolean value) {
-        set(10, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>public.event.waitlist_enabled</code>.
      */
     public Boolean getWaitlistEnabled() {
-        return (Boolean) get(10);
+        return (Boolean) get(9);
     }
 
     /**
      * Setter for <code>public.event.created_at</code>.
      */
     public void setCreatedAt(LocalDateTime value) {
-        set(11, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>public.event.created_at</code>.
      */
     public LocalDateTime getCreatedAt() {
-        return (LocalDateTime) get(11);
+        return (LocalDateTime) get(10);
     }
 
     // -------------------------------------------------------------------------
@@ -211,12 +197,11 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
     /**
      * Create a detached, initialised EventRecord
      */
-    public EventRecord(UUID id, String publicSlug, UUID buildingId, String name, String description, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, Boolean waitlistEnabled, LocalDateTime createdAt) {
+    public EventRecord(UUID id, String publicSlug, String name, String description, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, Boolean waitlistEnabled, LocalDateTime createdAt) {
         super(Event.EVENT);
 
         setId(id);
         setPublicSlug(publicSlug);
-        setBuildingId(buildingId);
         setName(name);
         setDescription(description);
         setStartDateTime(startDateTime);

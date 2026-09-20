@@ -1,5 +1,6 @@
 package com.app.prod.event.service;
 
+import com.app.prod.event.dto.SessionMember;
 import com.app.prod.event.repository.EventMemberSessionRepository;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
@@ -16,6 +17,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,6 +41,10 @@ public class EventSessionService {
                 now
         ));
         return rawToken;
+    }
+
+    public Optional<SessionMember> findActive(String slug, String rawToken, LocalDateTime now) {
+        return sessionRepository.findActiveMember(hash(rawToken), slug, now);
     }
 
     private static String randomToken() {

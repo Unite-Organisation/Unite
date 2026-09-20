@@ -12,9 +12,11 @@ import java.util.List;
 public class EventWebConfig implements WebMvcConfigurer {
 
     private final EventCallerArgumentResolver eventCallerArgumentResolver;
+    private final EventScopeArgumentResolver eventScopeArgumentResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(eventCallerArgumentResolver);
+        resolvers.add(eventScopeArgumentResolver);
     }
 }

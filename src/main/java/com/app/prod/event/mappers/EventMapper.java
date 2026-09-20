@@ -1,6 +1,8 @@
 package com.app.prod.event.mappers;
 
 import com.app.prod.event.dto.CreateEventRequest;
+import com.app.prod.event.dto.MemberResponse;
+import com.app.prod.event.enums.EventIdentityOrigin;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import org.jooq.sources.tables.records.AppUserRecord;
@@ -41,6 +43,15 @@ public class EventMapper {
         EventMemberRecord record = baseMember(eventId, displayName.trim(), role, status, now);
         record.setPinHash(pinHash);
         return record;
+    }
+
+    public static MemberResponse toResponse(EventMemberRecord record) {
+        return new MemberResponse(
+                record.getDisplayName(),
+                EventMemberRole.valueOf(record.getRole()),
+                EventMemberStatus.valueOf(record.getStatus()),
+                record.getUserId() != null ? EventIdentityOrigin.UNITE : EventIdentityOrigin.GUEST
+        );
     }
 
     private static EventMemberRecord baseMember(UUID eventId, String displayName, EventMemberRole role, EventMemberStatus status, LocalDateTime now) {

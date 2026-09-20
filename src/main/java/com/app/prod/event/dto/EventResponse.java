@@ -12,6 +12,13 @@ public record EventResponse(
         String onlineUrl,
         Integer maxAttendees,
         boolean waitlistEnabled,
-        LocalDateTime createdAt
+        int goingCount,
+        LocalDateTime createdAt,
+        MemberResponse me
 ) {
+
+    public EventResponse withMe(MemberResponse me) {
+        return new EventResponse(slug, name, description, startDate, endDate, locationName, onlineUrl,
+                maxAttendees, waitlistEnabled, goingCount, createdAt, me);
+    }
 }
