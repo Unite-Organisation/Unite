@@ -64,7 +64,7 @@ public class PublicEventRestApi {
 
     @GetMapping("/{slug}/members")
     @CookieSession(
-            value = CookieSession.Mode.NONE,
+            value = CookieSession.Mode.REQUIRED,
             note =  "The login screen shows this list before there is any session, so holding the link is enough"
     )
     public List<EventMemberResponse> getMembers(@PathVariable String slug, @Valid @ModelAttribute EventMembersRequest request, RequestSignals requestSignals) {
