@@ -284,7 +284,6 @@ public class PostInteractionIT extends IntegrationTest {
                 .name(name)
                 .buildingId(buildingId)
                 .createdBy(residentId)
-                .maxAttendees(maxAttendees)
                 .buildAndSave();
     }
 

@@ -111,8 +111,6 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
         var now = LocalDateTime.now(clock);
 
         event("Finished")
-                .startDateTime(now.minusDays(4))
-                .endDateTime(now.minusDays(3))
                 .visibleFrom(now.minusDays(6))
                 .visibleTo(now.plusDays(10))
                 .buildAndSave();

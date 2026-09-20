@@ -97,20 +97,6 @@ public class PostPersistenceFactory {
             return this;
         }
 
-        public Builder startDateTime(LocalDateTime startDateTime) {
-            instance.setStartDateTime(startDateTime);
-            return this;
-        }
-
-        public Builder endDateTime(LocalDateTime endDateTime) {
-            instance.setEndDateTime(endDateTime);
-            return this;
-        }
-
-        public Builder maxAttendees(Integer maxAttendees) {
-            instance.setMaxAttendees(maxAttendees);
-            return this;
-        }
 
         public Builder withRandomValues() {
             instance.setId(UUID.randomUUID());
