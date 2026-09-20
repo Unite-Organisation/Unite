@@ -6,6 +6,8 @@ public class ApiOrigins {
     private static final String FRONTEND_ORIGIN = "http://localhost:";
     private static final String FRONTEND_PROD_ORIGIN1 = "https://unite-488210.web.app";
     private static final String FRONTEND_PROD_ORIGIN2 = "https://unite-488210.firebaseapp.com";
+    private static final String FRONTEND_PROD_ORIGIN3 = "https://unitly.pl";
+    private static final String FRONTEND_PROD_ORIGIN4 = "https://www.unitly.pl";
     private static final String PORT = "4204";
 
     public static String getFrontendOrigin(){
@@ -16,7 +18,9 @@ public class ApiOrigins {
         return List.of(
                 getFrontendOrigin(),
                 FRONTEND_PROD_ORIGIN1,
-                FRONTEND_PROD_ORIGIN2
+                FRONTEND_PROD_ORIGIN2,
+                FRONTEND_PROD_ORIGIN3,
+                FRONTEND_PROD_ORIGIN4
         );
     }
 }
