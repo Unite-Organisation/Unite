@@ -7,7 +7,6 @@ import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.facilities.dto.FacilityRequest;
 import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.facilities.repository.FacilityRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.FacilityFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +50,7 @@ public class FacilityService {
         return String.format("Added %s facilities.", records.size());
     }
 
-    public List<FacilityResponse> getFacilities(Pagination pagination, FacilityFilter filter) {
-        return facilityRepository.findFacilities(pagination, filter);
+    public List<FacilityResponse> getFacilities(FacilityFilter filter) {
+        return facilityRepository.findFacilities(filter);
     }
 }

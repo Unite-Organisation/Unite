@@ -23,6 +23,8 @@ public class FacilityFilteringService {
 
     public FacilityFilter prepareFilter(BuildingScope scope, FacilityFilterRequest request) {
         return FacilityFilter.builder()
+                .pagination(request.pagination())
+                .search(request.search())
                 .buildingId(Filter.of(scope.buildingId()))
                 .facilityType(Filter.of(request.getFacilityType()))
                 .requiresApproval(Filter.of(request.getRequiresApproval()))
@@ -34,6 +36,7 @@ public class FacilityFilteringService {
         validateNarrowings(request);
 
         return FacilityReservationFilter.builder()
+                .pagination(request.pagination())
                 .facilityId(Filter.of(facilityId))
                 .day(Filter.of(request.getDay()))
                 .userId(onlyOwnBookings(request) ? Filter.of(viewerId) : Filter.empty())

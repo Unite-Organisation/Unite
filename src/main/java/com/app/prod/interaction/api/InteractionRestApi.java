@@ -57,7 +57,7 @@ public class InteractionRestApi {
             @RequestParam(required = false) @DateTimeFormat(iso = DATE_TIME) LocalDateTime createdAt,
             @RequestParam(required = false) ComparisonFilter.Modifier createdAtModifier
     ) {
-        InteractionFilter filter = interactionFilteringService.prepareFilter(entityType, entityId, interactionType, createdAt, createdAtModifier);
-        return interactionService.getInteractions(scope, entityType, entityId, filter, pagination);
+        InteractionFilter filter = interactionFilteringService.prepareFilter(pagination, entityType, entityId, interactionType, createdAt, createdAtModifier);
+        return interactionService.getInteractions(scope, entityType, entityId, filter);
     }
 }

@@ -1,6 +1,7 @@
 package com.app.prod.utils.filters;
 
 import com.app.prod.utils.Pagination;
+import com.app.prod.utils.Search;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,8 +17,13 @@ public abstract class FilterRequest {
     private Integer pageSize;
     @Min(1)
     private Integer page;
+    private String search;
 
     public Pagination pagination() {
         return Pagination.of(pageSize, page);
+    }
+
+    public Search search() {
+        return Search.of(search);
     }
 }

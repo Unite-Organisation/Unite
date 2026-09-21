@@ -125,7 +125,7 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 });
     }
 
-    public List<BuildingUserResponse> findUsersInBuilding(Pagination pagination, BuildingUserFilter filter) {
+    public List<BuildingUserResponse> findUsersInBuilding(BuildingUserFilter filter) {
         Field<DeliverySummary> invitation = EmailDeliveryFields.lastDelivery(APP_USER.ID, EmailDeliveryType.USER_CREATION);
 
         return dslContext.select(
@@ -141,8 +141,8 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
                 .from(APP_USER)
                 .where(filter.parseFilter())
                 .orderBy(APP_USER.CREATED_AT.desc(), APP_USER.ID)
-                .offset(pagination.getOffset())
-                .limit(pagination.pageSize())
+                .offset(filter.pagination().getOffset())
+                .limit(filter.pagination().pageSize())
                 .fetch(record -> {
                     UserStatus status = UserStatus.valueOf(record.get(APP_USER.STATUS));
 
