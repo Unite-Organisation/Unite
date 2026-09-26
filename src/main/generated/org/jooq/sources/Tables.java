@@ -34,6 +34,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.ScheduledJob;
 import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 
@@ -193,6 +194,11 @@ public class Tables {
      * The table <code>public.request_donor</code>.
      */
     public static final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
+
+    /**
+     * The table <code>public.scheduled_job</code>.
+     */
+    public static final ScheduledJob SCHEDULED_JOB = ScheduledJob.SCHEDULED_JOB;
 
     /**
      * The table <code>public.user_interaction</code>.

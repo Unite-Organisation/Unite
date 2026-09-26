@@ -38,3 +38,6 @@ mail:
 activation:
   link-base-url: http://localhost:3000/activate
   token-ttl: 7d
+
+jobs:
+  drain-token: test-drain-token
