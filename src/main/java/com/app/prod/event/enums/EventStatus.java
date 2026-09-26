@@ -1,8 +1,8 @@
 package com.app.prod.event.enums;
 
 public enum EventStatus {
-    COLLECTING,
-    SINGLE_SLOT,
-    LOCKED,
+    COLLECTING_VOTES,
+    ONE_SLOT_LEFT,
+    GROUP_FORMED,
     CONFIRMED
 }

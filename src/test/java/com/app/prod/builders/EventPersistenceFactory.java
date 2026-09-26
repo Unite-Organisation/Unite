@@ -104,7 +104,7 @@ public class EventPersistenceFactory {
         public EventBuilder poll(int minAttendees, LocalDateTime votingDeadline) {
             withDefaults();
             instance.setSchedulingMode(SchedulingMode.POLL.name());
-            instance.setStatus(EventStatus.COLLECTING.name());
+            instance.setStatus(EventStatus.COLLECTING_VOTES.name());
             instance.setMinAttendees(minAttendees);
             instance.setVotingDeadline(votingDeadline);
             return this;
