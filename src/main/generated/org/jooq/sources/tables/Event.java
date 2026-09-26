@@ -35,6 +35,7 @@ import org.jooq.impl.TableImpl;
 import org.jooq.sources.Keys;
 import org.jooq.sources.Public;
 import org.jooq.sources.tables.EventMember.EventMemberPath;
+import org.jooq.sources.tables.EventSlot.EventSlotPath;
 import org.jooq.sources.tables.Post.PostPath;
 import org.jooq.sources.tables.records.EventRecord;
 
@@ -115,6 +116,36 @@ public class Event extends TableImpl<EventRecord> {
      */
     public final TableField<EventRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
 
+    /**
+     * The column <code>public.event.scheduling_mode</code>.
+     */
+    public final TableField<EventRecord, String> SCHEDULING_MODE = createField(DSL.name("scheduling_mode"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'FIXED'::character varying"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>public.event.status</code>.
+     */
+    public final TableField<EventRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'CONFIRMED'::character varying"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>public.event.min_attendees</code>.
+     */
+    public final TableField<EventRecord, Integer> MIN_ATTENDEES = createField(DSL.name("min_attendees"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>public.event.voting_deadline</code>.
+     */
+    public final TableField<EventRecord, LocalDateTime> VOTING_DEADLINE = createField(DSL.name("voting_deadline"), SQLDataType.LOCALDATETIME(6), this, "");
+
+    /**
+     * The column <code>public.event.selected_slot_id</code>.
+     */
+    public final TableField<EventRecord, UUID> SELECTED_SLOT_ID = createField(DSL.name("selected_slot_id"), SQLDataType.UUID, this, "");
+
+    /**
+     * The column <code>public.event.confirm_by</code>.
+     */
+    public final TableField<EventRecord, LocalDateTime> CONFIRM_BY = createField(DSL.name("confirm_by"), SQLDataType.LOCALDATETIME(6), this, "");
+
     private Event(Name alias, Table<EventRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -192,6 +223,23 @@ public class Event extends TableImpl<EventRecord> {
         return Arrays.asList(Keys.EVENT_PUBLIC_SLUG_KEY);
     }
 
+    @Override
+    public List<ForeignKey<EventRecord, ?>> getReferences() {
+        return Arrays.asList(Keys.EVENT__EVENT_SELECTED_SLOT_FK);
+    }
+
+    private transient EventSlotPath _eventSlot;
+
+    /**
+     * Get the implicit join path to the <code>public.event_slot</code> table.
+     */
+    public EventSlotPath eventSlot() {
+        if (_eventSlot == null)
+            _eventSlot = new EventSlotPath(this, Keys.EVENT__EVENT_SELECTED_SLOT_FK, null);
+
+        return _eventSlot;
+    }
+
     private transient EventMemberPath _eventMember;
 
     /**
@@ -220,8 +268,12 @@ public class Event extends TableImpl<EventRecord> {
     @Override
     public List<Check<EventRecord>> getChecks() {
         return Arrays.asList(
+            Internal.createCheck(this, DSL.name("event_confirm_by_needs_slot"), "(((confirm_by IS NULL) OR (selected_slot_id IS NOT NULL)))", true),
             Internal.createCheck(this, DSL.name("event_dates_ordered"), "(((start_date_time IS NULL) OR (end_date_time IS NULL) OR (start_date_time <= end_date_time)))", true),
             Internal.createCheck(this, DSL.name("event_max_attendees_positive"), "(((max_attendees IS NULL) OR (max_attendees > 0)))", true),
+            Internal.createCheck(this, DSL.name("event_min_attendees_positive"), "(((min_attendees IS NULL) OR (min_attendees > 0)))", true),
+            Internal.createCheck(this, DSL.name("event_min_not_above_max"), "(((min_attendees IS NULL) OR (max_attendees IS NULL) OR (min_attendees <= max_attendees)))", true),
+            Internal.createCheck(this, DSL.name("event_poll_mode_fields"), "(((((scheduling_mode)::text = 'FIXED'::text) AND (min_attendees IS NULL) AND (voting_deadline IS NULL)) OR (((scheduling_mode)::text = 'POLL'::text) AND (min_attendees IS NOT NULL) AND (voting_deadline IS NOT NULL))))", true),
             Internal.createCheck(this, DSL.name("event_waitlist_needs_limit"), "(((NOT waitlist_enabled) OR (max_attendees IS NOT NULL)))", true)
         );
     }
