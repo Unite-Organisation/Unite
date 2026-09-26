@@ -16,6 +16,7 @@ import org.jooq.sources.tables.EventMemberMetadata;
 import org.jooq.sources.tables.EventMemberSession;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Post;
+import org.jooq.sources.tables.ScheduledJob;
 import org.jooq.sources.tables.UserInteraction;
 
 
@@ -40,5 +41,8 @@ public class Indexes {
     public static final Index IDX_EVENT_MEMBER_STATUS = Internal.createIndex(DSL.name("idx_event_member_status"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.STATUS, EventMember.EVENT_MEMBER.STATUS_CHANGED_AT }, false);
     public static final Index IDX_EVENT_MEMBER_USER = Internal.createIndex(DSL.name("idx_event_member_user"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.USER_ID }, true);
     public static final Index IDX_POST_BUILDING_CREATED = Internal.createIndex(DSL.name("idx_post_building_created"), Post.POST, new OrderField[] { Post.POST.BUILDING_ID, Post.POST.CREATED_AT }, false);
+    public static final Index IDX_SCHEDULED_JOB_DEDUPE = Internal.createIndex(DSL.name("idx_scheduled_job_dedupe"), ScheduledJob.SCHEDULED_JOB, new OrderField[] { ScheduledJob.SCHEDULED_JOB.DEDUPE_KEY }, true);
+    public static final Index IDX_SCHEDULED_JOB_DUE = Internal.createIndex(DSL.name("idx_scheduled_job_due"), ScheduledJob.SCHEDULED_JOB, new OrderField[] { ScheduledJob.SCHEDULED_JOB.RUN_AT }, false);
+    public static final Index IDX_SCHEDULED_JOB_EXPIRED_LEASE = Internal.createIndex(DSL.name("idx_scheduled_job_expired_lease"), ScheduledJob.SCHEDULED_JOB, new OrderField[] { ScheduledJob.SCHEDULED_JOB.LOCKED_UNTIL }, false);
     public static final Index IDX_USER_INTERACTION_USER = Internal.createIndex(DSL.name("idx_user_interaction_user"), UserInteraction.USER_INTERACTION, new OrderField[] { UserInteraction.USER_INTERACTION.USER_ID }, false);
 }
