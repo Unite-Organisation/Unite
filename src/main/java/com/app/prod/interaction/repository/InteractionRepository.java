@@ -5,7 +5,6 @@ import com.app.prod.interaction.enums.InteractionEntityType;
 import com.app.prod.interaction.enums.InteractionType;
 import com.app.prod.user.dto.UserData;
 import com.app.prod.utils.BaseJooqRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.InteractionFilter;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.UserInteraction;
@@ -48,7 +47,7 @@ public class InteractionRepository extends BaseJooqRepository<UserInteraction, U
                 .execute() > 0;
     }
 
-    public List<InteractionUserResponse> findUsers(InteractionFilter filter, Pagination pagination) {
+    public List<InteractionUserResponse> findUsers(InteractionFilter filter) {
         return dslContext.select(
                         USER_INTERACTION.INTERACTION_TYPE,
                         USER_INTERACTION.CREATED_AT,
@@ -60,8 +59,8 @@ public class InteractionRepository extends BaseJooqRepository<UserInteraction, U
                 .join(APP_USER).on(APP_USER.ID.eq(USER_INTERACTION.USER_ID))
                 .where(filter.parseFilter())
                 .orderBy(USER_INTERACTION.CREATED_AT, USER_INTERACTION.ID)
-                .offset(pagination.getOffset())
-                .limit(pagination.pageSize())
+                .offset(filter.pagination().getOffset())
+                .limit(filter.pagination().pageSize())
                 .fetch(record -> new InteractionUserResponse(
                         new UserData(
                                 record.get(APP_USER.ID),

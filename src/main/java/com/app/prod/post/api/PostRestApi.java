@@ -37,7 +37,7 @@ public class PostRestApi {
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT', 'ADMIN')")
     public List<PostResponse> getPosts(BuildingScope scope, @Valid @ModelAttribute PostFilterRequest request){
         PostFilter filter = postFilteringService.prepareFilter(scope, request);
-        return postService.getPosts(request.pagination(), scope, filter);
+        return postService.getPosts(scope, filter);
     }
 
     @PostMapping("/announcement")

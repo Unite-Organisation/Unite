@@ -44,8 +44,8 @@ public class PollRestApi {
             @RequestParam(required = false) PollStatus pollStatus
     ){
         var userId = globalSecurityManager.getCurrentUser().getId();
-        PollFilter pollFilter = pollFilteringService.prepareFilter(pollStatus);
-        return pollService.getPolls(userId, pagination, pollFilter);
+        PollFilter pollFilter = pollFilteringService.prepareFilter(pagination, pollStatus);
+        return pollService.getPolls(userId, pollFilter);
     }
 
     @PutMapping("/vote")

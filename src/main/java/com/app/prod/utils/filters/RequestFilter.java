@@ -1,7 +1,7 @@
 package com.app.prod.utils.filters;
 
 import com.app.prod.requests.enums.RequestStatus;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.util.List;
@@ -11,8 +11,8 @@ import static com.app.prod.utils.filters.Criteria.match;
 import static com.app.prod.utils.filters.Criteria.matchEnum;
 import static org.jooq.sources.Tables.REQUEST;
 
-@Builder
-public class RequestFilter implements PredicateFilter {
+@SuperBuilder
+public class RequestFilter extends PredicateFilter {
     Filter<RequestStatus> status;
     Filter<UUID> areaId;
     Filter<UUID> requestCreatorId;

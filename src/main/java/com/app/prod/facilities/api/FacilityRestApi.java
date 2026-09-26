@@ -32,7 +32,7 @@ public class FacilityRestApi {
     @PreAuthorize("hasAnyRole('MANAGER', 'RESIDENT', 'ADMIN')")
     public List<FacilityResponse> getFacilities(BuildingScope scope, @Valid @ModelAttribute FacilityFilterRequest request){
         FacilityFilter filter = facilityFilteringService.prepareFilter(scope, request);
-        return facilityService.getFacilities(request.pagination(), filter);
+        return facilityService.getFacilities(filter);
     }
 
     @GetMapping("/{facilityId}")

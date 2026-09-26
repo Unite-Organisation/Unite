@@ -1,6 +1,6 @@
 package com.app.prod.utils.filters;
 
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.time.LocalDate;
@@ -12,8 +12,8 @@ import static com.app.prod.utils.filters.Criteria.match;
 import static com.app.prod.utils.filters.Criteria.required;
 import static org.jooq.sources.Tables.FACILITY_RESERVATION;
 
-@Builder
-public class FacilityReservationFilter implements PredicateFilter {
+@SuperBuilder
+public class FacilityReservationFilter extends PredicateFilter {
     Filter<UUID> facilityId;
     Filter<LocalDate> day;
     Filter<UUID> userId;

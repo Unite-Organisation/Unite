@@ -30,6 +30,8 @@ public class PostFilteringService {
         }
 
         return PostFilter.builder()
+                .pagination(request.pagination())
+                .search(request.search())
                 .buildingId(Filter.of(scope.buildingId()))
                 .createdBy(Filter.of(request.getCreatedBy()))
                 .postType(Filter.of(request.getPostType()))

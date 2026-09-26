@@ -21,7 +21,6 @@ import com.app.prod.user.repository.UserRepository;
 import com.app.prod.user.service.PendingAccountService;
 import com.app.prod.user.service.UserFilteringService;
 import com.app.prod.user.service.UserService;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.BuildingUserFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -204,7 +203,7 @@ class BuildingUsersAnalyticsIT extends IntegrationTest {
 
     private List<BuildingUserResponse> analyse(BuildingUserFilterRequest request) {
         BuildingUserFilter filter = userFilteringService.prepareFilter(managerScope, request);
-        return userService.getUsersInBuilding(request.pagination(), filter);
+        return userService.getUsersInBuilding(filter);
     }
 
     private static BuildingUserFilterRequest.BuildingUserFilterRequestBuilder<?, ?> request() {

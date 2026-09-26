@@ -1,7 +1,7 @@
 package com.app.prod.utils.filters;
 
 import com.app.prod.facilities.enums.FacilityType;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.util.List;
@@ -12,8 +12,8 @@ import static com.app.prod.utils.filters.Criteria.matchEnum;
 import static com.app.prod.utils.filters.Criteria.required;
 import static org.jooq.sources.Tables.FACILITY;
 
-@Builder
-public class FacilityFilter implements PredicateFilter {
+@SuperBuilder
+public class FacilityFilter extends PredicateFilter {
     Filter<UUID> buildingId;
     Filter<FacilityType> facilityType;
     Filter<Boolean> requiresApproval;
@@ -22,10 +22,10 @@ public class FacilityFilter implements PredicateFilter {
     @Override
     public List<Condition> combineConditions() {
         return Criteria.of(
-                required(FACILITY.BUILDING_ID, buildingId),
-                matchEnum(FACILITY.TYPE, facilityType),
-                match(FACILITY.REQUIRES_APPROVAL, requiresApproval),
-                match(FACILITY.CAPACITY, capacity)
+                Criteria.required(FACILITY.BUILDING_ID, buildingId),
+                Criteria.matchEnum(FACILITY.TYPE, facilityType),
+                Criteria.match(FACILITY.REQUIRES_APPROVAL, requiresApproval),
+                Criteria.match(FACILITY.CAPACITY, capacity)
         );
     }
 

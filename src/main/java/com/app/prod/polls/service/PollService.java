@@ -12,7 +12,6 @@ import com.app.prod.polls.repository.PollOptionRepository;
 import com.app.prod.polls.repository.PollRepository;
 import com.app.prod.polls.repository.PollResultRepository;
 import com.app.prod.polls.repository.PollVotesRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PollFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
@@ -78,8 +77,8 @@ public class PollService {
         ));
     }
 
-    public List<PollResponse> getPolls(UUID userId, Pagination pagination, PollFilter pollFilter) {
-        return pollRepository.getPolls(userId, pagination, pollFilter);
+    public List<PollResponse> getPolls(UUID userId, PollFilter pollFilter) {
+        return pollRepository.getPolls(userId, pollFilter);
     }
 
     @Transactional

@@ -109,7 +109,7 @@ class CriteriaTest {
 
     @Test
     void shouldReduceEmptyFilterToTrueCondition() {
-        PredicateFilter empty = List::of;
+        PredicateFilter empty = PollFilter.builder().build();
 
         assertThat(empty.parseFilter().toString()).isEqualToIgnoringCase("true");
     }

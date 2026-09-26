@@ -4,7 +4,7 @@ import com.app.prod.mail.enums.EmailDeliveryStatus;
 import com.app.prod.mail.enums.EmailDeliveryType;
 import com.app.prod.mail.repository.EmailDeliveryFields;
 import com.app.prod.user.enums.UserStatus;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.time.LocalDateTime;
@@ -16,8 +16,8 @@ import static com.app.prod.utils.filters.Criteria.matchEnum;
 import static com.app.prod.utils.filters.Criteria.required;
 import static org.jooq.sources.Tables.APP_USER;
 
-@Builder
-public class BuildingUserFilter implements PredicateFilter {
+@SuperBuilder
+public class BuildingUserFilter extends PredicateFilter {
     Filter<UUID> buildingId;
     Filter<UserStatus> status;
     Filter<EmailDeliveryStatus> invitationStatus;

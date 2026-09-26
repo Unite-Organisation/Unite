@@ -12,6 +12,10 @@ The flow is always the same:
 <Entity>FilterRequest  ->  <Entity>FilteringService.prepareFilter(scope, request)  ->  <Entity>Filter  ->  .where(filter.parseFilter())
 ```
 
+The filter carries the whole request: the conditions, plus the `Pagination` and the `Search` that
+came with it. A service or repository therefore takes the filter alone - a second `Pagination`
+parameter beside it means the paging and the conditions can disagree.
+
 ### 1. Controller - request params
 
 Request params arrive as a single `@ModelAttribute` object, one `<Entity>FilterRequest` per
@@ -23,7 +27,7 @@ the domain service.
 @GetMapping()
 public List<PostResponse> getPosts(BuildingScope scope, @Valid @ModelAttribute PostFilterRequest request){
     PostFilter filter = postFilteringService.prepareFilter(scope, request);
-    return postService.getPosts(request.pagination(), scope, filter);
+    return postService.getPosts(scope, filter);
 }
 ```
 
@@ -44,12 +48,14 @@ public class PostFilterRequest extends FilterRequest {
 
 - Fields live in the request object, never as flat `@RequestParam` - Spring binds each query
   param onto the matching field, an absent one stays `null` and means "do not narrow the result".
-- Every GET endpoint accepts pagination, because `page` and `pageSize` come from the
-  `FilterRequest` base class. Both are optional: `request.pagination()` falls back to
-  `Pagination.DEFAULT_PAGE` / `Pagination.DEFAULT_PAGE_SIZE`, so an endpoint the frontend does not
-  paginate simply gets the default page. `@Valid` still rejects explicit out-of-range values.
-- Paging stays separate from filtering - it is read off the request object, never a field of the
-  `<Entity>Filter`.
+- Every GET endpoint accepts pagination and free text search, because `page`, `pageSize` and
+  `search` come from the `FilterRequest` base class. All are optional: `request.pagination()` falls
+  back to `Pagination.DEFAULT_PAGE` / `Pagination.DEFAULT_PAGE_SIZE`, so an endpoint the frontend
+  does not paginate simply gets the default page, and a blank `search` narrows nothing. `@Valid`
+  still rejects explicit out-of-range values.
+- Paging and search are handed to the filtering service like every other param and end up **on**
+  the `<Entity>Filter`, through the `PredicateFilter` base class - the controller never passes
+  `request.pagination()` to the domain service on the side.
 - Range-style params come in pairs: the value plus a `ComparisonFilter.Modifier`
   (`LESS_OR_EQUAL_THAN`, `GREATER_OR_EQUAL_THAN`, `EQUAL`), named `<field>Modifier`.
 - Dates use `@DateTimeFormat(iso = DATE_TIME)` on the field.
@@ -84,6 +90,8 @@ public class PostFilteringService {
         }
         ...
         return PostFilter.builder()
+                .pagination(request.pagination())
+                .search(request.search())
                 .buildingId(Filter.of(scope.buildingId()))
                 .postType(Filter.of(postType))
                 .visibleFrom(visibleFromFilter)
@@ -93,6 +101,9 @@ public class PostFilteringService {
 }
 ```
 
+- `pagination(...)` and `search(...)` are inherited from `PredicateFilter` and show up on every
+  filter's builder, because both the base class and the filter carry `@SuperBuilder`. Pass them
+  straight through - they are plain `Pagination` / `Search`, not `Filter<T>`.
 - Wrap plain values with `Filter.of(...)`, comparison values with `ComparisonFilter.of(value, modifier)`.
   Both are `Filter<T>`, so the service decides whether a field compares by equality or by range -
   the filter itself does not care.
@@ -103,7 +114,7 @@ public class PostFilteringService {
 
 ### 3. Filter - jOOQ conditions
 
-One `<Entity>Filter` in `com.app.prod.utils.filters`, `@Builder`, implementing `PredicateFilter`.
+One `<Entity>Filter` in `com.app.prod.utils.filters`, `@SuperBuilder`, extending `PredicateFilter`.
 Every field is a `Filter<T>` - never a raw value, never an `Optional`. A `Filter` knows the value and
 how it turns into a condition; `ComparisonFilter<T> extends Filter<T>` swaps equality for a range, so
 one `match(...)` covers both and the filter never spells out which fields are range params.
@@ -112,8 +123,8 @@ one `match(...)` covers both and the filter never spells out which fields are ra
 hand-roll an `ArrayList` and `ifPresent(... ::add)`.
 
 ```java
-@Builder
-public class PostFilter implements PredicateFilter {
+@SuperBuilder
+public class PostFilter extends PredicateFilter {
     Filter<UUID> buildingId;   // from the authorized BuildingScope, must be present
     Filter<UUID> createdBy;
     Filter<PostType> postType;
@@ -140,6 +151,11 @@ public class PostFilter implements PredicateFilter {
 | `required(field, filter)`   | a field the query must not run without, above all `scope.buildingId()` |
 | `always(condition)`         | a condition with no request param behind it                          |
 | `when(filter, mapper)`      | anything else - a mapped enum, or a `Related` cross-table condition   |
+| `Criteria.search(search(), fields...)` | the inherited free text, OR-ed over the columns worth searching |
+
+Free text is one more criterion, not a special case - `FacilityFilter` adds
+`Criteria.search(search(), FACILITY.NAME, FACILITY.LOCATION)` and a filter with nothing worth
+searching simply leaves it out.
 
 - A criterion that is empty adds no condition, so an empty filter yields an empty list and
   `parseFilter()` reduces that to `DSL.trueCondition()`.
@@ -150,6 +166,9 @@ public class PostFilter implements PredicateFilter {
   can gain a field without touching the places that build it.
 - Use the generated jOOQ table constants (`org.jooq.sources.Tables`), never raw SQL strings.
 - `matchEnum` exists instead of a `match` overload because `Filter<E>` and `Filter<T>` clash after erasure.
+- `Criteria.search` stays qualified: a static import of it would be shadowed by the inherited
+  `search()` accessor. The pattern is escaped and matched with `likeIgnoreCase`, so a `%` a user
+  typed stays a literal `%`.
 
 ### 3a. Conditions reaching another table
 
@@ -182,13 +201,13 @@ eqEnum(lookup(USER_ROLE.USER_ROLE_, USER_ROLE, USER_ROLE.ID.eq(APP_USER.USER_ROL
 The jOOQ repository takes the filter as a parameter and applies it with a single `.where(filter.parseFilter())`.
 
 ```java
-public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
+public List<PostResponse> findPosts(UUID viewerId, PostFilter filter) {
     return dslContext.select(...)
             .from(POST)
             .where(filter.parseFilter())
             .orderBy(POST.CREATED_AT)
-            .offset(pagination.getOffset())
-            .limit(pagination.pageSize())
+            .offset(filter.pagination().getOffset())
+            .limit(filter.pagination().pageSize())
             .fetch(record -> new PostResponse(...));
 }
 ```
@@ -197,8 +216,9 @@ public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFi
   condition that belongs in the filter leaked into the repository.
 - No access-control joins or visibility subqueries in the repository - access is already settled by
   the `BuildingScope` the filter was built from. A `viewerId` parameter is only for personalisation.
-- Always paginate with `.offset(pagination.getOffset()).limit(pagination.pageSize())` and keep a
-  deterministic `.orderBy(...)`.
+- Always paginate with `.offset(filter.pagination().getOffset()).limit(filter.pagination().pageSize())`
+  and keep a deterministic `.orderBy(...)`. `filter.pagination()` is never null - an unpaged filter
+  falls back to `Pagination.defaults()`.
 - Repositories extend `BaseJooqRepository<Table, Record, Id>`.
 
 ### Existing filters
@@ -206,6 +226,9 @@ public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFi
 `PostFilter`, `FacilityFilter`, `FacilityReservationFilter`, `PollFilter`, `OfferingFilter`,
 `RequestFilter`, `InteractionFilter`, `BuildingUserFilter` - all in `com.app.prod.utils.filters`,
 next to the shared `Filter`, `ComparisonFilter`, `Criteria`, `Criterion` and `Related`.
+
+`EventMemberFilter` sorts and pages in memory, so it reads `filter.pagination()` in the service
+instead of the repository - the filter is still where the page comes from.
 
 Follow whichever is closest when adding a new one. A new kind of condition belongs in `Criteria`
 (or `Related`, when it reaches another table) rather than being duplicated per filter; a new way of

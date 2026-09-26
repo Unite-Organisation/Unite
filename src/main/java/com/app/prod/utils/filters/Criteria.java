@@ -1,5 +1,6 @@
 package com.app.prod.utils.filters;
 
+import com.app.prod.utils.Search;
 import org.jooq.Condition;
 import org.jooq.Field;
 
@@ -63,6 +64,19 @@ public final class Criteria {
      */
     public static <T> Criterion when(Filter<T> filter, Function<T, Condition> mapper) {
         return () -> empty(filter) ? Optional.empty() : filter.value().map(mapper);
+    }
+
+    /**
+     * The free text every filter carries, matched case insensitively against the fields that are
+     * worth searching in this table. Several fields are OR-ed, so one typed word hits any of them.
+     */
+    @SafeVarargs
+    public static Criterion search(Search search, Field<String>... fields) {
+        return () -> search == null || search.isEmpty()
+                ? Optional.empty()
+                : Arrays.stream(fields)
+                        .map(field -> (Condition) field.likeIgnoreCase(search.pattern(), Search.ESCAPE))
+                        .reduce(Condition::or);
     }
 
     /**

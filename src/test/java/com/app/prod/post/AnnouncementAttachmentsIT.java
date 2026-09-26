@@ -78,6 +78,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
 
         managerScope = TestBuildingScope.of(buildingId, managerId, UserRole.MANAGER);
         filter = PostFilter.builder()
+                .pagination(Pagination.builder().page(1).pageSize(5).build())
                 .buildingId(Filter.of(buildingId))
                 .postType(Filter.of(PostType.ANNOUNCEMENT))
                                 .visibleFrom(ComparisonFilter.empty())
@@ -133,7 +134,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
 
         assertThatThrownBy(() -> announcementService.createAnnouncement(request("Ghost", List.of(key)), managerScope))
                 .isInstanceOf(EntityNotPresentException.class);
-        assertThat(postRepository.findPosts(residentId, pagination(), filter)).isEmpty();
+        assertThat(postRepository.findPosts(residentId, filter)).isEmpty();
     }
 
     @Test
@@ -142,7 +143,7 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
 
         assertThatThrownBy(() -> announcementService.createAnnouncement(request("Stolen", List.of(foreignKey)), managerScope))
                 .isInstanceOf(BadRequestException.class);
-        assertThat(postRepository.findPosts(residentId, pagination(), filter)).isEmpty();
+        assertThat(postRepository.findPosts(residentId, filter)).isEmpty();
     }
 
     @Test
@@ -179,12 +180,9 @@ public class AnnouncementAttachmentsIT extends IntegrationTest {
     }
 
     private PostResponse onlyAnnouncementFor(UUID userId) {
-        var results = postRepository.findPosts(userId, pagination(), filter);
+        var results = postRepository.findPosts(userId, filter);
         assertThat(results).hasSize(1);
         return results.getFirst();
     }
 
-    private Pagination pagination() {
-        return Pagination.builder().page(1).pageSize(5).build();
-    }
 }
