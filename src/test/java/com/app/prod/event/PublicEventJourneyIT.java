@@ -376,6 +376,38 @@ class PublicEventJourneyIT extends IntegrationTest {
     }
 
     @Test
+    void aGuestSignsOutOfTheEventAndLetsThemselvesBackInWithTheirCode() throws Exception {
+        Event event = api.createEventChoosingItsDate("Kuba", 4, deadline, fourDates);
+        Dates dates = dates(event);
+
+        Person anna = api.join(event, "Anna", suits(dates.monday));
+        assertThat(api.date(event, dates.monday).get("preferredCount").asInt()).isEqualTo(2);
+
+        api.signOut(event, anna);
+
+        assertThat(api.eventSeenBy(event, anna).get("me").isNull())
+                .as("the session is gone, so the event no longer knows who is looking")
+                .isTrue();
+        api.tryChangeChoice(event, anna, suits(dates.tuesday))
+                .andExpect(status().isUnauthorized());
+
+        assertThat(api.date(event, dates.monday).get("preferredCount").asInt())
+                .as("signing out gives up the session, not the membership")
+                .isEqualTo(2);
+
+        Person backIn = api.resumeWithCode(event, "Anna", anna.returnCode());
+
+        assertThat(api.eventSeenBy(event, backIn).get("me").get("displayName").asText())
+                .isEqualTo("Anna");
+        assertThat(api.eventSeenBy(event, backIn).get("myVotes"))
+                .as("she picks up exactly where she left off")
+                .hasSize(1);
+        assertThat(api.date(event, dates.monday).get("preferredCount").asInt())
+                .as("coming back must not make a second Anna")
+                .isEqualTo(2);
+    }
+
+    @Test
     void anEventThatAlreadyHasADateStillBehavesTheWayItAlwaysDid() throws Exception {
         Event event = api.createDatedEvent("Kuba", now.plusDays(7), 2, true);
 

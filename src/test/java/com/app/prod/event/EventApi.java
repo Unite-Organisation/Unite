@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -149,6 +150,12 @@ class EventApi {
     void say(Event event, Person person, EventMemberStatus status) {
         unchecked(() -> perform(put(path(event, "/attendance")), new AttendanceRequest(status), person.session(), null)
                 .andExpect(status().isOk()));
+    }
+
+    /** Signs out of the event without giving up membership in it. */
+    void signOut(Event event, Person person) {
+        unchecked(() -> perform(delete(path(event, "/session")), null, person.session(), null)
+                .andExpect(status().isNoContent()));
     }
 
     void startNow(Event event, Person person) {

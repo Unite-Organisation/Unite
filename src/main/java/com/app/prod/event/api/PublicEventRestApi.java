@@ -37,6 +37,7 @@ public class PublicEventRestApi {
     private final EventFilteringService eventFilteringService;
     private final DeviceSignalsFactory deviceSignalsFactory;
     private final EventVotingService eventVotingService;
+    private final EventSessionService eventSessionService;
 
     @PostMapping()
     @CookieSession(
@@ -119,13 +120,45 @@ public class PublicEventRestApi {
                 .body(new EventSessionResponse(opened.member(), opened.returnCode()));
     }
 
+    @DeleteMapping("/{slug}/session")
+    @CookieSession(
+            value = CookieSession.Mode.OPTIONAL,
+            note =  "Signs out of the event. The membership stays - the return code brings it back"
+    )
+    public ResponseEntity<Void> closeSession(
+            @PathVariable String slug,
+            @CookieValue(name = EventSessionService.COOKIE_NAME, required = false) String sessionToken,
+            HttpServletRequest httpRequest
+    ) {
+        if (sessionToken != null && !sessionToken.isBlank()) {
+            eventSessionService.close(sessionToken);
+        }
+
+        // signing out of an event nobody is signed in to is a no-op, not an error: the caller ends
+        // up in the state they asked for either way
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, clearedSessionCookie(slug, httpRequest).toString())
+                .build();
+    }
+
     private ResponseCookie sessionCookie(String slug, String sessionToken, HttpServletRequest httpRequest) {
-        return ResponseCookie.from(EventSessionService.COOKIE_NAME, sessionToken)
+        return cookie(slug, sessionToken, httpRequest)
+                .maxAge(EventSessionService.SESSION_TTL)
+                .build();
+    }
+
+    private ResponseCookie clearedSessionCookie(String slug, HttpServletRequest httpRequest) {
+        return cookie(slug, "", httpRequest)
+                .maxAge(0)
+                .build();
+    }
+
+    /** Path and flags have to match the cookie that was set, or the browser keeps the old one. */
+    private ResponseCookie.ResponseCookieBuilder cookie(String slug, String value, HttpServletRequest httpRequest) {
+        return ResponseCookie.from(EventSessionService.COOKIE_NAME, value)
                 .httpOnly(true)
                 .secure(applicationInfo.isProdEnvironment())
                 .path(httpRequest.getContextPath() + EVENT_PATH + slug)
-                .maxAge(EventSessionService.SESSION_TTL)
-                .sameSite("Lax")
-                .build();
+                .sameSite("Lax");
     }
 }
