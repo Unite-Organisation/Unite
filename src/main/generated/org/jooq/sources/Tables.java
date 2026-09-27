@@ -16,6 +16,8 @@ import org.jooq.sources.tables.Event;
 import org.jooq.sources.tables.EventMember;
 import org.jooq.sources.tables.EventMemberMetadata;
 import org.jooq.sources.tables.EventMemberSession;
+import org.jooq.sources.tables.EventSlot;
+import org.jooq.sources.tables.EventSlotVote;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -34,6 +36,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.ScheduledJob;
 import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 
@@ -103,6 +106,16 @@ public class Tables {
      * The table <code>public.event_member_session</code>.
      */
     public static final EventMemberSession EVENT_MEMBER_SESSION = EventMemberSession.EVENT_MEMBER_SESSION;
+
+    /**
+     * The table <code>public.event_slot</code>.
+     */
+    public static final EventSlot EVENT_SLOT = EventSlot.EVENT_SLOT;
+
+    /**
+     * The table <code>public.event_slot_vote</code>.
+     */
+    public static final EventSlotVote EVENT_SLOT_VOTE = EventSlotVote.EVENT_SLOT_VOTE;
 
     /**
      * The table <code>public.facility</code>.
@@ -193,6 +206,11 @@ public class Tables {
      * The table <code>public.request_donor</code>.
      */
     public static final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
+
+    /**
+     * The table <code>public.scheduled_job</code>.
+     */
+    public static final ScheduledJob SCHEDULED_JOB = ScheduledJob.SCHEDULED_JOB;
 
     /**
      * The table <code>public.user_interaction</code>.

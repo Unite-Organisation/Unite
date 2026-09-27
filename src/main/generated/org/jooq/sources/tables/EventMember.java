@@ -40,6 +40,7 @@ import org.jooq.sources.tables.AppUser.AppUserPath;
 import org.jooq.sources.tables.Event.EventPath;
 import org.jooq.sources.tables.EventMemberMetadata.EventMemberMetadataPath;
 import org.jooq.sources.tables.EventMemberSession.EventMemberSessionPath;
+import org.jooq.sources.tables.EventSlotVote.EventSlotVotePath;
 import org.jooq.sources.tables.records.EventMemberRecord;
 
 
@@ -254,6 +255,19 @@ public class EventMember extends TableImpl<EventMemberRecord> {
             _eventMemberSession = new EventMemberSessionPath(this, null, Keys.EVENT_MEMBER_SESSION__EVENT_MEMBER_SESSION_MEMBER_ID_FKEY.getInverseKey());
 
         return _eventMemberSession;
+    }
+
+    private transient EventSlotVotePath _eventSlotVote;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.event_slot_vote</code> table
+     */
+    public EventSlotVotePath eventSlotVote() {
+        if (_eventSlotVote == null)
+            _eventSlotVote = new EventSlotVotePath(this, null, Keys.EVENT_SLOT_VOTE__EVENT_SLOT_VOTE_MEMBER_ID_FKEY.getInverseKey());
+
+        return _eventSlotVote;
     }
 
     @Override
