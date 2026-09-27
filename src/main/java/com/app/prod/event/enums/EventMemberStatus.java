@@ -4,5 +4,6 @@ public enum EventMemberStatus {
     UNDECIDED,
     GOING,
     WAITLIST,
-    NOT_GOING
+    NOT_GOING,
+    NOT_AVAILABLE
 }

@@ -4,10 +4,10 @@ import com.app.prod.event.enums.EventStatus;
 import com.app.prod.event.enums.SchedulingMode;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
-public record EventResponse(
+public record EventRow(
+        UUID id,
         String slug,
         String name,
         String description,
@@ -22,10 +22,7 @@ public record EventResponse(
         Integer minAttendees,
         LocalDateTime votingDeadline,
         UUID selectedSlotId,
-        List<EventSlotResponse> slots,
         int goingCount,
-        LocalDateTime createdAt,
-        MemberResponse me,
-        List<SlotVote> myVotes
+        LocalDateTime createdAt
 ) {
 }

@@ -1,6 +1,8 @@
 package com.app.prod.event.repository;
 
-import com.app.prod.event.dto.EventResponse;
+import com.app.prod.event.dto.EventRow;
+import com.app.prod.event.enums.EventStatus;
+import com.app.prod.event.enums.SchedulingMode;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -41,10 +43,11 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
                 .fetchOptional(EVENT.ID);
     }
 
-    public Optional<EventResponse> findBySlug(String slug) {
+    public Optional<EventRow> findRowBySlug(String slug) {
         Field<Integer> goingCount = EventMemberFields.goingCount(EVENT.ID).as("going_count");
 
         return dslContext.select(
+                        EVENT.ID,
                         EVENT.PUBLIC_SLUG,
                         EVENT.NAME,
                         EVENT.DESCRIPTION,
@@ -54,12 +57,18 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
                         EVENT.ONLINE_URL,
                         EVENT.MAX_ATTENDEES,
                         EVENT.WAITLIST_ENABLED,
+                        EVENT.SCHEDULING_MODE,
+                        EVENT.STATUS,
+                        EVENT.MIN_ATTENDEES,
+                        EVENT.VOTING_DEADLINE,
+                        EVENT.SELECTED_SLOT_ID,
                         goingCount,
                         EVENT.CREATED_AT
                 )
                 .from(EVENT)
                 .where(EVENT.PUBLIC_SLUG.eq(slug))
-                .fetchOptional(record -> new EventResponse(
+                .fetchOptional(record -> new EventRow(
+                        record.get(EVENT.ID),
                         record.get(EVENT.PUBLIC_SLUG),
                         record.get(EVENT.NAME),
                         record.get(EVENT.DESCRIPTION),
@@ -69,9 +78,13 @@ public class EventRepository extends BaseJooqRepository<Event, EventRecord, UUID
                         record.get(EVENT.ONLINE_URL),
                         record.get(EVENT.MAX_ATTENDEES),
                         record.get(EVENT.WAITLIST_ENABLED),
+                        SchedulingMode.valueOf(record.get(EVENT.SCHEDULING_MODE)),
+                        EventStatus.valueOf(record.get(EVENT.STATUS)),
+                        record.get(EVENT.MIN_ATTENDEES),
+                        record.get(EVENT.VOTING_DEADLINE),
+                        record.get(EVENT.SELECTED_SLOT_ID),
                         record.get(goingCount),
-                        record.get(EVENT.CREATED_AT),
-                        null
+                        record.get(EVENT.CREATED_AT)
                 ));
     }
 }

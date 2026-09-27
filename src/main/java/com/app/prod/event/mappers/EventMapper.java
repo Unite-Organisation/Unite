@@ -1,13 +1,17 @@
 package com.app.prod.event.mappers;
 
 import com.app.prod.event.dto.CreateEventRequest;
+import com.app.prod.event.dto.SlotRequest;
 import com.app.prod.event.dto.MemberResponse;
 import com.app.prod.event.enums.EventIdentityOrigin;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
+import com.app.prod.event.enums.EventStatus;
+import com.app.prod.event.enums.SchedulingMode;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.EventMemberRecord;
 import org.jooq.sources.tables.records.EventRecord;
+import org.jooq.sources.tables.records.EventSlotRecord;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -28,6 +32,27 @@ public class EventMapper {
         record.setOnlineUrl(request.onlineUrl());
         record.setMaxAttendees(request.maxAttendees());
         record.setWaitlistEnabled(request.waitlistEnabled());
+        record.setCreatedAt(now);
+        record.setSchedulingMode(request.mode().name());
+
+        if (request.mode() == SchedulingMode.POLL) {
+            record.setStatus(EventStatus.COLLECTING_VOTES.name());
+            record.setMinAttendees(request.minAttendees());
+            record.setVotingDeadline(request.votingDeadline());
+        } else {
+            record.setStatus(EventStatus.CONFIRMED.name());
+        }
+
+        return record;
+    }
+
+    public static EventSlotRecord slot(UUID eventId, SlotRequest request, LocalDateTime now) {
+        EventSlotRecord record = new EventSlotRecord();
+
+        record.setId(UUID.randomUUID());
+        record.setEventId(eventId);
+        record.setStartDateTime(request.startDate());
+        record.setEndDateTime(request.endDate());
         record.setCreatedAt(now);
 
         return record;

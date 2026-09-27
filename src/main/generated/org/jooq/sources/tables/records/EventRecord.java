@@ -174,6 +174,90 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
         return (LocalDateTime) get(10);
     }
 
+    /**
+     * Setter for <code>public.event.scheduling_mode</code>.
+     */
+    public void setSchedulingMode(String value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>public.event.scheduling_mode</code>.
+     */
+    public String getSchedulingMode() {
+        return (String) get(11);
+    }
+
+    /**
+     * Setter for <code>public.event.status</code>.
+     */
+    public void setStatus(String value) {
+        set(12, value);
+    }
+
+    /**
+     * Getter for <code>public.event.status</code>.
+     */
+    public String getStatus() {
+        return (String) get(12);
+    }
+
+    /**
+     * Setter for <code>public.event.min_attendees</code>.
+     */
+    public void setMinAttendees(Integer value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>public.event.min_attendees</code>.
+     */
+    public Integer getMinAttendees() {
+        return (Integer) get(13);
+    }
+
+    /**
+     * Setter for <code>public.event.voting_deadline</code>.
+     */
+    public void setVotingDeadline(LocalDateTime value) {
+        set(14, value);
+    }
+
+    /**
+     * Getter for <code>public.event.voting_deadline</code>.
+     */
+    public LocalDateTime getVotingDeadline() {
+        return (LocalDateTime) get(14);
+    }
+
+    /**
+     * Setter for <code>public.event.selected_slot_id</code>.
+     */
+    public void setSelectedSlotId(UUID value) {
+        set(15, value);
+    }
+
+    /**
+     * Getter for <code>public.event.selected_slot_id</code>.
+     */
+    public UUID getSelectedSlotId() {
+        return (UUID) get(15);
+    }
+
+    /**
+     * Setter for <code>public.event.confirm_by</code>.
+     */
+    public void setConfirmBy(LocalDateTime value) {
+        set(16, value);
+    }
+
+    /**
+     * Getter for <code>public.event.confirm_by</code>.
+     */
+    public LocalDateTime getConfirmBy() {
+        return (LocalDateTime) get(16);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -197,7 +281,7 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
     /**
      * Create a detached, initialised EventRecord
      */
-    public EventRecord(UUID id, String publicSlug, String name, String description, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, Boolean waitlistEnabled, LocalDateTime createdAt) {
+    public EventRecord(UUID id, String publicSlug, String name, String description, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, Boolean waitlistEnabled, LocalDateTime createdAt, String schedulingMode, String status, Integer minAttendees, LocalDateTime votingDeadline, UUID selectedSlotId, LocalDateTime confirmBy) {
         super(Event.EVENT);
 
         setId(id);
@@ -211,6 +295,12 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
         setMaxAttendees(maxAttendees);
         setWaitlistEnabled(waitlistEnabled);
         setCreatedAt(createdAt);
+        setSchedulingMode(schedulingMode);
+        setStatus(status);
+        setMinAttendees(minAttendees);
+        setVotingDeadline(votingDeadline);
+        setSelectedSlotId(selectedSlotId);
+        setConfirmBy(confirmBy);
         resetChangedOnNotNull();
     }
 }
