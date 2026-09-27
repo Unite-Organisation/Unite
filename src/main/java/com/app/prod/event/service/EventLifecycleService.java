@@ -140,6 +140,11 @@ public class EventLifecycleService {
 
         scheduledJobService.cancel(walkOutWindowJobKey(event.getId()));
         log.info("Event {} dropped to {} of {} and went back to collecting", event.getId(), carrying, event.getMinAttendees());
+
+        // several dates can fill at once and only one of them is picked; when that one loses its
+        // people, another may already be holding enough, and the group should not sit and wait for
+        // the next person to click something before noticing
+        formGroupIfEnoughPeople(event, now);
     }
 
     private void keepOnlyBestSlot(EventRecord event, LocalDateTime now) {

@@ -36,6 +36,7 @@ public class PublicEventRestApi {
     private final ApplicationInfo applicationInfo;
     private final EventFilteringService eventFilteringService;
     private final DeviceSignalsFactory deviceSignalsFactory;
+    private final EventVotingService eventVotingService;
 
     @PostMapping()
     @CookieSession(
@@ -79,6 +80,26 @@ public class PublicEventRestApi {
     )
     public AttendanceResponse changeAttendance(EventScope scope, @Valid @RequestBody AttendanceRequest request) {
         return new AttendanceResponse(eventMembershipService.changeAttendance(scope, request.status()));
+    }
+
+    @PutMapping("/{slug}/votes")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Replaces the whole choice - dates left out are dropped"
+    )
+    public EventResponse changeVotes(@PathVariable String slug, EventScope scope, @Valid @RequestBody VotesRequest request) {
+        eventVotingService.replaceVotes(scope, request.votes());
+        return publicEventService.getEvent(slug, Optional.of(scope));
+    }
+
+    @PostMapping("/{slug}/confirm")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: starts the event without waiting out the walk-out window"
+    )
+    public EventResponse confirmEvent(@PathVariable String slug, EventScope scope) {
+        publicEventService.confirmAsHost(scope);
+        return publicEventService.getEvent(slug, Optional.of(scope));
     }
 
     @PostMapping("/{slug}/session")

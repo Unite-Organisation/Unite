@@ -6,8 +6,11 @@ import com.app.prod.event.dto.EventMemberResponse;
 import com.app.prod.event.dto.EventMemberRow;
 import com.app.prod.event.dto.EventMembersRequest;
 import com.app.prod.event.dto.OpenSessionRequest;
+import com.app.prod.event.dto.SlotVoteRequest;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
+import com.app.prod.event.enums.EventStatus;
+import com.app.prod.event.enums.SchedulingMode;
 import com.app.prod.event.mappers.EventMapper;
 import com.app.prod.event.repository.EventMemberMetadataRepository;
 import com.app.prod.event.repository.EventMemberRepository;
@@ -52,6 +55,8 @@ public class EventMembershipService {
     private final EventMemberRepository eventMemberRepository;
     private final EventMemberMetadataRepository eventMemberMetadataRepository;
     private final MembershipScorer membershipScorer;
+    private final EventVotingService eventVotingService;
+    private final EventLifecycleService eventLifecycleService;
     private final EventSessionService eventSessionService;
     private final ReturnCodes returnCodes;
     private final Clock clock;
@@ -66,8 +71,30 @@ public class EventMembershipService {
                 .map(user -> openUniteSession(event.getId(), user, now, device))
                 .orElseGet(() -> openGuestSession(event.getId(), request, now, device));
 
+        applyVotesIfChoosingDate(event, opened, request, now);
+
         log.info("{} event session for member of event {} ({})", opened.joined() ? "Joined with" : "Reopened", event.getId(), opened.member().origin());
         return opened;
+    }
+
+    private void applyVotesIfChoosingDate(EventRecord event, OpenedSession opened, OpenSessionRequest request, LocalDateTime now) {
+        if (SchedulingMode.valueOf(event.getSchedulingMode()) != SchedulingMode.POLL) {
+            return;
+        }
+
+        // once the date is final there is nothing left to choose: the event is an ordinary dated one
+        // and people sign up for it, seats handed out by attendance the same as anywhere else
+        if (EventStatus.valueOf(event.getStatus()) == EventStatus.CONFIRMED) {
+            return;
+        }
+
+        List<SlotVoteRequest> votes = request == null ? null : request.votes();
+        if (votes == null && !opened.joined()) {
+            return;
+        }
+
+        eventVotingService.save(event, opened.memberId(), votes, now);
+        eventLifecycleService.recheckGroup(event.getId(), now);
     }
 
     private OpenedSession openUniteSession(UUID eventId, AppUserRecord user, LocalDateTime now, DeviceSignals device) {
@@ -80,7 +107,7 @@ public class EventMembershipService {
 
         eventMemberMetadataRepository.save(member.getId(), device, now);
         String sessionToken = eventSessionService.open(member.getId(), now);
-        return new OpenedSession(existing.isEmpty(), EventMapper.toResponse(member), null, sessionToken);
+        return new OpenedSession(existing.isEmpty(), member.getId(), EventMapper.toResponse(member), null, sessionToken);
     }
 
     private OpenedSession openGuestSession(UUID eventId, OpenSessionRequest request, LocalDateTime now, DeviceSignals device) {
@@ -96,7 +123,7 @@ public class EventMembershipService {
             verifyReturnCode(member, request.returnCode(), now);
             eventMemberMetadataRepository.save(member.getId(), device, now);
             String sessionToken = eventSessionService.open(member.getId(), now);
-            return new OpenedSession(false, EventMapper.toResponse(member), null, sessionToken);
+            return new OpenedSession(false, member.getId(), EventMapper.toResponse(member), null, sessionToken);
         }
 
         ReturnCodes.IssuedCode code = returnCodes.issue();
@@ -105,7 +132,7 @@ public class EventMembershipService {
         eventMemberMetadataRepository.save(member.getId(), device, now);
 
         String sessionToken = eventSessionService.open(member.getId(), now);
-        return new OpenedSession(true, EventMapper.toResponse(member), code.code(), sessionToken);
+        return new OpenedSession(true, member.getId(), EventMapper.toResponse(member), code.code(), sessionToken);
     }
 
     private void verifyReturnCode(EventMemberRecord member, String returnCode, LocalDateTime now) {
@@ -152,6 +179,10 @@ public class EventMembershipService {
         EventMemberStatus current = EventMemberStatus.valueOf(member.getStatus());
         LocalDateTime now = LocalDateTime.now(clock);
 
+        if (isChoosingDate(event)) {
+            return changeWhileChoosingDate(event, member, current, requested, now);
+        }
+
         if (requested == EventMemberStatus.GOING) {
             if (current == EventMemberStatus.GOING || current == EventMemberStatus.WAITLIST) {
                 return current;
@@ -169,6 +200,23 @@ public class EventMembershipService {
             promoteFromWaitlist(event, now);
         }
         return EventMemberStatus.NOT_GOING;
+    }
+
+    private EventMemberStatus changeWhileChoosingDate(EventRecord event, EventMemberRecord member,
+                                                      EventMemberStatus current, EventMemberStatus requested,
+                                                      LocalDateTime now) {
+        if (current == requested) {
+            return current;
+        }
+
+        setStatus(member, requested, now);
+        eventLifecycleService.recheckGroup(event.getId(), now);
+        return requested;
+    }
+
+    private static boolean isChoosingDate(EventRecord event) {
+        return SchedulingMode.valueOf(event.getSchedulingMode()) == SchedulingMode.POLL
+                && EventStatus.valueOf(event.getStatus()) != EventStatus.CONFIRMED;
     }
 
     private EventMemberStatus seatFor(EventRecord event) {
