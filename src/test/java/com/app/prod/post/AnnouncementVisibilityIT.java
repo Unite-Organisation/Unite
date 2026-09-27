@@ -13,7 +13,6 @@ import com.app.prod.post.dto.PostFilterRequest;
 import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.post.service.PostFilteringService;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.PostFilter;
 import org.junit.jupiter.api.AfterEach;
@@ -151,12 +150,11 @@ public class AnnouncementVisibilityIT extends IntegrationTest {
     }
 
     private List<String> defaultNames() {
-        return namesFor(postFilteringService.prepareFilter(scope, new PostFilterRequest()));
+        return namesFor(postFilteringService.prepareFilter(scope, PostFilterRequest.builder().pageSize(5).build()));
     }
 
     private List<String> namesFor(PostFilter filter) {
-        var pagination = Pagination.builder().page(1).pageSize(5).build();
-        return postRepository.findPosts(residentId, pagination, filter).stream()
+        return postRepository.findPosts(residentId, filter).stream()
                 .map(PostResponse::name)
                 .toList();
     }

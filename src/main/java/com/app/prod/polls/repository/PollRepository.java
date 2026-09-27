@@ -4,7 +4,6 @@ import com.app.prod.polls.dto.PollOptionResponse;
 import com.app.prod.polls.dto.PollResponse;
 import com.app.prod.polls.enums.PollTarget;
 import com.app.prod.utils.BaseJooqRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PollFilter;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -27,7 +26,7 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
         super(dsl, Poll.POLL, Poll.POLL.ID);
     }
 
-    public List<PollResponse> getPolls(UUID userId, Pagination pagination, PollFilter pollFilter) {
+    public List<PollResponse> getPolls(UUID userId, PollFilter pollFilter) {
         var subQuery1 = dslContext.select(POLL.ID)
                 .from(POLL)
                 .join(BUILDING).on(
@@ -83,8 +82,8 @@ public class PollRepository extends BaseJooqRepository<Poll, PollRecord, UUID> {
                 .where(POLL.ID.in(subQuery))
                 .and(pollFilter.parseFilter())
                 .orderBy(POLL.END_TIME)
-                .offset(pagination.getOffset())
-                .limit(pagination.pageSize())
+                .offset(pollFilter.pagination().getOffset())
+                .limit(pollFilter.pagination().pageSize())
                 .fetch(record -> {
 
                             String firstName = record.get(APP_USER.FIRST_NAME);

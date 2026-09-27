@@ -2,7 +2,6 @@ package com.app.prod.facilities.repository;
 
 import com.app.prod.facilities.dto.FacilityResponse;
 import com.app.prod.utils.BaseJooqRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.FacilityFilter;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.Facility;
@@ -20,7 +19,7 @@ public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRec
         super(dsl, Facility.FACILITY, Facility.FACILITY.ID);
     }
 
-    public List<FacilityResponse> findFacilities(Pagination pagination, FacilityFilter filter){
+    public List<FacilityResponse> findFacilities(FacilityFilter filter){
         return dslContext.select(
                 FACILITY.ID,
                 FACILITY.NAME,
@@ -32,8 +31,8 @@ public class FacilityRepository extends BaseJooqRepository<Facility, FacilityRec
                 .from(FACILITY)
                 .where(filter.parseFilter())
                 .orderBy(FACILITY.NAME)
-                .offset(pagination.getOffset())
-                .limit(pagination.pageSize())
+                .offset(filter.pagination().getOffset())
+                .limit(filter.pagination().pageSize())
                 .fetch(r -> new FacilityResponse(
                         r.get(FACILITY.ID),
                         r.get(FACILITY.NAME),

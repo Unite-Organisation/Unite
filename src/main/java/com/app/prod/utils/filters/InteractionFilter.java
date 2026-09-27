@@ -2,7 +2,7 @@ package com.app.prod.utils.filters;
 
 import com.app.prod.interaction.enums.InteractionEntityType;
 import com.app.prod.interaction.enums.InteractionType;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.time.LocalDateTime;
@@ -13,8 +13,8 @@ import static com.app.prod.utils.filters.Criteria.match;
 import static com.app.prod.utils.filters.Criteria.matchEnum;
 import static org.jooq.sources.Tables.USER_INTERACTION;
 
-@Builder
-public class InteractionFilter implements PredicateFilter {
+@SuperBuilder
+public class InteractionFilter extends PredicateFilter {
     Filter<InteractionEntityType> entityType;
     Filter<UUID> entityId;
     Filter<InteractionType> interactionType;

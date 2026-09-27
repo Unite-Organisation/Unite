@@ -2,7 +2,7 @@ package com.app.prod.utils.filters;
 
 import com.app.prod.event.repository.EventMemberFields;
 import com.app.prod.post.enums.PostType;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.time.LocalDateTime;
@@ -15,8 +15,8 @@ import static com.app.prod.utils.filters.Criteria.required;
 import static com.app.prod.utils.filters.Criteria.when;
 import static org.jooq.sources.Tables.POST;
 
-@Builder
-public class PostFilter implements PredicateFilter {
+@SuperBuilder
+public class PostFilter extends PredicateFilter {
     Filter<UUID> id;
     Filter<UUID> buildingId;
     Filter<UUID> createdBy;

@@ -9,7 +9,6 @@ import com.app.prod.interaction.dto.InteractionUserResponse;
 import com.app.prod.interaction.enums.InteractionEntityType;
 import com.app.prod.interaction.enums.InteractionType;
 import com.app.prod.interaction.repository.InteractionRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.InteractionFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,9 +55,9 @@ public class InteractionService {
         interactionRepository.remove(scope.userId(), entityType, entityId, interactionType);
     }
 
-    public List<InteractionUserResponse> getInteractions(BuildingScope scope, InteractionEntityType entityType, UUID entityId, InteractionFilter filter, Pagination pagination) {
+    public List<InteractionUserResponse> getInteractions(BuildingScope scope, InteractionEntityType entityType, UUID entityId, InteractionFilter filter) {
         target(entityType).assertVisible(scope, entityId);
-        return interactionRepository.findUsers(filter, pagination);
+        return interactionRepository.findUsers(filter);
     }
 
     private InteractionTarget target(InteractionEntityType entityType) {

@@ -39,6 +39,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.ScheduledJob;
 import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 import org.jooq.sources.tables.records.ActivationTokenRecord;
@@ -71,6 +72,7 @@ import org.jooq.sources.tables.records.PostRecord;
 import org.jooq.sources.tables.records.RefreshTokenRecord;
 import org.jooq.sources.tables.records.RequestDonorRecord;
 import org.jooq.sources.tables.records.RequestRecord;
+import org.jooq.sources.tables.records.ScheduledJobRecord;
 import org.jooq.sources.tables.records.UserInteractionRecord;
 import org.jooq.sources.tables.records.UserRoleRecord;
 
@@ -127,6 +129,7 @@ public class Keys {
     public static final UniqueKey<RefreshTokenRecord> REFRESH_TOKEN_TOKEN_KEY = Internal.createUniqueKey(RefreshToken.REFRESH_TOKEN, DSL.name("refresh_token_token_key"), new TableField[] { RefreshToken.REFRESH_TOKEN.TOKEN }, true);
     public static final UniqueKey<RequestRecord> REQUEST_PKEY = Internal.createUniqueKey(Request.REQUEST, DSL.name("request_pkey"), new TableField[] { Request.REQUEST.ID }, true);
     public static final UniqueKey<RequestDonorRecord> REQUEST_DONOR_PKEY = Internal.createUniqueKey(RequestDonor.REQUEST_DONOR, DSL.name("request_donor_pkey"), new TableField[] { RequestDonor.REQUEST_DONOR.ID }, true);
+    public static final UniqueKey<ScheduledJobRecord> SCHEDULED_JOB_PKEY = Internal.createUniqueKey(ScheduledJob.SCHEDULED_JOB, DSL.name("scheduled_job_pkey"), new TableField[] { ScheduledJob.SCHEDULED_JOB.ID }, true);
     public static final UniqueKey<UserInteractionRecord> USER_INTERACTION_PKEY = Internal.createUniqueKey(UserInteraction.USER_INTERACTION, DSL.name("user_interaction_pkey"), new TableField[] { UserInteraction.USER_INTERACTION.ID }, true);
     public static final UniqueKey<UserInteractionRecord> USER_INTERACTION_UNIQUE = Internal.createUniqueKey(UserInteraction.USER_INTERACTION, DSL.name("user_interaction_unique"), new TableField[] { UserInteraction.USER_INTERACTION.ENTITY_TYPE, UserInteraction.USER_INTERACTION.ENTITY_ID, UserInteraction.USER_INTERACTION.INTERACTION_TYPE, UserInteraction.USER_INTERACTION.USER_ID }, true);
     public static final UniqueKey<UserRoleRecord> USER_ROLE_PKEY = Internal.createUniqueKey(UserRole.USER_ROLE, DSL.name("user_role_pkey"), new TableField[] { UserRole.USER_ROLE.ID }, true);

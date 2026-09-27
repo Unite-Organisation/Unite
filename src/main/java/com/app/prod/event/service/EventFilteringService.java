@@ -23,6 +23,8 @@ public class EventFilteringService {
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
 
         return EventMemberFilter.builder()
+                .pagination(request.pagination())
+                .search(request.search())
                 .eventId(Filter.of(eventId))
                 .role(Filter.of(request.getRole()))
                 .status(Filter.of(request.getStatus()))

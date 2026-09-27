@@ -40,6 +40,7 @@ import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.RefreshToken;
 import org.jooq.sources.tables.Request;
 import org.jooq.sources.tables.RequestDonor;
+import org.jooq.sources.tables.ScheduledJob;
 import org.jooq.sources.tables.UserInteraction;
 import org.jooq.sources.tables.UserRole;
 
@@ -208,6 +209,11 @@ public class Public extends SchemaImpl {
     public final RequestDonor REQUEST_DONOR = RequestDonor.REQUEST_DONOR;
 
     /**
+     * The table <code>public.scheduled_job</code>.
+     */
+    public final ScheduledJob SCHEDULED_JOB = ScheduledJob.SCHEDULED_JOB;
+
+    /**
      * The table <code>public.user_interaction</code>.
      */
     public final UserInteraction USER_INTERACTION = UserInteraction.USER_INTERACTION;
@@ -263,6 +269,7 @@ public class Public extends SchemaImpl {
             RefreshToken.REFRESH_TOKEN,
             Request.REQUEST,
             RequestDonor.REQUEST_DONOR,
+            ScheduledJob.SCHEDULED_JOB,
             UserInteraction.USER_INTERACTION,
             UserRole.USER_ROLE
         );

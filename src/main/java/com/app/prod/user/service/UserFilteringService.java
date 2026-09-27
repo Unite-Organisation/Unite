@@ -19,6 +19,8 @@ public class UserFilteringService {
 
     public BuildingUserFilter prepareFilter(BuildingScope scope, BuildingUserFilterRequest request) {
         return BuildingUserFilter.builder()
+                .pagination(request.pagination())
+                .search(request.search())
                 .buildingId(Filter.of(scope.buildingId()))
                 .status(Filter.of(effectiveStatus(request)))
                 .invitationStatus(Filter.of(request.getInvitationStatus()))

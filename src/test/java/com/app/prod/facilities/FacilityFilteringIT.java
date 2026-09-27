@@ -129,7 +129,7 @@ public class FacilityFilteringIT extends IntegrationTest {
 
     private List<String> namesFor(FacilityFilterRequest request) {
         var filter = facilityFilteringService.prepareFilter(scope, request);
-        return facilityService.getFacilities(request.pagination(), filter).stream()
+        return facilityService.getFacilities(filter).stream()
                 .map(FacilityResponse::name)
                 .toList();
     }

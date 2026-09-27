@@ -2,6 +2,7 @@ package com.app.prod.interaction.service;
 
 import com.app.prod.interaction.enums.InteractionEntityType;
 import com.app.prod.interaction.enums.InteractionType;
+import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.ComparisonFilter;
 import com.app.prod.utils.filters.Filter;
 import com.app.prod.utils.filters.InteractionFilter;
@@ -14,12 +15,14 @@ import java.util.UUID;
 public class InteractionFilteringService {
 
     public InteractionFilter prepareFilter(
+            Pagination pagination,
             InteractionEntityType entityType,
             UUID entityId,
             InteractionType interactionType,
             LocalDateTime createdAt, ComparisonFilter.Modifier createdAtModifier
     ) {
         return InteractionFilter.builder()
+                .pagination(pagination)
                 .entityType(Filter.of(entityType))
                 .entityId(Filter.of(entityId))
                 .interactionType(Filter.of(interactionType))

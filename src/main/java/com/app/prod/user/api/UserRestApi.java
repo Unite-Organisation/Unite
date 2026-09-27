@@ -70,7 +70,7 @@ public class UserRestApi {
     @PreAuthorize("hasRole('MANAGER')")
     public List<BuildingUserResponse> getUsersInBuilding(BuildingScope scope, @Valid @ModelAttribute BuildingUserFilterRequest request){
         BuildingUserFilter filter = userFilteringService.prepareFilter(scope, request);
-        return userService.getUsersInBuilding(request.pagination(), filter);
+        return userService.getUsersInBuilding(filter);
     }
 
     @PostMapping("/bulk-creation")

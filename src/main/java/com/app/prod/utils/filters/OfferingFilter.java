@@ -1,7 +1,7 @@
 package com.app.prod.utils.filters;
 
 import com.app.prod.offering.enums.OfferingCategory;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.math.BigDecimal;
@@ -12,8 +12,8 @@ import static com.app.prod.utils.filters.Criteria.match;
 import static com.app.prod.utils.filters.Criteria.matchEnum;
 import static org.jooq.sources.Tables.OFFERING;
 
-@Builder
-public class OfferingFilter implements PredicateFilter {
+@SuperBuilder
+public class OfferingFilter extends PredicateFilter {
     Filter<OfferingCategory> category;
     Filter<BigDecimal> price;
     Filter<UUID> areaId;

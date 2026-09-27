@@ -8,7 +8,6 @@ import com.app.prod.post.dto.PostResponse;
 import com.app.prod.post.enums.PostType;
 import com.app.prod.storage.file.FileService;
 import com.app.prod.utils.BaseJooqRepository;
-import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.PostFilter;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -33,7 +32,7 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
         this.fileService = fileService;
     }
 
-    public List<PostResponse> findPosts(UUID viewerId, Pagination pagination, PostFilter filter) {
+    public List<PostResponse> findPosts(UUID viewerId, PostFilter filter) {
         Field<List<InteractionSummary>> interactions = InteractionFields.summaryFor(POST.ID, InteractionEntityType.POST, viewerId);
         Field<Integer> attendeesCount = EventMemberFields.goingCount(POST.EVENT_ID).as("attendees_count");
         Field<String> name = coalesce(POST.NAME, EVENT.NAME).as("name");
@@ -64,8 +63,8 @@ public class PostRepository extends BaseJooqRepository<Post, PostRecord, UUID> {
                 .leftJoin(EVENT).on(EVENT.ID.eq(POST.EVENT_ID))
                 .where(filter.parseFilter())
                 .orderBy(POST.CREATED_AT)
-                .offset(pagination.getOffset())
-                .limit(pagination.pageSize())
+                .offset(filter.pagination().getOffset())
+                .limit(filter.pagination().pageSize())
                 .fetch(record -> new PostResponse(
                         record.get(POST.ID),
                         record.get(name),

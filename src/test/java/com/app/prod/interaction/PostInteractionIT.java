@@ -20,7 +20,6 @@ import com.app.prod.post.dto.PostResponse;
 import org.jooq.sources.tables.records.PostRecord;
 import com.app.prod.post.repository.PostRepository;
 import com.app.prod.post.service.PostFilteringService;
-import com.app.prod.utils.Pagination;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,8 +247,9 @@ public class PostInteractionIT extends IntegrationTest {
     }
 
     private List<InteractionSummary> interactionsOf(UUID postId, UUID userId) {
-        var filter = postFilteringService.prepareFilter(TestBuildingScope.of(buildingId, userId), new PostFilterRequest());
-        return postRepository.findPosts(userId, pagination(), filter).stream()
+        var request = PostFilterRequest.builder().pageSize(50).build();
+        var filter = postFilteringService.prepareFilter(TestBuildingScope.of(buildingId, userId), request);
+        return postRepository.findPosts(userId, filter).stream()
                 .filter(post -> post.id().equals(postId))
                 .map(PostResponse::interactions)
                 .findFirst()
@@ -257,17 +257,14 @@ public class PostInteractionIT extends IntegrationTest {
     }
 
     private List<String> attendedBy(UUID userId) {
-        var request = PostFilterRequest.builder().attendedBy(userId).build();
+        var request = PostFilterRequest.builder().attendedBy(userId).pageSize(50).build();
         var filter = postFilteringService.prepareFilter(residentScope, request);
 
-        return postRepository.findPosts(residentId, pagination(), filter).stream()
+        return postRepository.findPosts(residentId, filter).stream()
                 .map(PostResponse::name)
                 .toList();
     }
 
-    private Pagination pagination() {
-        return Pagination.builder().page(1).pageSize(50).build();
-    }
 
     private PostRecord event(String name) {
         return postPersistenceFactory.getNewPost(EVENT)

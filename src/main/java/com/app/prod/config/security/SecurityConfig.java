@@ -33,6 +33,7 @@ import static com.app.prod.config.Constants.BCRYPT_PASSWORD_ENCODER_STRENGTH;
 @Slf4j
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
+    private final JobTokenAuthFilter jobTokenAuthFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
@@ -85,9 +86,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers("/internal/**").hasRole("INTERNAL")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jobTokenAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
 

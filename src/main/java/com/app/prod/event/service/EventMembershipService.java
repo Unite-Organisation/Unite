@@ -202,7 +202,7 @@ public class EventMembershipService {
             members = sortedByProbability(members, filter, caller);
         }
 
-        Pagination pagination = request.pagination();
+        Pagination pagination = filter.pagination();
         return members.stream()
                 .skip(pagination.getOffset())
                 .limit(pagination.pageSize())

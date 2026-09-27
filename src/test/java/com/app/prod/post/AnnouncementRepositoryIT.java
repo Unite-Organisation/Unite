@@ -124,7 +124,7 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
         createManyAnnouncements(10);
 
         var scope = TestBuildingScope.of(buildingId, residentId);
-        var secondPage = postRepository.findPosts(residentId, Pagination.builder().page(2).pageSize(3).build(), filter(scope, ANNOUNCEMENT));
+        var secondPage = postRepository.findPosts(residentId, filter(scope, ANNOUNCEMENT, Pagination.builder().page(2).pageSize(3).build()));
 
         assertThat(secondPage).hasSize(3);
     }
@@ -145,7 +145,12 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
     }
 
     private PostFilter filter(BuildingScope scope, PostType postType){
+        return filter(scope, postType, Pagination.builder().page(1).pageSize(5).build());
+    }
+
+    private PostFilter filter(BuildingScope scope, PostType postType, Pagination pagination){
         return PostFilter.builder()
+                .pagination(pagination)
                 .buildingId(Filter.of(scope.buildingId()))
                 .postType(Filter.of(postType))
                                 .visibleFrom(ComparisonFilter.empty())
@@ -158,8 +163,7 @@ public class AnnouncementRepositoryIT extends IntegrationTest {
     }
 
     private List<String> namesFor(BuildingScope scope, PostFilter filter){
-        var pagination = Pagination.builder().page(1).pageSize(5).build();
-        return postRepository.findPosts(scope.userId(), pagination, filter).stream()
+        return postRepository.findPosts(scope.userId(), filter).stream()
                 .map(PostResponse::name)
                 .toList();
     }

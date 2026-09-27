@@ -1,7 +1,7 @@
 package com.app.prod.utils.filters;
 
 import com.app.prod.polls.enums.PollStatus;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.jooq.Condition;
 
 import java.util.List;
@@ -9,8 +9,8 @@ import java.util.List;
 import static com.app.prod.utils.filters.Criteria.when;
 import static org.jooq.sources.Tables.POLL;
 
-@Builder
-public class PollFilter implements PredicateFilter {
+@SuperBuilder
+public class PollFilter extends PredicateFilter {
     Filter<PollStatus> pollStatus;
 
     @Override
