@@ -153,12 +153,22 @@ public class PublicEventRestApi {
                 .build();
     }
 
-    /** Path and flags have to match the cookie that was set, or the browser keeps the old one. */
+    /**
+     * Path and flags have to match the cookie that was set, or the browser keeps the old one.
+     * <p>
+     * SameSite depends on where this runs, because the browser's idea of "this site" does. In
+     * development the app and the api are both localhost, so Lax is right and works. In production
+     * they are different sites - unitly.pl and a run.app host - and Lax means the cookie is never
+     * sent back at all, which reads to a guest as an event that forgot them the moment they made it.
+     * None requires Secure, which is why the two travel together.
+     */
     private ResponseCookie.ResponseCookieBuilder cookie(String slug, String value, HttpServletRequest httpRequest) {
+        boolean crossSite = applicationInfo.isProdEnvironment();
+
         return ResponseCookie.from(EventSessionService.COOKIE_NAME, value)
                 .httpOnly(true)
-                .secure(applicationInfo.isProdEnvironment())
+                .secure(crossSite)
                 .path(httpRequest.getContextPath() + EVENT_PATH + slug)
-                .sameSite("Lax");
+                .sameSite(crossSite ? "None" : "Lax");
     }
 }
