@@ -7,7 +7,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   SERVICE_NAME: unite-backend
-  REGION: europe-west3
+  REGION: europe-west1
 
 jobs:
   deploy:
