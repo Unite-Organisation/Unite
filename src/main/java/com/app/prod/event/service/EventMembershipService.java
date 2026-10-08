@@ -2,11 +2,7 @@ package com.app.prod.event.service;
 
 import com.app.prod.event.device.DeviceSignals;
 import com.app.prod.event.device.MembershipScorer;
-import com.app.prod.event.dto.EventMemberResponse;
-import com.app.prod.event.dto.EventMemberRow;
-import com.app.prod.event.dto.EventMembersRequest;
-import com.app.prod.event.dto.OpenSessionRequest;
-import com.app.prod.event.dto.SlotVoteRequest;
+import com.app.prod.event.dto.*;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.EventStatus;
@@ -15,6 +11,7 @@ import com.app.prod.event.mappers.EventMapper;
 import com.app.prod.event.repository.EventMemberMetadataRepository;
 import com.app.prod.event.repository.EventMemberRepository;
 import com.app.prod.event.repository.EventRepository;
+import com.app.prod.event.repository.EventSlotVoteRepository;
 import com.app.prod.event.web.EventCaller;
 import com.app.prod.event.web.EventScope;
 import com.app.prod.exceptions.AppError;
@@ -37,11 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -60,6 +53,7 @@ public class EventMembershipService {
     private final EventSessionService eventSessionService;
     private final ReturnCodes returnCodes;
     private final Clock clock;
+    private final EventSlotVoteRepository eventSlotVoteRepository;
 
     @Transactional(noRollbackFor = AuthenticationFailedException.class)
     public OpenedSession openSession(String slug, EventCaller caller, OpenSessionRequest request, DeviceSignals device) {
@@ -199,6 +193,7 @@ public class EventMembershipService {
         if (current == EventMemberStatus.GOING) {
             promoteFromWaitlist(event, now);
         }
+        eventSlotVoteRepository.replaceForMember(member.getId(), Collections.emptyList(), now);
         return EventMemberStatus.NOT_GOING;
     }
 
@@ -257,7 +252,9 @@ public class EventMembershipService {
                 .map(member -> new EventMemberResponse(
                         member.displayName(),
                         member.role() == EventMemberRole.HOST,
-                        member.status()
+                        member.status(),
+                        member.preferredSlots(),
+                        member.optionalSlots()
                 ))
                 .toList();
     }

@@ -62,10 +62,15 @@ public class EventVotingService {
         }
         requireSlotsStillOpen(event, slotIds);
 
-        eventSlotVoteRepository.replaceForMember(memberId,
-                votes.stream().map(vote -> new SlotVote(vote.slotId(), vote.preference())).toList(), now);
-        markAsJoined(memberId, now);
+        eventSlotVoteRepository.replaceForMember(
+                memberId,
+                votes.stream()
+                    .map(vote -> new SlotVote(vote.slotId(), vote.preference()))
+                    .toList(),
+                now
+        );
 
+        markAsJoined(memberId, now);
         log.info("Member {} chose {} date(s) of event {}", memberId, votes.size(), event.getId());
     }
 

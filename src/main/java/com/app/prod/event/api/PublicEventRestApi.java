@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/public/event")
@@ -72,6 +73,15 @@ public class PublicEventRestApi {
     public List<EventMemberResponse> getMembers(@PathVariable String slug, @Valid @ModelAttribute EventMembersRequest request, RequestSignals requestSignals) {
         EventMemberFilter filter = eventFilteringService.prepareFilter(request, slug);
         return eventMembershipService.findMembers(filter, request, deviceSignalsFactory.from(requestSignals, request.getDevice()));
+    }
+
+    @GetMapping("/{slug}/slots/{slotId}/members")
+    @CookieSession(
+            value = CookieSession.Mode.NONE,
+            note =  "Holding the link is enough, same as the members list - no session needed"
+    )
+    public List<SlotVoterResponse> getSlotMembers(@PathVariable String slug, @PathVariable UUID slotId) {
+        return publicEventService.getSlotVoters(slug, slotId);
     }
 
     @PutMapping("/{slug}/attendance")

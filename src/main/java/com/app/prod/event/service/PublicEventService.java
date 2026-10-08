@@ -8,6 +8,7 @@ import com.app.prod.event.dto.EventSlotResponse;
 import com.app.prod.event.dto.RankedSlot;
 import com.app.prod.event.dto.SlotRequest;
 import com.app.prod.event.dto.SlotVote;
+import com.app.prod.event.dto.SlotVoterResponse;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.SchedulingMode;
@@ -91,6 +92,17 @@ public class PublicEventService {
                         ? caller.map(member -> eventSlotVoteRepository.findByMember(member.getId())).orElse(List.of())
                         : List.of()
         );
+    }
+
+    public List<SlotVoterResponse> getSlotVoters(String slug, UUID slotId) {
+        EventRow row = eventRepository.findRowBySlug(slug)
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
+
+        if (!eventSlotRepository.allBelongToEvent(row.id(), List.of(slotId))) {
+            throw new EntityNotPresentException(AppError.of(Code.EVENT_SLOT_NOT_FOUND));
+        }
+
+        return eventMemberRepository.findGoingVotersWithPreference(row.id(), slotId);
     }
 
     @Transactional

@@ -28,6 +28,7 @@ public class EventFilteringService {
                 .eventId(Filter.of(eventId))
                 .role(Filter.of(request.getRole()))
                 .status(Filter.of(request.getStatus()))
+                .includeSlotsInfo(Filter.of(request.isIncludeSlotsInfo()))
                 .build();
     }
 }
