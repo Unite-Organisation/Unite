@@ -66,12 +66,12 @@ class EventApi {
     Event createEventChoosingItsDate(String hostName, int minAttendees, Integer maxAttendees, boolean waitlist,
                                      LocalDateTime deadline, List<SlotRequest> dates) {
         return create(new CreateEventRequest("Volleyball", null, null, null, null, null,
-                maxAttendees, waitlist, hostName, null, SchedulingMode.POLL, minAttendees, deadline, dates));
+                maxAttendees, waitlist, hostName, emailOf(hostName), null, SchedulingMode.POLL, minAttendees, deadline, dates));
     }
 
     Event createDatedEvent(String hostName, LocalDateTime start, Integer maxAttendees, boolean waitlist) {
         return create(new CreateEventRequest("Barbecue", null, start, null, null, null,
-                maxAttendees, waitlist, hostName, null, null, null, null, null));
+                maxAttendees, waitlist, hostName, emailOf(hostName), null, null, null, null, null));
     }
 
     private Event create(CreateEventRequest request) {
@@ -96,12 +96,12 @@ class EventApi {
     }
 
     ResultActions tryJoin(Event event, String name, List<SlotVoteRequest> choice) {
-        return perform(post(path(event, "/session")), new OpenSessionRequest(name, null, null, choice), null, null);
+        return perform(post(path(event, "/session")), new OpenSessionRequest(name, emailOf(name), null, null, choice), null, null);
     }
 
     /** Signing up for an event that already has a date - no choosing involved. */
     Person signUp(Event event, String name) {
-        MvcResult result = unchecked(() -> perform(path(event, "/session"), new OpenSessionRequest(name, null, null, null))
+        MvcResult result = unchecked(() -> perform(path(event, "/session"), new OpenSessionRequest(name, emailOf(name), null, null, null))
                 .andExpect(status().isCreated())
                 .andReturn());
         Person person = new Person(name, cookieOf(result), text(read(result), "returnCode"));
@@ -111,7 +111,7 @@ class EventApi {
 
     Person joinAsUniteUser(Event event, String jwt, SlotVoteRequest... choice) {
         MvcResult result = unchecked(() -> perform(post(path(event, "/session")),
-                new OpenSessionRequest(null, null, null, List.of(choice)), null, jwt)
+                new OpenSessionRequest(null, null, null, null, List.of(choice)), null, jwt)
                 .andExpect(status().isCreated())
                 .andReturn());
         return new Person("unite", cookieOf(result), null);
@@ -126,7 +126,7 @@ class EventApi {
     }
 
     ResultActions tryResumeWithCode(Event event, String name, String returnCode) {
-        return perform(post(path(event, "/session")), new OpenSessionRequest(name, returnCode, null, null), null, null);
+        return perform(post(path(event, "/session")), new OpenSessionRequest(name, null, returnCode, null, null), null, null);
     }
 
     // ---------------------------------------------------------------- acting
@@ -220,6 +220,11 @@ class EventApi {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /** What a person typed into the email field - guests have to give one when they first join. */
+    static String emailOf(String name) {
+        return name.toLowerCase().replace(' ', '.') + "@test.local";
     }
 
     static SlotVoteRequest suits(UUID slotId) {

@@ -5,8 +5,10 @@ import com.app.prod.event.dto.SlotVoterResponse;
 import com.app.prod.event.enums.SlotPreference;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
+import com.app.prod.mail.dto.MailRecipient;
 import com.app.prod.utils.BaseJooqRepository;
 import com.app.prod.utils.filters.EventMemberFilter;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
@@ -24,6 +26,7 @@ import java.util.function.Function;
 
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.lower;
+import static org.jooq.sources.Tables.APP_USER;
 import static org.jooq.sources.Tables.EVENT_MEMBER;
 import static org.jooq.sources.Tables.EVENT_SLOT_VOTE;
 
@@ -84,6 +87,34 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                         EVENT_MEMBER.ID
                 )
                 .fetch(EVENT_MEMBER.ID);
+    }
+
+    /** Everyone with the given status who has somewhere to be written to. */
+    public List<MailRecipient> findRecipientsWithStatus(UUID eventId, EventMemberStatus status) {
+        return recipients(EVENT_MEMBER.EVENT_ID.eq(eventId).and(EVENT_MEMBER.STATUS.eq(status.name())));
+    }
+
+    /** The going members who voted for the slot - the ones the slot being picked is news to. */
+    public List<MailRecipient> findGoingVotersRecipients(UUID eventId, UUID slotId) {
+        return recipients(EVENT_MEMBER.EVENT_ID.eq(eventId)
+                .and(EVENT_MEMBER.STATUS.eq(EventMemberStatus.GOING.name()))
+                .and(DSL.exists(DSL.selectOne()
+                        .from(EVENT_SLOT_VOTE)
+                        .where(EVENT_SLOT_VOTE.MEMBER_ID.eq(EVENT_MEMBER.ID))
+                        .and(EVENT_SLOT_VOTE.SLOT_ID.eq(slotId)))));
+    }
+
+    /** A Unite account is written to at its current address, a guest at the one they typed in. */
+    private List<MailRecipient> recipients(Condition condition) {
+        Field<String> email = DSL.coalesce(APP_USER.EMAIL, EVENT_MEMBER.EMAIL);
+
+        return dslContext.select(EVENT_MEMBER.USER_ID, email)
+                .from(EVENT_MEMBER)
+                .leftJoin(APP_USER).on(APP_USER.ID.eq(EVENT_MEMBER.USER_ID))
+                .where(condition)
+                .and(email.isNotNull())
+                .orderBy(EVENT_MEMBER.ID)
+                .fetch(record -> new MailRecipient(record.get(EVENT_MEMBER.USER_ID), record.get(email)));
     }
 
     public List<SlotVoterResponse> findGoingVotersWithPreference(UUID eventId, UUID slotId) {

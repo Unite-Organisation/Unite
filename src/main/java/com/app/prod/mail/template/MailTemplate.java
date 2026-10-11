@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MailTemplate {
 
-    USER_INVITATION("mail/invitation", "mail.invitation.subject");
+    USER_INVITATION("mail/invitation", "mail.invitation.subject"),
+    EVENT_GROUP_FORMED("mail/event-group-formed", "mail.event.group-formed.subject"),
+    EVENT_CONFIRMED("mail/event-confirmed", "mail.event.confirmed.subject"),
+    EVENT_REDUCED_TO_ONE_SLOT("mail/event-reduced-to-one-slot", "mail.event.reduced-to-one-slot.subject");
 
     private final String view;
     private final String subjectKey;

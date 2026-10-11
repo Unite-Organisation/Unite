@@ -143,6 +143,11 @@ public class EventPersistenceFactory {
             return this;
         }
 
+        public MemberBuilder email(String email) {
+            instance.setEmail(email);
+            return this;
+        }
+
         public MemberBuilder role(EventMemberRole role) {
             instance.setRole(role.name());
             return this;

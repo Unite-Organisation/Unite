@@ -122,7 +122,7 @@ public class PublicEventService {
         ReturnCodes.IssuedCode code = caller.isGuest() ? returnCodes.issue() : null;
         EventMemberRecord host = caller.uniteUser()
                 .map(user -> EventMapper.uniteMember(eventId, user, EventMemberRole.HOST, EventMemberStatus.GOING, now))
-                .orElseGet(() -> EventMapper.guestMember(eventId, request.displayName(), code.hash(), EventMemberRole.HOST, EventMemberStatus.GOING, now));
+                .orElseGet(() -> EventMapper.guestMember(eventId, request.displayName(), request.email().trim(), code.hash(), EventMemberRole.HOST, EventMemberStatus.GOING, now));
         eventMemberRepository.insertOne(host);
         eventMemberMetadataRepository.save(host.getId(), device, now);
 
@@ -184,6 +184,10 @@ public class PublicEventService {
     private static void validate(CreateEventRequest request, EventCaller caller, LocalDateTime now) {
         if (caller.isGuest() && (request.displayName() == null || request.displayName().isBlank())) {
             throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "displayName is required when creating an event without an account"));
+        }
+
+        if (caller.isGuest() && (request.email() == null || request.email().isBlank())) {
+            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "email is required when creating an event without an account"));
         }
 
         if (request.waitlistEnabled() && request.maxAttendees() == null) {

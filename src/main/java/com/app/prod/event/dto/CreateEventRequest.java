@@ -2,6 +2,7 @@ package com.app.prod.event.dto;
 
 import com.app.prod.event.enums.SchedulingMode;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -19,6 +20,7 @@ public record CreateEventRequest(
         @Positive Integer maxAttendees,
         boolean waitlistEnabled,
         @Size(max = 60) String displayName,
+        @Email @Size(max = 254) String email,
         @Valid DeviceFingerprint device,
         /** absent means a dated event, which is what every event was before slots existed */
         SchedulingMode schedulingMode,

@@ -115,18 +115,33 @@ public class EventMembershipService {
         if (existing.isPresent()) {
             EventMemberRecord member = existing.get();
             verifyReturnCode(member, request.returnCode(), now);
+            rememberEmailIfMissing(member, request.email());
             eventMemberMetadataRepository.save(member.getId(), device, now);
             String sessionToken = eventSessionService.open(member.getId(), now);
             return new OpenedSession(false, member.getId(), EventMapper.toResponse(member), null, sessionToken);
         }
 
+        String email = Optional.ofNullable(request.email())
+                .map(String::trim)
+                .filter(address -> !address.isEmpty())
+                .orElseThrow(() -> new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "email is required the first time a guest joins")));
+
         ReturnCodes.IssuedCode code = returnCodes.issue();
-        EventMemberRecord member = EventMapper.guestMember(eventId, displayName, code.hash(), EventMemberRole.MEMBER, EventMemberStatus.UNDECIDED, now);
+        EventMemberRecord member = EventMapper.guestMember(eventId, displayName, email, code.hash(), EventMemberRole.MEMBER, EventMemberStatus.UNDECIDED, now);
         eventMemberRepository.insertOne(member);
         eventMemberMetadataRepository.save(member.getId(), device, now);
 
         String sessionToken = eventSessionService.open(member.getId(), now);
         return new OpenedSession(true, member.getId(), EventMapper.toResponse(member), code.code(), sessionToken);
+    }
+
+    /** Members who joined before there was an email to give get to add it the next time they come back. */
+    private void rememberEmailIfMissing(EventMemberRecord member, String email) {
+        if (member.getEmail() != null || email == null || email.isBlank()) {
+            return;
+        }
+        member.setEmail(email.trim());
+        eventMemberRepository.update(member);
     }
 
     private void verifyReturnCode(EventMemberRecord member, String returnCode, LocalDateTime now) {

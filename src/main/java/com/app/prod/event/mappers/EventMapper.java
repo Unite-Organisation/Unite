@@ -64,9 +64,10 @@ public class EventMapper {
         return record;
     }
 
-    public static EventMemberRecord guestMember(UUID eventId, String displayName, String pinHash, EventMemberRole role, EventMemberStatus status, LocalDateTime now) {
+    public static EventMemberRecord guestMember(UUID eventId, String displayName, String email, String pinHash, EventMemberRole role, EventMemberStatus status, LocalDateTime now) {
         EventMemberRecord record = baseMember(eventId, displayName.trim(), role, status, now);
         record.setPinHash(pinHash);
+        record.setEmail(email);
         return record;
     }
 

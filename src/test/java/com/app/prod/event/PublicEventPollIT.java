@@ -109,15 +109,35 @@ class PublicEventPollIT extends IntegrationTest {
     @Test
     void shouldRejectAnEventWithoutAThresholdOrADeadline() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
-                null, false, "Kuba", null, SchedulingMode.POLL, null, null, fourDates);
+                null, false, "Kuba", "kuba@test.local", null, SchedulingMode.POLL, null, null, fourDates);
 
         mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
     }
 
     @Test
+    void shouldRequireAnEmailFromAGuestCreatingAnEvent() throws Exception {
+        CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
+                null, false, "Kuba", null, null, SchedulingMode.POLL, 3, deadline, fourDates);
+
+        mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRequireAnEmailTheFirstTimeAGuestJoins() throws Exception {
+        Created event = createPollEvent(3);
+
+        mvc.perform(json(post("/public/event/" + event.slug + "/session"),
+                        new OpenSessionRequest("Ola", null, null, null, List.of())))
+                .andExpect(status().isBadRequest());
+        mvc.perform(json(post("/public/event/" + event.slug + "/session"),
+                        new OpenSessionRequest("Ola", "not-an-email", null, null, List.of())))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldRejectAnEventThatBothProposesDatesAndHasOne() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, now.plusDays(7), null, null, null,
-                null, false, "Kuba", null, SchedulingMode.POLL, 3, deadline, fourDates);
+                null, false, "Kuba", "kuba@test.local", null, SchedulingMode.POLL, 3, deadline, fourDates);
 
         mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
     }
@@ -125,7 +145,7 @@ class PublicEventPollIT extends IntegrationTest {
     @Test
     void shouldRejectASingleProposedDate() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
-                null, false, "Kuba", null, SchedulingMode.POLL, 3, deadline,
+                null, false, "Kuba", "kuba@test.local", null, SchedulingMode.POLL, 3, deadline,
                 List.of(new SlotRequest(now.plusDays(7), null)));
 
         mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
@@ -134,7 +154,7 @@ class PublicEventPollIT extends IntegrationTest {
     @Test
     void shouldRejectADateThatFallsBeforeTheDeadlineForChoosingIt() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
-                null, false, "Kuba", null, SchedulingMode.POLL, 3, deadline,
+                null, false, "Kuba", "kuba@test.local", null, SchedulingMode.POLL, 3, deadline,
                 List.of(new SlotRequest(now.plusDays(1), null), new SlotRequest(now.plusDays(7), null)));
 
         mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
@@ -143,7 +163,7 @@ class PublicEventPollIT extends IntegrationTest {
     @Test
     void shouldRejectProposedDatesOnAnEventThatAlreadyHasOne() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, now.plusDays(7), null, null, null,
-                null, false, "Kuba", null, null, null, null, fourDates);
+                null, false, "Kuba", "kuba@test.local", null, null, null, null, fourDates);
 
         mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
     }
@@ -265,7 +285,7 @@ class PublicEventPollIT extends IntegrationTest {
     @Test
     void shouldStillCreateAnOrdinaryDatedEvent() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Barbecue", null, now.plusDays(7), now.plusDays(7).plusHours(3),
-                null, null, null, false, "Kuba", null, null, null, null, null);
+                null, null, null, false, "Kuba", "kuba@test.local", null, null, null, null, null);
 
         MvcResult result = mvc.perform(json(post("/public/event"), request))
                 .andExpect(status().isCreated())
@@ -285,7 +305,7 @@ class PublicEventPollIT extends IntegrationTest {
 
     private Created createPollEvent(int minAttendees) throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
-                null, false, "Kuba", null, SchedulingMode.POLL, minAttendees, deadline, fourDates);
+                null, false, "Kuba", "kuba@test.local", null, SchedulingMode.POLL, minAttendees, deadline, fourDates);
 
         MvcResult result = mvc.perform(json(post("/public/event"), request))
                 .andExpect(status().isCreated())
@@ -299,7 +319,7 @@ class PublicEventPollIT extends IntegrationTest {
 
     private org.springframework.test.web.servlet.ResultActions join(Created event, String name, List<SlotVoteRequest> votes) throws Exception {
         return mvc.perform(json(post("/public/event/" + event.slug + "/session"),
-                new OpenSessionRequest(name, null, null, votes)));
+                new OpenSessionRequest(name, name + "@test.local", null, null, votes)));
     }
 
     private Cookie joinAndKeepSession(Created event, String name, List<SlotVoteRequest> votes) throws Exception {
