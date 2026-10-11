@@ -11,13 +11,13 @@ spring:
   flyway:
     enabled: true
   mail:
-    host: smtp.gmail.com
+    host: smtp.zoho.eu
     port: 587
-    username: derquv@gmail.com
-    password: ""
+    username: dorian.guz@unitly.pl
+    password: uztTx5VJy8bT
     properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 server:
   port: 8080
@@ -40,8 +40,8 @@ services:
     apikey: local-dev-chatting-api-key
 
 mail:
-  from: no-reply@unite.local
-  from-name: Unite
+  from: notification@unitly.pl
+  from-name: Unitly
   locale: pl
 
 activation:

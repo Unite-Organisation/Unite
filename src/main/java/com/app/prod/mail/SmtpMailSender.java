@@ -36,6 +36,8 @@ public class SmtpMailSender implements MailSender {
             javaMailSender.send(mimeMessage);
             log.debug("Mail sent to {} subject={}", message.to(), message.subject());
         } catch (Exception e) {
+            // the exception below only reaches the client's error body; the cause is what tells SMTP auth from a bad sender
+            log.warn("SMTP send to {} failed", message.to(), e);
             throw new InternalConnectionException(AppError.of(
                     Code.MAIL_SENDING_FAILED,
                     String.format("Mail to %s could not be sent: %s", message.to(), e.getMessage())
