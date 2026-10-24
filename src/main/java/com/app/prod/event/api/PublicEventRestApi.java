@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/public/event")
@@ -36,6 +37,8 @@ public class PublicEventRestApi {
     private final ApplicationInfo applicationInfo;
     private final EventFilteringService eventFilteringService;
     private final DeviceSignalsFactory deviceSignalsFactory;
+    private final EventVotingService eventVotingService;
+    private final EventSessionService eventSessionService;
 
     @PostMapping()
     @CookieSession(
@@ -72,6 +75,15 @@ public class PublicEventRestApi {
         return eventMembershipService.findMembers(filter, request, deviceSignalsFactory.from(requestSignals, request.getDevice()));
     }
 
+    @GetMapping("/{slug}/slots/{slotId}/members")
+    @CookieSession(
+            value = CookieSession.Mode.NONE,
+            note =  "Holding the link is enough, same as the members list - no session needed"
+    )
+    public List<SlotVoterResponse> getSlotMembers(@PathVariable String slug, @PathVariable UUID slotId) {
+        return publicEventService.getSlotVoters(slug, slotId);
+    }
+
     @PutMapping("/{slug}/attendance")
     @CookieSession(
             value = CookieSession.Mode.REQUIRED,
@@ -79,6 +91,56 @@ public class PublicEventRestApi {
     )
     public AttendanceResponse changeAttendance(EventScope scope, @Valid @RequestBody AttendanceRequest request) {
         return new AttendanceResponse(eventMembershipService.changeAttendance(scope, request.status()));
+    }
+
+    @PutMapping("/{slug}/votes")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Replaces the whole choice - dates left out are dropped"
+    )
+    public EventResponse changeVotes(@PathVariable String slug, EventScope scope, @Valid @RequestBody VotesRequest request) {
+        eventVotingService.replaceVotes(scope, request.votes());
+        return publicEventService.getEvent(slug, Optional.of(scope));
+    }
+
+    @PostMapping("/{slug}/confirm")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: starts the event without waiting out the walk-out window"
+    )
+    public EventResponse confirmEvent(@PathVariable String slug, EventScope scope) {
+        publicEventService.confirmAsHost(scope);
+        return publicEventService.getEvent(slug, Optional.of(scope));
+    }
+
+    @PatchMapping("/{slug}")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: fields left out stay as they are, requiresApproval can only be switched on"
+    )
+    public EventResponse updateEvent(@PathVariable String slug, EventScope scope, @Valid @RequestBody UpdateEventRequest request) {
+        publicEventService.updateEvent(scope, request);
+        return publicEventService.getEvent(slug, Optional.of(scope));
+    }
+
+    @PostMapping("/{slug}/members/approve")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: the ids have to be the head of the queue (members?awaitingApproval=true), in any order"
+    )
+    public ResponseEntity<Void> approveMembers(EventScope scope, @Valid @RequestBody EventMemberIdsRequest request) {
+        eventMembershipService.approveMembers(scope, request.memberIds());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{slug}/members/remove")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: removes members, pending ones included. The link still works for them - see requiresApproval"
+    )
+    public ResponseEntity<Void> removeMembers(EventScope scope, @Valid @RequestBody EventMemberIdsRequest request) {
+        eventMembershipService.removeMembers(scope, request.memberIds());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{slug}/session")
@@ -98,13 +160,51 @@ public class PublicEventRestApi {
                 .body(new EventSessionResponse(opened.member(), opened.returnCode()));
     }
 
+    @DeleteMapping("/{slug}/session")
+    @CookieSession(
+            value = CookieSession.Mode.OPTIONAL,
+            note =  "Signs out of the event. The membership stays - the return code brings it back"
+    )
+    public ResponseEntity<Void> closeSession(
+            @PathVariable String slug,
+            @CookieValue(name = EventSessionService.COOKIE_NAME, required = false) String sessionToken,
+            HttpServletRequest httpRequest
+    ) {
+        if (sessionToken != null && !sessionToken.isBlank()) {
+            eventSessionService.close(sessionToken);
+        }
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, clearedSessionCookie(slug, httpRequest).toString())
+                .build();
+    }
+
     private ResponseCookie sessionCookie(String slug, String sessionToken, HttpServletRequest httpRequest) {
-        return ResponseCookie.from(EventSessionService.COOKIE_NAME, sessionToken)
+        return cookie(slug, sessionToken, httpRequest)
+                .maxAge(EventSessionService.SESSION_TTL)
+                .build();
+    }
+
+    private ResponseCookie clearedSessionCookie(String slug, HttpServletRequest httpRequest) {
+        return cookie(slug, "", httpRequest)
+                .maxAge(0)
+                .build();
+    }
+
+    /**
+     * Path and flags have to match the cookie that was set, or the browser keeps the old one.
+     * <p>
+     * Lax everywhere, because the app and the api are one site everywhere: localhost in development,
+     * unitly.pl and api.unitly.pl in production. Nothing here is a third-party cookie, so no browser
+     * has a reason to drop it. Lax is also what keeps a form on someone else's page from reaching
+     * the endpoints that change things - CORS never did, since it governs reading the answer rather
+     * than sending the request.
+     */
+    private ResponseCookie.ResponseCookieBuilder cookie(String slug, String value, HttpServletRequest httpRequest) {
+        return ResponseCookie.from(EventSessionService.COOKIE_NAME, value)
                 .httpOnly(true)
                 .secure(applicationInfo.isProdEnvironment())
                 .path(httpRequest.getContextPath() + EVENT_PATH + slug)
-                .maxAge(EventSessionService.SESSION_TTL)
-                .sameSite("Lax")
-                .build();
+                .sameSite("Lax");
     }
 }

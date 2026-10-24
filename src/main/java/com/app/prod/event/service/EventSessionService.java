@@ -43,6 +43,14 @@ public class EventSessionService {
         return rawToken;
     }
 
+    /**
+     * Signs the holder out of this event while leaving who they are in it untouched - their name,
+     * their answers and their seat are all still there, waiting for the code to bring them back.
+     */
+    public void close(String rawToken) {
+        sessionRepository.deleteByTokenHash(hash(rawToken));
+    }
+
     public Optional<SessionMember> findActive(String slug, String rawToken, LocalDateTime now) {
         return sessionRepository.findActiveMember(hash(rawToken), slug, now);
     }

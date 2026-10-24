@@ -14,6 +14,8 @@ import org.jooq.sources.tables.EmailDelivery;
 import org.jooq.sources.tables.EventMember;
 import org.jooq.sources.tables.EventMemberMetadata;
 import org.jooq.sources.tables.EventMemberSession;
+import org.jooq.sources.tables.EventSlot;
+import org.jooq.sources.tables.EventSlotVote;
 import org.jooq.sources.tables.FlywaySchemaHistory;
 import org.jooq.sources.tables.Post;
 import org.jooq.sources.tables.ScheduledJob;
@@ -40,6 +42,9 @@ public class Indexes {
     public static final Index IDX_EVENT_MEMBER_SESSION_MEMBER = Internal.createIndex(DSL.name("idx_event_member_session_member"), EventMemberSession.EVENT_MEMBER_SESSION, new OrderField[] { EventMemberSession.EVENT_MEMBER_SESSION.MEMBER_ID }, false);
     public static final Index IDX_EVENT_MEMBER_STATUS = Internal.createIndex(DSL.name("idx_event_member_status"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.STATUS, EventMember.EVENT_MEMBER.STATUS_CHANGED_AT }, false);
     public static final Index IDX_EVENT_MEMBER_USER = Internal.createIndex(DSL.name("idx_event_member_user"), EventMember.EVENT_MEMBER, new OrderField[] { EventMember.EVENT_MEMBER.EVENT_ID, EventMember.EVENT_MEMBER.USER_ID }, true);
+    public static final Index IDX_EVENT_SLOT_START = Internal.createIndex(DSL.name("idx_event_slot_start"), EventSlot.EVENT_SLOT, new OrderField[] { EventSlot.EVENT_SLOT.EVENT_ID, EventSlot.EVENT_SLOT.START_DATE_TIME }, true);
+    public static final Index IDX_EVENT_SLOT_VOTE_BY_MEMBER = Internal.createIndex(DSL.name("idx_event_slot_vote_by_member"), EventSlotVote.EVENT_SLOT_VOTE, new OrderField[] { EventSlotVote.EVENT_SLOT_VOTE.MEMBER_ID }, false);
+    public static final Index IDX_EVENT_SLOT_VOTE_MEMBER = Internal.createIndex(DSL.name("idx_event_slot_vote_member"), EventSlotVote.EVENT_SLOT_VOTE, new OrderField[] { EventSlotVote.EVENT_SLOT_VOTE.SLOT_ID, EventSlotVote.EVENT_SLOT_VOTE.MEMBER_ID }, true);
     public static final Index IDX_POST_BUILDING_CREATED = Internal.createIndex(DSL.name("idx_post_building_created"), Post.POST, new OrderField[] { Post.POST.BUILDING_ID, Post.POST.CREATED_AT }, false);
     public static final Index IDX_SCHEDULED_JOB_DEDUPE = Internal.createIndex(DSL.name("idx_scheduled_job_dedupe"), ScheduledJob.SCHEDULED_JOB, new OrderField[] { ScheduledJob.SCHEDULED_JOB.DEDUPE_KEY }, true);
     public static final Index IDX_SCHEDULED_JOB_DUE = Internal.createIndex(DSL.name("idx_scheduled_job_due"), ScheduledJob.SCHEDULED_JOB, new OrderField[] { ScheduledJob.SCHEDULED_JOB.RUN_AT }, false);

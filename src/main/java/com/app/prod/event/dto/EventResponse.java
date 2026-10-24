@@ -1,6 +1,11 @@
 package com.app.prod.event.dto;
 
+import com.app.prod.event.enums.EventStatus;
+import com.app.prod.event.enums.SchedulingMode;
+
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 public record EventResponse(
         String slug,
@@ -12,13 +17,16 @@ public record EventResponse(
         String onlineUrl,
         Integer maxAttendees,
         boolean waitlistEnabled,
+        boolean requiresApproval,
+        SchedulingMode schedulingMode,
+        EventStatus status,
+        Integer minAttendees,
+        LocalDateTime votingDeadline,
+        UUID selectedSlotId,
+        List<EventSlotResponse> slots,
         int goingCount,
         LocalDateTime createdAt,
-        MemberResponse me
+        MemberResponse me,
+        List<SlotVote> myVotes
 ) {
-
-    public EventResponse withMe(MemberResponse me) {
-        return new EventResponse(slug, name, description, startDate, endDate, locationName, onlineUrl,
-                maxAttendees, waitlistEnabled, goingCount, createdAt, me);
-    }
 }

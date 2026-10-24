@@ -22,6 +22,8 @@ import org.jooq.sources.tables.Event;
 import org.jooq.sources.tables.EventMember;
 import org.jooq.sources.tables.EventMemberMetadata;
 import org.jooq.sources.tables.EventMemberSession;
+import org.jooq.sources.tables.EventSlot;
+import org.jooq.sources.tables.EventSlotVote;
 import org.jooq.sources.tables.Facility;
 import org.jooq.sources.tables.FacilityReservation;
 import org.jooq.sources.tables.FlywaySchemaHistory;
@@ -117,6 +119,16 @@ public class Public extends SchemaImpl {
      * The table <code>public.event_member_session</code>.
      */
     public final EventMemberSession EVENT_MEMBER_SESSION = EventMemberSession.EVENT_MEMBER_SESSION;
+
+    /**
+     * The table <code>public.event_slot</code>.
+     */
+    public final EventSlot EVENT_SLOT = EventSlot.EVENT_SLOT;
+
+    /**
+     * The table <code>public.event_slot_vote</code>.
+     */
+    public final EventSlotVote EVENT_SLOT_VOTE = EventSlotVote.EVENT_SLOT_VOTE;
 
     /**
      * The table <code>public.facility</code>.
@@ -251,6 +263,8 @@ public class Public extends SchemaImpl {
             EventMember.EVENT_MEMBER,
             EventMemberMetadata.EVENT_MEMBER_METADATA,
             EventMemberSession.EVENT_MEMBER_SESSION,
+            EventSlot.EVENT_SLOT,
+            EventSlotVote.EVENT_SLOT_VOTE,
             Facility.FACILITY,
             FacilityReservation.FACILITY_RESERVATION,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,

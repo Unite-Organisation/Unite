@@ -2,16 +2,16 @@ package com.app.prod.event.service;
 
 import com.app.prod.event.device.DeviceSignals;
 import com.app.prod.event.device.MembershipScorer;
-import com.app.prod.event.dto.EventMemberResponse;
-import com.app.prod.event.dto.EventMemberRow;
-import com.app.prod.event.dto.EventMembersRequest;
-import com.app.prod.event.dto.OpenSessionRequest;
+import com.app.prod.event.dto.*;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
+import com.app.prod.event.enums.EventStatus;
+import com.app.prod.event.enums.SchedulingMode;
 import com.app.prod.event.mappers.EventMapper;
 import com.app.prod.event.repository.EventMemberMetadataRepository;
 import com.app.prod.event.repository.EventMemberRepository;
 import com.app.prod.event.repository.EventRepository;
+import com.app.prod.event.repository.EventSlotVoteRepository;
 import com.app.prod.event.web.EventCaller;
 import com.app.prod.event.web.EventScope;
 import com.app.prod.exceptions.AppError;
@@ -21,6 +21,7 @@ import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
+import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.EventMemberFilter;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -52,9 +49,12 @@ public class EventMembershipService {
     private final EventMemberRepository eventMemberRepository;
     private final EventMemberMetadataRepository eventMemberMetadataRepository;
     private final MembershipScorer membershipScorer;
+    private final EventVotingService eventVotingService;
+    private final EventLifecycleService eventLifecycleService;
     private final EventSessionService eventSessionService;
     private final ReturnCodes returnCodes;
     private final Clock clock;
+    private final EventSlotVoteRepository eventSlotVoteRepository;
 
     @Transactional(noRollbackFor = AuthenticationFailedException.class)
     public OpenedSession openSession(String slug, EventCaller caller, OpenSessionRequest request, DeviceSignals device) {
@@ -62,28 +62,54 @@ public class EventMembershipService {
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
         LocalDateTime now = LocalDateTime.now(clock);
 
+        EventMemberStatus newcomer = Boolean.TRUE.equals(event.getRequiresApproval())
+                ? EventMemberStatus.PENDING_APPROVAL
+                : EventMemberStatus.UNDECIDED;
+
         OpenedSession opened = caller.uniteUser()
-                .map(user -> openUniteSession(event.getId(), user, now, device))
-                .orElseGet(() -> openGuestSession(event.getId(), request, now, device));
+                .map(user -> openUniteSession(event.getId(), user, newcomer, now, device))
+                .orElseGet(() -> openGuestSession(event.getId(), request, newcomer, now, device));
+
+        applyVotesIfChoosingDate(event, opened, request, now);
 
         log.info("{} event session for member of event {} ({})", opened.joined() ? "Joined with" : "Reopened", event.getId(), opened.member().origin());
         return opened;
     }
 
-    private OpenedSession openUniteSession(UUID eventId, AppUserRecord user, LocalDateTime now, DeviceSignals device) {
+    private void applyVotesIfChoosingDate(EventRecord event, OpenedSession opened, OpenSessionRequest request, LocalDateTime now) {
+        if (SchedulingMode.valueOf(event.getSchedulingMode()) != SchedulingMode.POLL) {
+            return;
+        }
+
+        // once the date is final there is nothing left to choose: the event is an ordinary dated one
+        // and people sign up for it, seats handed out by attendance the same as anywhere else
+        if (EventStatus.valueOf(event.getStatus()) == EventStatus.CONFIRMED) {
+            return;
+        }
+
+        List<SlotVoteRequest> votes = request == null ? null : request.votes();
+        if (votes == null && !opened.joined()) {
+            return;
+        }
+
+        eventVotingService.save(event, opened.memberId(), votes, now);
+        eventLifecycleService.recheckGroup(event.getId(), now);
+    }
+
+    private OpenedSession openUniteSession(UUID eventId, AppUserRecord user, EventMemberStatus newcomer, LocalDateTime now, DeviceSignals device) {
         Optional<EventMemberRecord> existing = eventMemberRepository.findUniteMember(eventId, user.getId());
         EventMemberRecord member = existing.orElseGet(() -> {
-            EventMemberRecord created = EventMapper.uniteMember(eventId, user, EventMemberRole.MEMBER, EventMemberStatus.UNDECIDED, now);
+            EventMemberRecord created = EventMapper.uniteMember(eventId, user, EventMemberRole.MEMBER, newcomer, now);
             eventMemberRepository.insertOne(created);
             return created;
         });
 
         eventMemberMetadataRepository.save(member.getId(), device, now);
         String sessionToken = eventSessionService.open(member.getId(), now);
-        return new OpenedSession(existing.isEmpty(), EventMapper.toResponse(member), null, sessionToken);
+        return new OpenedSession(existing.isEmpty(), member.getId(), EventMapper.toResponse(member), null, sessionToken);
     }
 
-    private OpenedSession openGuestSession(UUID eventId, OpenSessionRequest request, LocalDateTime now, DeviceSignals device) {
+    private OpenedSession openGuestSession(UUID eventId, OpenSessionRequest request, EventMemberStatus newcomer, LocalDateTime now, DeviceSignals device) {
         String displayName = Optional.ofNullable(request)
                 .map(OpenSessionRequest::displayName)
                 .map(String::trim)
@@ -94,18 +120,33 @@ public class EventMembershipService {
         if (existing.isPresent()) {
             EventMemberRecord member = existing.get();
             verifyReturnCode(member, request.returnCode(), now);
+            rememberEmailIfMissing(member, request.email());
             eventMemberMetadataRepository.save(member.getId(), device, now);
             String sessionToken = eventSessionService.open(member.getId(), now);
-            return new OpenedSession(false, EventMapper.toResponse(member), null, sessionToken);
+            return new OpenedSession(false, member.getId(), EventMapper.toResponse(member), null, sessionToken);
         }
 
+        String email = Optional.ofNullable(request.email())
+                .map(String::trim)
+                .filter(address -> !address.isEmpty())
+                .orElseThrow(() -> new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "email is required the first time a guest joins")));
+
         ReturnCodes.IssuedCode code = returnCodes.issue();
-        EventMemberRecord member = EventMapper.guestMember(eventId, displayName, code.hash(), EventMemberRole.MEMBER, EventMemberStatus.UNDECIDED, now);
+        EventMemberRecord member = EventMapper.guestMember(eventId, displayName, email, code.hash(), EventMemberRole.MEMBER, newcomer, now);
         eventMemberRepository.insertOne(member);
         eventMemberMetadataRepository.save(member.getId(), device, now);
 
         String sessionToken = eventSessionService.open(member.getId(), now);
-        return new OpenedSession(true, EventMapper.toResponse(member), code.code(), sessionToken);
+        return new OpenedSession(true, member.getId(), EventMapper.toResponse(member), code.code(), sessionToken);
+    }
+
+    /** Members who joined before there was an email to give get to add it the next time they come back. */
+    private void rememberEmailIfMissing(EventMemberRecord member, String email) {
+        if (member.getEmail() != null || email == null || email.isBlank()) {
+            return;
+        }
+        member.setEmail(email.trim());
+        eventMemberRepository.update(member);
     }
 
     private void verifyReturnCode(EventMemberRecord member, String returnCode, LocalDateTime now) {
@@ -152,6 +193,14 @@ public class EventMembershipService {
         EventMemberStatus current = EventMemberStatus.valueOf(member.getStatus());
         LocalDateTime now = LocalDateTime.now(clock);
 
+        if (current == EventMemberStatus.PENDING_APPROVAL) {
+            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_MEMBER_AWAITING_APPROVAL));
+        }
+
+        if (isChoosingDate(event)) {
+            return changeWhileChoosingDate(event, member, current, requested, now);
+        }
+
         if (requested == EventMemberStatus.GOING) {
             if (current == EventMemberStatus.GOING || current == EventMemberStatus.WAITLIST) {
                 return current;
@@ -168,12 +217,108 @@ public class EventMembershipService {
         if (current == EventMemberStatus.GOING) {
             promoteFromWaitlist(event, now);
         }
+        eventSlotVoteRepository.replaceForMember(member.getId(), Collections.emptyList(), now);
         return EventMemberStatus.NOT_GOING;
     }
 
-    private EventMemberStatus seatFor(EventRecord event) {
+    private EventMemberStatus changeWhileChoosingDate(EventRecord event, EventMemberRecord member,
+                                                      EventMemberStatus current, EventMemberStatus requested,
+                                                      LocalDateTime now) {
+        if (current == requested) {
+            return current;
+        }
+
+        setStatus(member, requested, now);
+        eventLifecycleService.recheckGroup(event.getId(), now);
+        return requested;
+    }
+
+    private static boolean isChoosingDate(EventRecord event) {
+        return SchedulingMode.valueOf(event.getSchedulingMode()) == SchedulingMode.POLL
+                && EventStatus.valueOf(event.getStatus()) != EventStatus.CONFIRMED;
+    }
+
+    /**
+     * Lets in the next members of the queue. The host chooses how many, never who goes first: the
+     * ids have to be the head of the queue, because being let in is what hands out the seats.
+     */
+    @Transactional
+    public void approveMembers(EventScope scope, List<UUID> memberIds) {
+        scope.requireHost();
+        EventRecord event = eventRepository.findForUpdate(scope.eventId())
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        Set<UUID> requested = Set.copyOf(memberIds);
+        List<UUID> queue = eventMemberRepository.findApprovalQueue(event.getId());
+        if (!new HashSet<>(queue).containsAll(requested)) {
+            throw new BadRequestException(AppError.of(Code.EVENT_MEMBER_NOT_AWAITING_APPROVAL));
+        }
+        if (!Set.copyOf(queue.subList(0, requested.size())).equals(requested)) {
+            throw new BadRequestException(AppError.of(Code.EVENT_APPROVAL_OUT_OF_ORDER,
+                    String.format("The first %s in the queue have to be approved first", requested.size())));
+        }
+
+        boolean choosingDate = isChoosingDate(event);
+        for (EventMemberRecord member : eventMemberRepository.findInEvent(event.getId(), requested)) {
+            setStatus(member, choosingDate ? EventMemberStatus.GOING : admittedTo(event), now);
+        }
+        if (choosingDate) {
+            eventLifecycleService.recheckGroup(event.getId(), now);
+        }
+
+        log.info("Host of event {} approved {} member(s), {} still waiting", event.getId(), requested.size(), queue.size() - requested.size());
+    }
+
+    @Transactional
+    public void removeMembers(EventScope scope, List<UUID> memberIds) {
+        scope.requireHost();
+        EventRecord event = eventRepository.findForUpdate(scope.eventId())
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        Set<UUID> requested = Set.copyOf(memberIds);
+        List<EventMemberRecord> members = eventMemberRepository.findInEvent(event.getId(), requested);
+        if (members.size() != requested.size()) {
+            throw new EntityNotPresentException(AppError.of(Code.EVENT_MEMBER_NOT_FOUND));
+        }
+        if (members.stream().anyMatch(member -> EventMemberRole.valueOf(member.getRole()) == EventMemberRole.HOST)) {
+            throw new BadRequestException(AppError.of(Code.EVENT_HOST_CANNOT_BE_REMOVED));
+        }
+
+        long freedSeats = members.stream()
+                .filter(member -> EventMemberStatus.valueOf(member.getStatus()) == EventMemberStatus.GOING)
+                .count();
+        eventMemberRepository.deleteByIds(requested);
+
+        if (isChoosingDate(event)) {
+            eventLifecycleService.recheckGroup(event.getId(), now);
+        } else {
+            for (long seat = 0; seat < freedSeats; seat++) {
+                promoteFromWaitlist(event, now);
+            }
+        }
+
+        log.info("Host of event {} removed {} member(s)", event.getId(), requested.size());
+    }
+
+    /** A seat if there is one, else the waitlist - and with neither they are in, just without a seat. */
+    private EventMemberStatus admittedTo(EventRecord event) {
+        if (hasFreeSeat(event)) {
+            return EventMemberStatus.GOING;
+        }
+        return Boolean.TRUE.equals(event.getWaitlistEnabled())
+                ? EventMemberStatus.WAITLIST
+                : EventMemberStatus.UNDECIDED;
+    }
+
+    private boolean hasFreeSeat(EventRecord event) {
         Integer maxAttendees = event.getMaxAttendees();
-        if (maxAttendees == null || eventMemberRepository.countWithStatus(event.getId(), EventMemberStatus.GOING) < maxAttendees) {
+        return maxAttendees == null || eventMemberRepository.countWithStatus(event.getId(), EventMemberStatus.GOING) < maxAttendees;
+    }
+
+    private EventMemberStatus seatFor(EventRecord event) {
+        if (hasFreeSeat(event)) {
             return EventMemberStatus.GOING;
         }
         if (Boolean.TRUE.equals(event.getWaitlistEnabled())) {
@@ -198,7 +343,11 @@ public class EventMembershipService {
     public List<EventMemberResponse> findMembers(EventMemberFilter filter, EventMembersRequest request, DeviceSignals caller) {
         List<EventMemberRow> members = eventMemberRepository.findMembers(filter);
 
-        if (request.isSortedByCallerMembershipProbability()) {
+        if (request.isAwaitingApproval()) {
+            members = members.stream()
+                    .sorted(Comparator.comparing(EventMemberRow::joinedAt).thenComparing(EventMemberRow::id))
+                    .toList();
+        } else if (request.isSortedByCallerMembershipProbability()) {
             members = sortedByProbability(members, filter, caller);
         }
 
@@ -207,9 +356,13 @@ public class EventMembershipService {
                 .skip(pagination.getOffset())
                 .limit(pagination.pageSize())
                 .map(member -> new EventMemberResponse(
+                        member.id(),
                         member.displayName(),
                         member.role() == EventMemberRole.HOST,
-                        member.status()
+                        member.status(),
+                        member.preferredSlots(),
+                        member.optionalSlots(),
+                        member.joinedAt()
                 ))
                 .toList();
     }

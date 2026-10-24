@@ -82,7 +82,7 @@ public class EmailDelivery extends TableImpl<EmailDeliveryRecord> {
     /**
      * The column <code>public.email_delivery.email</code>.
      */
-    public final TableField<EmailDeliveryRecord, String> EMAIL = createField(DSL.name("email"), SQLDataType.VARCHAR(50).nullable(false), this, "");
+    public final TableField<EmailDeliveryRecord, String> EMAIL = createField(DSL.name("email"), SQLDataType.VARCHAR(254).nullable(false), this, "");
 
     /**
      * The column <code>public.email_delivery.status</code>.

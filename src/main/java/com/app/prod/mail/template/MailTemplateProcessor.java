@@ -24,8 +24,17 @@ public class MailTemplateProcessor {
     }
 
     public MailContent render(MailTemplate template, Locale locale, Map<String, Object> variables) {
+        return render(template, locale, null, variables);
+    }
+
+    /** For subjects that carry something of their own, e.g. the name of the event. */
+    public MailContent render(MailTemplate template, Object[] subjectArguments, Map<String, Object> variables) {
+        return render(template, mailProperties.getLocale(), subjectArguments, variables);
+    }
+
+    private MailContent render(MailTemplate template, Locale locale, Object[] subjectArguments, Map<String, Object> variables) {
         Context context = new Context(locale, variables);
-        String subject = messageSource.getMessage(template.getSubjectKey(), null, locale);
+        String subject = messageSource.getMessage(template.getSubjectKey(), subjectArguments, locale);
 
         return new MailContent(subject, templateEngine.process(template.getView(), context));
     }

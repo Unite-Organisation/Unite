@@ -17,6 +17,7 @@ public class EventMemberFilter extends PredicateFilter {
     Filter<UUID> eventId;
     Filter<EventMemberStatus> status;
     Filter<EventMemberRole> role;
+    Filter<Boolean> includeSlotsInfo;
 
     @Override
     public List<Condition> combineConditions() {

@@ -1,6 +1,7 @@
 package com.app.prod.event.service;
 
 import com.app.prod.event.dto.EventMembersRequest;
+import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.repository.EventRepository;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
@@ -27,7 +28,8 @@ public class EventFilteringService {
                 .search(request.search())
                 .eventId(Filter.of(eventId))
                 .role(Filter.of(request.getRole()))
-                .status(Filter.of(request.getStatus()))
+                .status(Filter.of(request.isAwaitingApproval() ? EventMemberStatus.PENDING_APPROVAL : request.getStatus()))
+                .includeSlotsInfo(Filter.of(request.isIncludeSlotsInfo()))
                 .build();
     }
 }

@@ -23,6 +23,13 @@ public class EventMemberSessionRepository extends BaseJooqRepository<EventMember
         super(dsl, EVENT_MEMBER_SESSION, EVENT_MEMBER_SESSION.ID);
     }
 
+    /** Ends one session, not the membership and not the member's other devices. */
+    public int deleteByTokenHash(String tokenHash) {
+        return dslContext.deleteFrom(EVENT_MEMBER_SESSION)
+                .where(EVENT_MEMBER_SESSION.TOKEN_HASH.eq(tokenHash))
+                .execute();
+    }
+
     public Optional<SessionMember> findActiveMember(String tokenHash, String slug, LocalDateTime now) {
         return dslContext.select(
                         EVENT_MEMBER.EVENT_ID,
