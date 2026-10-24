@@ -16,9 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Clock;
-import java.time.Instant;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +38,7 @@ public class RefreshTokenService {
         refreshToken.setId(UUID.randomUUID());
         refreshToken.setUserId(userId);
         refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setExpiryDate(LocalDateTime.ofInstant(Instant.now().plusMillis(refreshTokenExpirationMs), ZoneOffset.UTC));
+        refreshToken.setExpiryDate(LocalDateTime.now(clock).plus(Duration.ofMillis(refreshTokenExpirationMs)));
         refreshToken.setIpAddress(ipAddress);
         refreshToken.setUserAgent(userAgent);
         refreshToken.setIsUsed(false);
@@ -72,7 +71,7 @@ public class RefreshTokenService {
         }
 
         oldToken.setIsUsed(true);
-        oldToken.setRevokedAt(LocalDateTime.now(ZoneOffset.UTC));
+        oldToken.setRevokedAt(LocalDateTime.now(clock));
         refreshTokenRepository.update(oldToken);
 
         return createRefreshToken(oldToken.getUserId(), ipAddress, userAgent);
@@ -101,7 +100,7 @@ public class RefreshTokenService {
         }
 
         oldToken.setIsUsed(true);
-        oldToken.setRevokedAt(LocalDateTime.now(ZoneOffset.UTC));
+        oldToken.setRevokedAt(LocalDateTime.now(clock));
         refreshTokenRepository.update(oldToken);
     }
 

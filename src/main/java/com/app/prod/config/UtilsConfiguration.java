@@ -3,6 +3,7 @@ package com.app.prod.config;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -18,16 +19,17 @@ import java.time.ZoneId;
 @Configuration
 public class UtilsConfiguration {
 
+
     @Bean
     @Profile("!test")
-    public Clock clock(){
-        return Clock.systemDefaultZone();
+    public Clock clock(@Value("${app.time-zone:Europe/Warsaw}") String timeZone){
+        return Clock.system(ZoneId.of(timeZone));
     }
 
     @Bean
     @Profile("test")
-    public MutableClock mutableClock(){
-        return new MutableClock(Instant.now(), ZoneId.systemDefault());
+    public MutableClock mutableClock(@Value("${app.time-zone:Europe/Warsaw}") String timeZone){
+        return new MutableClock(Instant.now(), ZoneId.of(timeZone));
     }
 
     @Bean
