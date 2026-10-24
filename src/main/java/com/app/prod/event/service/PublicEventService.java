@@ -149,13 +149,13 @@ public class PublicEventService {
 
     @Transactional
     public void confirmAsHost(EventScope scope) {
-        requireHost(scope);
+        scope.requireHost();
         eventLifecycleService.startEventNow(scope.eventId(), LocalDateTime.now(clock));
     }
 
     @Transactional
     public void updateEvent(EventScope scope, UpdateEventRequest request) {
-        requireHost(scope);
+        scope.requireHost();
         EventRecord event = eventRepository.findForUpdate(scope.eventId())
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
 
@@ -183,12 +183,6 @@ public class PublicEventService {
 
         eventRepository.update(event);
         log.info("Host of event {} updated it, newcomers need approval: {}", event.getId(), event.getRequiresApproval());
-    }
-
-    private static void requireHost(EventScope scope) {
-        if (scope.role() != EventMemberRole.HOST) {
-            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_HOST_REQUIRED));
-        }
     }
 
     private static String blankToNull(String value) {

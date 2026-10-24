@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{mail/layout :: page(~{::content})}">
+<body>
+<th:block th:fragment="content">
+    <h1 th:text="#{mail.event.group-broke-up.title}"
+        style="margin:0 0 18px 0; font-family:'DM Serif Display',Georgia,'Times New Roman',serif; font-size:26px; line-height:34px; font-weight:normal; color:#1e1a16;">
+        Tytuł
+    </h1>
+
+    <p th:text="#{mail.event.group-broke-up.intro(${eventName})}"
+       style="margin:0 0 24px 0; font-size:15px; line-height:24px; color:#3d3730;">
+        Treść.
+    </p>
+
+    <th:block th:replace="~{mail/event-parts :: details}"></th:block>
+    <th:block th:replace="~{mail/event-parts :: button(${eventLink}, #{mail.event.cta})}"></th:block>
+    <th:block th:replace="~{mail/event-parts :: link-fallback(${eventLink})}"></th:block>
+    <th:block th:replace="~{mail/event-parts :: note(#{mail.event.group-broke-up.note(${votingDeadline})})}"></th:block>
+</th:block>
+</body>
+</html>

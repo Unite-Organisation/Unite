@@ -57,7 +57,7 @@ class MailTemplateRendererIT extends IntegrationTest {
 
     @Test
     void everyEventMailRendersInBothLanguagesWithNoKeyLeftUnresolved() {
-        for (MailTemplate template : List.of(MailTemplate.EVENT_GROUP_FORMED, MailTemplate.EVENT_CONFIRMED, MailTemplate.EVENT_REDUCED_TO_ONE_SLOT)) {
+        for (MailTemplate template : List.of(MailTemplate.EVENT_GROUP_FORMED, MailTemplate.EVENT_GROUP_BROKE_UP, MailTemplate.EVENT_CONFIRMED, MailTemplate.EVENT_REDUCED_TO_ONE_SLOT)) {
             for (Locale locale : List.of(Locale.of("pl"), Locale.ENGLISH)) {
                 MailContent content = mailTemplateRenderer.render(template, locale, eventVariables());
 
@@ -68,6 +68,19 @@ class MailTemplateRendererIT extends IntegrationTest {
                         .doesNotContain("??");
             }
         }
+    }
+
+    @Test
+    void oneDateLeftSaysWhyItIsTheOnlyOneLeft() {
+        Map<String, Object> variables = new HashMap<>(eventVariables());
+
+        variables.put("afterBreakUp", false);
+        String byDeadline = mailTemplateRenderer.render(MailTemplate.EVENT_REDUCED_TO_ONE_SLOT, Locale.of("pl"), variables).body();
+        variables.put("afterBreakUp", true);
+        String afterBreakUp = mailTemplateRenderer.render(MailTemplate.EVENT_REDUCED_TO_ONE_SLOT, Locale.of("pl"), variables).body();
+
+        assertThat(byDeadline).contains("żaden termin nie zebrał").doesNotContain("stracił komplet");
+        assertThat(afterBreakUp).contains("stracił komplet").doesNotContain("żaden termin nie zebrał").doesNotContain("??");
     }
 
     @Test
@@ -91,6 +104,7 @@ class MailTemplateRendererIT extends IntegrationTest {
         variables.put("onlineUrl", "https://meet.example.com/abc");
         variables.put("confirmBy", "Poniedzialek 19:00");
         variables.put("minAttendees", 4);
+        variables.put("votingDeadline", "Piatek 20:00");
         return variables;
     }
 

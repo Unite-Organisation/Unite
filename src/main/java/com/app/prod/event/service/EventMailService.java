@@ -55,10 +55,17 @@ public class EventMailService {
         Map<String, Object> variables = variables(event, slot(slotId));
         variables.put("confirmBy", format(confirmBy));
 
-        // a group can fall apart and form again, and each time is news - so the reference is the
-        // formation (told apart by its walk-out deadline), not just the event
-        UUID formation = UUID.nameUUIDFromBytes((eventId + "|" + confirmBy).getBytes(StandardCharsets.UTF_8));
-        deliver(EmailDeliveryType.EVENT_GROUP_FORMED, MailTemplate.EVENT_GROUP_FORMED, formation, event, recipients, variables);
+        deliver(EmailDeliveryType.EVENT_GROUP_FORMED, MailTemplate.EVENT_GROUP_FORMED, formation(eventId, confirmBy), event, recipients, variables);
+    }
+
+    public void groupBrokeUp(UUID eventId, UUID slotId, LocalDateTime confirmBy) {
+        EventRecord event = event(eventId);
+        List<MailRecipient> recipients = eventMemberRepository.findGoingVotersRecipients(eventId, slotId);
+
+        Map<String, Object> variables = variables(event, slot(slotId));
+        variables.put("votingDeadline", format(event.getVotingDeadline()));
+
+        deliver(EmailDeliveryType.EVENT_GROUP_BROKE_UP, MailTemplate.EVENT_GROUP_BROKE_UP, formation(eventId, confirmBy), event, recipients, variables);
     }
 
     public void confirmed(UUID eventId, UUID slotId) {
@@ -68,14 +75,24 @@ public class EventMailService {
         deliver(EmailDeliveryType.EVENT_CONFIRMED, MailTemplate.EVENT_CONFIRMED, eventId, event, recipients, variables(event, slot(slotId)));
     }
 
-    public void reducedToOneSlot(UUID eventId, UUID slotId) {
+    /** @param brokenUpGroupConfirmBy see {@link com.app.prod.event.events.EventReducedToOneSlotEvent} */
+    public void reducedToOneSlot(UUID eventId, UUID slotId, LocalDateTime brokenUpGroupConfirmBy) {
         EventRecord event = event(eventId);
         List<MailRecipient> recipients = eventMemberRepository.findRecipientsWithStatus(eventId, EventMemberStatus.GOING);
+        boolean afterBreakUp = brokenUpGroupConfirmBy != null;
 
         Map<String, Object> variables = variables(event, slot(slotId));
         variables.put("minAttendees", event.getMinAttendees());
+        variables.put("afterBreakUp", afterBreakUp);
 
-        deliver(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT, MailTemplate.EVENT_REDUCED_TO_ONE_SLOT, eventId, event, recipients, variables);
+        // the deadline reduces an event once, a group falling apart on the last date can do it again
+        // and again - each of those is news, and a reference of its own
+        UUID reference = afterBreakUp ? formation(eventId, brokenUpGroupConfirmBy) : eventId;
+        deliver(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT, MailTemplate.EVENT_REDUCED_TO_ONE_SLOT, reference, event, recipients, variables);
+    }
+
+    private static UUID formation(UUID eventId, LocalDateTime confirmBy) {
+        return UUID.nameUUIDFromBytes((eventId + "|" + confirmBy).getBytes(StandardCharsets.UTF_8));
     }
 
     private void deliver(EmailDeliveryType type, MailTemplate template, UUID referenceId, EventRecord event,

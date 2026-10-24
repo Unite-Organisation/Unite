@@ -18,6 +18,7 @@ public enum Code {
     EVENT_SLOT_NOT_AVAILABLE("event_slot_not_available", "This date is no longer available"),
     EVENT_VOTES_REQUIRED("event_votes_required", "At least one date has to be chosen"),
     EVENT_HOST_REQUIRED("event_host_required", "Only the host can do this"),
+    EVENT_MEMBER_REQUIRED("event_member_required", "Only the member can do this"),
     EVENT_MEMBER_NOT_FOUND("event_member_not_found", "Event member not found"),
     EVENT_MEMBER_AWAITING_APPROVAL("event_member_awaiting_approval", "The host has not approved this member yet"),
     EVENT_MEMBER_NOT_AWAITING_APPROVAL("event_member_not_awaiting_approval", "This member is not waiting for approval"),

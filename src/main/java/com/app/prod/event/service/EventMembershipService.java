@@ -244,7 +244,7 @@ public class EventMembershipService {
      */
     @Transactional
     public void approveMembers(EventScope scope, List<UUID> memberIds) {
-        requireHost(scope);
+        scope.requireHost();
         EventRecord event = eventRepository.findForUpdate(scope.eventId())
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
         LocalDateTime now = LocalDateTime.now(clock);
@@ -272,7 +272,7 @@ public class EventMembershipService {
 
     @Transactional
     public void removeMembers(EventScope scope, List<UUID> memberIds) {
-        requireHost(scope);
+        scope.requireHost();
         EventRecord event = eventRepository.findForUpdate(scope.eventId())
                 .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
         LocalDateTime now = LocalDateTime.now(clock);
@@ -300,12 +300,6 @@ public class EventMembershipService {
         }
 
         log.info("Host of event {} removed {} member(s)", event.getId(), requested.size());
-    }
-
-    private static void requireHost(EventScope scope) {
-        if (scope.role() != EventMemberRole.HOST) {
-            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_HOST_REQUIRED));
-        }
     }
 
     /** A seat if there is one, else the waitlist - and with neither they are in, just without a seat. */

@@ -16,8 +16,8 @@ public class EventReducedToOneSlotHandler implements EventHandler<EventReducedTo
 
     @Override
     public void handle(EventReducedToOneSlotEvent event) {
-        log.info("Event {} reduced to one slot: {} after its deadline", event.eventId(), event.slotId());
-        eventMailService.reducedToOneSlot(event.eventId(), event.slotId());
+        log.info("Event {} reduced to one slot: {}", event.eventId(), event.slotId());
+        eventMailService.reducedToOneSlot(event.eventId(), event.slotId(), event.brokenUpGroupConfirmBy());
     }
 
     @Override

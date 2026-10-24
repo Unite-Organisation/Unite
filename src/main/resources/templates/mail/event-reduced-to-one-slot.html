@@ -7,7 +7,7 @@
         Tytuł
     </h1>
 
-    <p th:text="#{mail.event.reduced-to-one-slot.intro(${eventName})}"
+    <p th:text="${afterBreakUp} ? #{mail.event.reduced-to-one-slot.intro-after-break-up(${eventName})} : #{mail.event.reduced-to-one-slot.intro(${eventName})}"
        style="margin:0 0 24px 0; font-size:15px; line-height:24px; color:#3d3730;">
         Treść.
     </p>

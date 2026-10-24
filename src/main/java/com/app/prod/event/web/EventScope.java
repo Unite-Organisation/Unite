@@ -2,6 +2,9 @@ package com.app.prod.event.web;
 
 import com.app.prod.event.enums.EventIdentityOrigin;
 import com.app.prod.event.enums.EventMemberRole;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
+import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 
 import java.util.UUID;
 
@@ -17,6 +20,18 @@ public final class EventScope {
         this.memberId = memberId;
         this.role = role;
         this.origin = origin;
+    }
+
+    public void requireHost() {
+        if (this.role() != EventMemberRole.HOST) {
+            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_HOST_REQUIRED));
+        }
+    }
+
+    public void requireMember() {
+        if (this.role() != EventMemberRole.MEMBER) {
+            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_MEMBER_REQUIRED));
+        }
     }
 
     public UUID eventId() {

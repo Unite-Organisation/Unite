@@ -110,8 +110,13 @@ class EventMailNotificationsIT extends IntegrationTest {
         setStatus(leaving, EventMemberStatus.GOING);
         eventLifecycleService.recheckGroup(event.getId(), now.plusMinutes(20));
 
-        assertThat(mailSender.sent()).extracting(MailMessage::to)
+        assertThat(mailSender.sent()).filteredOn(mail -> mail.subject().startsWith("Zebrała się grupa"))
+                .extracting(MailMessage::to)
                 .containsExactlyInAnyOrder("anna@test.local", "ben@test.local");
+        assertThat(mailSender.sent()).filteredOn(mail -> mail.subject().startsWith("Grupa się rozpadła"))
+                .extracting(MailMessage::to)
+                .as("in between, the one who stayed heard it fell apart")
+                .containsExactly("ben@test.local");
     }
 
     @Test
@@ -162,6 +167,68 @@ class EventMailNotificationsIT extends IntegrationTest {
 
         assertThat(mailSender.sent()).extracting(MailMessage::to).containsExactly("anna@test.local");
         assertThat(deliveriesOf(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT)).isEqualTo(1);
+    }
+
+    @Test
+    void shouldTellTheGroupWhenItFallsApartWhileThereIsStillTimeToChoose() {
+        EventMemberRecord leaving = voter(monday, "anna@test.local");
+        voter(monday, "ben@test.local");
+        voter(tuesday, "clara@test.local");
+        eventLifecycleService.recheckGroup(event.getId(), now);
+        mailSender.clear();
+
+        setStatus(leaving, EventMemberStatus.NOT_GOING);
+        eventLifecycleService.recheckGroup(event.getId(), now.plusMinutes(10));
+
+        assertThat(mailSender.sent()).extracting(MailMessage::to)
+                .as("those who were told the group formed and are still in it")
+                .containsExactly("ben@test.local");
+        assertThat(mailSender.sent().getFirst().body()).contains("stracił komplet").doesNotContain("??");
+        assertThat(deliveriesOf(EmailDeliveryType.EVENT_GROUP_BROKE_UP)).isEqualTo(1);
+        assertThat(deliveriesOf(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT)).isZero();
+    }
+
+    @Test
+    void shouldSayOneDateIsLeftWhenTheGroupFallsApartAfterTheDeadline() {
+        LocalDateTime deadline = event.getVotingDeadline();
+        EventMemberRecord leaving = voter(monday, "anna@test.local");
+        voter(monday, "ben@test.local");
+        voter(tuesday, "clara@test.local");
+        eventLifecycleService.recheckGroup(event.getId(), deadline.minusMinutes(30));
+        mailSender.clear();
+
+        setStatus(leaving, EventMemberStatus.NOT_GOING);
+        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(10));
+
+        assertThat(mailSender.sent()).extracting(MailMessage::to)
+                .as("everyone still going, the same as when the deadline itself leaves one date")
+                .containsExactlyInAnyOrder("ben@test.local", "clara@test.local");
+        assertThat(mailSender.sent()).allSatisfy(mail -> assertThat(mail.body()).contains("stracił komplet"));
+        assertThat(deliveriesOf(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT)).isEqualTo(2);
+        assertThat(deliveriesOf(EmailDeliveryType.EVENT_GROUP_BROKE_UP)).isZero();
+    }
+
+    @Test
+    void shouldSayOneDateIsLeftEachTimeTheLastDateLosesItsGroup() {
+        LocalDateTime deadline = event.getVotingDeadline();
+        AppUserRecord account = users.getNewUser().withRandomValues().email("last-date@test.local").buildAndSave();
+        EventMemberRecord member = events.getNewMember().withRandomValues()
+                .eventId(event.getId()).status(EventMemberStatus.GOING).userId(account.getId()).buildAndSave();
+        vote(monday, member);
+        EventMemberRecord leaving = voter(monday, "anna@test.local");
+
+        eventLifecycleService.recheckGroup(event.getId(), deadline.minusMinutes(30));
+        setStatus(leaving, EventMemberStatus.NOT_GOING);
+        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(10));
+        setStatus(leaving, EventMemberStatus.GOING);
+        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(20));
+        setStatus(leaving, EventMemberStatus.NOT_GOING);
+        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(30));
+
+        // a Unite account is one row per delivery and reference, so the second time needs a reference of its own
+        assertThat(dslContext.fetchCount(EMAIL_DELIVERY, EMAIL_DELIVERY.DELIVERY_TYPE.eq(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT.name())
+                .and(EMAIL_DELIVERY.USER_ID.eq(account.getId()))))
+                .isEqualTo(2);
     }
 
     private EventSlotRecord slot(LocalDateTime start) {

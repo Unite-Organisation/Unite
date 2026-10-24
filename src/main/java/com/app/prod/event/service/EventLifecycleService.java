@@ -6,6 +6,7 @@ import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.EventStatus;
 import com.app.prod.event.enums.SchedulingMode;
 import com.app.prod.event.events.EventConfirmedEvent;
+import com.app.prod.event.events.EventGroupBrokeUpEvent;
 import com.app.prod.event.events.EventGroupFormedEvent;
 import com.app.prod.event.events.EventReducedToOneSlotEvent;
 import com.app.prod.event.repository.EventMemberRepository;
@@ -130,6 +131,8 @@ public class EventLifecycleService {
             return;
         }
 
+        UUID brokenUpSlotId = event.getSelectedSlotId();
+        LocalDateTime brokenUpConfirmBy = event.getConfirmBy();
         boolean stillVoting = event.getVotingDeadline().isAfter(now);
         event.setStatus(stillVoting ? EventStatus.COLLECTING_VOTES.name() : EventStatus.ONE_SLOT_LEFT.name());
         event.setConfirmBy(null);
@@ -140,6 +143,12 @@ public class EventLifecycleService {
 
         scheduledJobService.cancel(walkOutWindowJobKey(event.getId()));
         log.info("Event {} dropped to {} of {} and went back to collecting", event.getId(), carrying, event.getMinAttendees());
+
+        if (stillVoting) {
+            eventBus.publish(new EventGroupBrokeUpEvent(event.getId(), brokenUpSlotId, brokenUpConfirmBy));
+        } else {
+            eventBus.publish(new EventReducedToOneSlotEvent(event.getId(), brokenUpSlotId, brokenUpConfirmBy));
+        }
 
         // several dates can fill at once and only one of them is picked; when that one loses its
         // people, another may already be holding enough, and the group should not sit and wait for
@@ -164,7 +173,7 @@ public class EventLifecycleService {
         event.setSelectedSlotId(best.get().slotId());
         eventRepository.update(event);
 
-        eventBus.publish(new EventReducedToOneSlotEvent(event.getId(), best.get().slotId()));
+        eventBus.publish(new EventReducedToOneSlotEvent(event.getId(), best.get().slotId(), null));
         log.info("Event {} missed its threshold and reduced to one slot: {}", event.getId(), best.get().slotId());
     }
 
