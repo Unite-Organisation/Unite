@@ -16,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 public class EventMembersRequest extends FilterRequest {
     private boolean sortedByCallerMembershipProbability;
     private boolean includeSlotsInfo;
+    private boolean awaitingApproval;
     private EventMemberStatus status;
     private EventMemberRole role;
     @Valid

@@ -26,7 +26,8 @@ public record CreateEventRequest(
         SchedulingMode schedulingMode,
         @Positive Integer minAttendees,
         LocalDateTime votingDeadline,
-        @Valid List<SlotRequest> slots
+        @Valid List<SlotRequest> slots,
+        boolean requiresApproval
 ) {
 
     public SchedulingMode mode() {

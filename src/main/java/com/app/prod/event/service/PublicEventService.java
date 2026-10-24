@@ -9,6 +9,7 @@ import com.app.prod.event.dto.RankedSlot;
 import com.app.prod.event.dto.SlotRequest;
 import com.app.prod.event.dto.SlotVote;
 import com.app.prod.event.dto.SlotVoterResponse;
+import com.app.prod.event.dto.UpdateEventRequest;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.SchedulingMode;
@@ -29,6 +30,7 @@ import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.EventMemberRecord;
+import org.jooq.sources.tables.records.EventRecord;
 import org.jooq.sources.tables.records.EventSlotRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +81,7 @@ public class PublicEventService {
                 row.onlineUrl(),
                 row.maxAttendees(),
                 row.waitlistEnabled(),
+                row.requiresApproval(),
                 row.schedulingMode(),
                 row.status(),
                 row.minAttendees(),
@@ -146,10 +149,50 @@ public class PublicEventService {
 
     @Transactional
     public void confirmAsHost(EventScope scope) {
+        requireHost(scope);
+        eventLifecycleService.startEventNow(scope.eventId(), LocalDateTime.now(clock));
+    }
+
+    @Transactional
+    public void updateEvent(EventScope scope, UpdateEventRequest request) {
+        requireHost(scope);
+        EventRecord event = eventRepository.findForUpdate(scope.eventId())
+                .orElseThrow(() -> new EntityNotPresentException(AppError.of(Code.EVENT_NOT_FOUND)));
+
+        if (request.name() != null) {
+            if (request.name().isBlank()) {
+                throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "An event cannot be left without a name"));
+            }
+            event.setName(request.name());
+        }
+        if (request.description() != null) {
+            event.setDescription(blankToNull(request.description()));
+        }
+        if (request.location() != null) {
+            event.setLocationName(blankToNull(request.location()));
+        }
+        if (request.onlineUrl() != null) {
+            event.setOnlineUrl(blankToNull(request.onlineUrl()));
+        }
+        if (request.requiresApproval() != null) {
+            if (!request.requiresApproval() && Boolean.TRUE.equals(event.getRequiresApproval())) {
+                throw new BadRequestException(AppError.of(Code.EVENT_APPROVAL_CANNOT_BE_DISABLED));
+            }
+            event.setRequiresApproval(request.requiresApproval());
+        }
+
+        eventRepository.update(event);
+        log.info("Host of event {} updated it, newcomers need approval: {}", event.getId(), event.getRequiresApproval());
+    }
+
+    private static void requireHost(EventScope scope) {
         if (scope.role() != EventMemberRole.HOST) {
             throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_HOST_REQUIRED));
         }
-        eventLifecycleService.startEventNow(scope.eventId(), LocalDateTime.now(clock));
+    }
+
+    private static String blankToNull(String value) {
+        return value.isBlank() ? null : value;
     }
 
     private List<EventSlotResponse> tiles(EventRow row) {

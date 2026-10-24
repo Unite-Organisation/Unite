@@ -17,6 +17,7 @@ public record EventResponse(
         String onlineUrl,
         Integer maxAttendees,
         boolean waitlistEnabled,
+        boolean requiresApproval,
         SchedulingMode schedulingMode,
         EventStatus status,
         Integer minAttendees,

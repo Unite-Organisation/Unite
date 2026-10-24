@@ -146,6 +146,11 @@ public class Event extends TableImpl<EventRecord> {
      */
     public final TableField<EventRecord, LocalDateTime> CONFIRM_BY = createField(DSL.name("confirm_by"), SQLDataType.LOCALDATETIME(6), this, "");
 
+    /**
+     * The column <code>public.event.requires_approval</code>.
+     */
+    public final TableField<EventRecord, Boolean> REQUIRES_APPROVAL = createField(DSL.name("requires_approval"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
+
     private Event(Name alias, Table<EventRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

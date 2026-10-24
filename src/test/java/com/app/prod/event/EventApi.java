@@ -2,9 +2,11 @@ package com.app.prod.event;
 
 import com.app.prod.event.dto.AttendanceRequest;
 import com.app.prod.event.dto.CreateEventRequest;
+import com.app.prod.event.dto.EventMemberIdsRequest;
 import com.app.prod.event.dto.OpenSessionRequest;
 import com.app.prod.event.dto.SlotRequest;
 import com.app.prod.event.dto.SlotVoteRequest;
+import com.app.prod.event.dto.UpdateEventRequest;
 import com.app.prod.event.dto.VotesRequest;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.SchedulingMode;
@@ -29,6 +31,7 @@ import java.util.concurrent.Callable;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,12 +69,21 @@ class EventApi {
     Event createEventChoosingItsDate(String hostName, int minAttendees, Integer maxAttendees, boolean waitlist,
                                      LocalDateTime deadline, List<SlotRequest> dates) {
         return create(new CreateEventRequest("Volleyball", null, null, null, null, null,
-                maxAttendees, waitlist, hostName, emailOf(hostName), null, SchedulingMode.POLL, minAttendees, deadline, dates));
+                maxAttendees, waitlist, hostName, emailOf(hostName), null, SchedulingMode.POLL, minAttendees, deadline, dates, false));
     }
 
     Event createDatedEvent(String hostName, LocalDateTime start, Integer maxAttendees, boolean waitlist) {
+        return createDatedEvent(hostName, start, maxAttendees, waitlist, false);
+    }
+
+    Event createDatedEvent(String hostName, LocalDateTime start, Integer maxAttendees, boolean waitlist, boolean requiresApproval) {
         return create(new CreateEventRequest("Barbecue", null, start, null, null, null,
-                maxAttendees, waitlist, hostName, emailOf(hostName), null, null, null, null, null));
+                maxAttendees, waitlist, hostName, emailOf(hostName), null, null, null, null, null, requiresApproval));
+    }
+
+    Event createEventChoosingItsDateRequiringApproval(String hostName, int minAttendees, LocalDateTime deadline, List<SlotRequest> dates) {
+        return create(new CreateEventRequest("Volleyball", null, null, null, null, null,
+                null, false, hostName, emailOf(hostName), null, SchedulingMode.POLL, minAttendees, deadline, dates, true));
     }
 
     private Event create(CreateEventRequest request) {
@@ -107,6 +119,14 @@ class EventApi {
         Person person = new Person(name, cookieOf(result), text(read(result), "returnCode"));
         say(event, person, EventMemberStatus.GOING);
         return person;
+    }
+
+    /** Opening the event without saying anything yet - all a newcomer can do while waiting for approval. */
+    Person askToJoin(Event event, String name) {
+        MvcResult result = unchecked(() -> perform(path(event, "/session"), new OpenSessionRequest(name, emailOf(name), null, null, null))
+                .andExpect(status().isCreated())
+                .andReturn());
+        return new Person(name, cookieOf(result), text(read(result), "returnCode"));
     }
 
     Person joinAsUniteUser(Event event, String jwt, SlotVoteRequest... choice) {
@@ -148,8 +168,40 @@ class EventApi {
     }
 
     void say(Event event, Person person, EventMemberStatus status) {
-        unchecked(() -> perform(put(path(event, "/attendance")), new AttendanceRequest(status), person.session(), null)
+        unchecked(() -> trySay(event, person, status).andExpect(status().isOk()));
+    }
+
+    ResultActions trySay(Event event, Person person, EventMemberStatus status) {
+        return perform(put(path(event, "/attendance")), new AttendanceRequest(status), person.session(), null);
+    }
+
+    // ---------------------------------------------------------------- hosting
+
+    void requireApproval(Event event) {
+        unchecked(() -> tryUpdate(event, event.host(), new UpdateEventRequest(null, null, null, null, true))
                 .andExpect(status().isOk()));
+    }
+
+    ResultActions tryUpdate(Event event, Person person, UpdateEventRequest request) {
+        return perform(patch(path(event, "")), request, person.session(), null);
+    }
+
+    void approve(Event event, String... names) {
+        List<UUID> ids = idsOf(event, names);
+        unchecked(() -> tryApprove(event, event.host(), ids).andExpect(status().isNoContent()));
+    }
+
+    ResultActions tryApprove(Event event, Person person, List<UUID> memberIds) {
+        return perform(post(path(event, "/members/approve")), new EventMemberIdsRequest(memberIds), person.session(), null);
+    }
+
+    void remove(Event event, String... names) {
+        List<UUID> ids = idsOf(event, names);
+        unchecked(() -> tryRemove(event, event.host(), ids).andExpect(status().isNoContent()));
+    }
+
+    ResultActions tryRemove(Event event, Person person, List<UUID> memberIds) {
+        return perform(post(path(event, "/members/remove")), new EventMemberIdsRequest(memberIds), person.session(), null);
     }
 
     /** Signs out of the event without giving up membership in it. */
@@ -220,6 +272,36 @@ class EventApi {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /** The approval queue as the host sees it: first in line first. */
+    List<String> awaitingApproval(Event event) {
+        List<String> names = new ArrayList<>();
+        members(event, "awaitingApproval", "true").forEach(member -> names.add(member.get("displayName").asText()));
+        return names;
+    }
+
+    List<UUID> idsOf(Event event, String... names) {
+        List<UUID> ids = new ArrayList<>();
+        for (String name : names) {
+            JsonNode found = null;
+            for (JsonNode member : members(event, "search", name)) {
+                if (member.get("displayName").asText().equals(name)) {
+                    found = member;
+                }
+            }
+            if (found == null) {
+                throw new AssertionError("no member " + name + " in event " + event.slug());
+            }
+            ids.add(UUID.fromString(found.get("id").asText()));
+        }
+        return ids;
+    }
+
+    private JsonNode members(Event event, String param, String value) {
+        return unchecked(() -> read(mvc.perform(get("/public/event/" + event.slug() + "/members").param(param, value))
+                .andExpect(status().isOk())
+                .andReturn()));
     }
 
     /** What a person typed into the email field - guests have to give one when they first join. */

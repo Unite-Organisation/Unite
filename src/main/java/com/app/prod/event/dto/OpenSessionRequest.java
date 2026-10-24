@@ -9,7 +9,6 @@ import java.util.List;
 
 public record OpenSessionRequest(
         @Size(max = 60) String displayName,
-        /** required the first time a guest joins - it is where the event news are sent */
         @Email @Size(max = 254) String email,
         @Pattern(regexp = "\\d{4}") String returnCode,
         @Valid DeviceFingerprint device,

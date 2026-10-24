@@ -32,6 +32,7 @@ public class EventMapper {
         record.setOnlineUrl(request.onlineUrl());
         record.setMaxAttendees(request.maxAttendees());
         record.setWaitlistEnabled(request.waitlistEnabled());
+        record.setRequiresApproval(request.requiresApproval());
         record.setCreatedAt(now);
         record.setSchedulingMode(request.mode().name());
 

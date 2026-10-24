@@ -258,6 +258,20 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
         return (LocalDateTime) get(16);
     }
 
+    /**
+     * Setter for <code>public.event.requires_approval</code>.
+     */
+    public void setRequiresApproval(Boolean value) {
+        set(17, value);
+    }
+
+    /**
+     * Getter for <code>public.event.requires_approval</code>.
+     */
+    public Boolean getRequiresApproval() {
+        return (Boolean) get(17);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -281,7 +295,7 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
     /**
      * Create a detached, initialised EventRecord
      */
-    public EventRecord(UUID id, String publicSlug, String name, String description, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, Boolean waitlistEnabled, LocalDateTime createdAt, String schedulingMode, String status, Integer minAttendees, LocalDateTime votingDeadline, UUID selectedSlotId, LocalDateTime confirmBy) {
+    public EventRecord(UUID id, String publicSlug, String name, String description, LocalDateTime startDateTime, LocalDateTime endDateTime, String locationName, String onlineUrl, Integer maxAttendees, Boolean waitlistEnabled, LocalDateTime createdAt, String schedulingMode, String status, Integer minAttendees, LocalDateTime votingDeadline, UUID selectedSlotId, LocalDateTime confirmBy, Boolean requiresApproval) {
         super(Event.EVENT);
 
         setId(id);
@@ -301,6 +315,7 @@ public class EventRecord extends UpdatableRecordImpl<EventRecord> {
         setVotingDeadline(votingDeadline);
         setSelectedSlotId(selectedSlotId);
         setConfirmBy(confirmBy);
+        setRequiresApproval(requiresApproval);
         resetChangedOnNotNull();
     }
 }

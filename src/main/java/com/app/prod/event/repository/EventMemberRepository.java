@@ -59,9 +59,35 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
         return dslContext.selectFrom(EVENT_MEMBER)
                 .where(EVENT_MEMBER.EVENT_ID.eq(eventId))
                 .and(EVENT_MEMBER.STATUS.eq(EventMemberStatus.WAITLIST.name()))
-                .orderBy(EVENT_MEMBER.STATUS_CHANGED_AT, EVENT_MEMBER.ID)
+                .orderBy(EVENT_MEMBER.STATUS_CHANGED_AT, EVENT_MEMBER.CREATED_AT, EVENT_MEMBER.ID)
                 .limit(1)
                 .fetchOptional();
+    }
+
+    public List<UUID> findApprovalQueue(UUID eventId) {
+        return dslContext.select(EVENT_MEMBER.ID)
+                .from(EVENT_MEMBER)
+                .where(EVENT_MEMBER.EVENT_ID.eq(eventId))
+                .and(EVENT_MEMBER.STATUS.eq(EventMemberStatus.PENDING_APPROVAL.name()))
+                .orderBy(EVENT_MEMBER.CREATED_AT, EVENT_MEMBER.ID)
+                .fetch(EVENT_MEMBER.ID);
+    }
+
+    public List<EventMemberRecord> findInEvent(UUID eventId, Collection<UUID> memberIds) {
+        return dslContext.selectFrom(EVENT_MEMBER)
+                .where(EVENT_MEMBER.EVENT_ID.eq(eventId))
+                .and(EVENT_MEMBER.ID.in(memberIds))
+                .orderBy(EVENT_MEMBER.CREATED_AT, EVENT_MEMBER.ID)
+                .fetch();
+    }
+
+    public int deleteByIds(Collection<UUID> memberIds) {
+        if (memberIds.isEmpty()) {
+            return 0;
+        }
+        return dslContext.deleteFrom(EVENT_MEMBER)
+                .where(EVENT_MEMBER.ID.in(memberIds))
+                .execute();
     }
 
     public int countWithStatus(UUID eventId, EventMemberStatus status) {
@@ -174,7 +200,8 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                         EVENT_MEMBER.ROLE,
                         EVENT_MEMBER.STATUS,
                         preferredSlots,
-                        optionalSlots
+                        optionalSlots,
+                        EVENT_MEMBER.CREATED_AT
                 )
                 .from(EVENT_MEMBER)
                 .where(filter.parseFilter())
@@ -186,7 +213,8 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                         EventMemberRole.valueOf(record.get(EVENT_MEMBER.ROLE)),
                         EventMemberStatus.valueOf(record.get(EVENT_MEMBER.STATUS)),
                         record.get(preferredSlots) == null ? List.of() : List.of(record.get(preferredSlots)),
-                        record.get(optionalSlots) == null ? List.of() : List.of(record.get(optionalSlots))
+                        record.get(optionalSlots) == null ? List.of() : List.of(record.get(optionalSlots)),
+                        record.get(EVENT_MEMBER.CREATED_AT)
                 ));
     }
 }

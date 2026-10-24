@@ -113,6 +113,36 @@ public class PublicEventRestApi {
         return publicEventService.getEvent(slug, Optional.of(scope));
     }
 
+    @PatchMapping("/{slug}")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: fields left out stay as they are, requiresApproval can only be switched on"
+    )
+    public EventResponse updateEvent(@PathVariable String slug, EventScope scope, @Valid @RequestBody UpdateEventRequest request) {
+        publicEventService.updateEvent(scope, request);
+        return publicEventService.getEvent(slug, Optional.of(scope));
+    }
+
+    @PostMapping("/{slug}/members/approve")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: the ids have to be the head of the queue (members?awaitingApproval=true), in any order"
+    )
+    public ResponseEntity<Void> approveMembers(EventScope scope, @Valid @RequestBody EventMemberIdsRequest request) {
+        eventMembershipService.approveMembers(scope, request.memberIds());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{slug}/members/remove")
+    @CookieSession(
+            value = CookieSession.Mode.REQUIRED,
+            note =  "Host only: removes members, pending ones included. The link still works for them - see requiresApproval"
+    )
+    public ResponseEntity<Void> removeMembers(EventScope scope, @Valid @RequestBody EventMemberIdsRequest request) {
+        eventMembershipService.removeMembers(scope, request.memberIds());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{slug}/session")
     @CookieSession(value = CookieSession.Mode.NONE, note =  "Returns cookie")
     public ResponseEntity<EventSessionResponse> openSession(
@@ -144,8 +174,6 @@ public class PublicEventRestApi {
             eventSessionService.close(sessionToken);
         }
 
-        // signing out of an event nobody is signed in to is a no-op, not an error: the caller ends
-        // up in the state they asked for either way
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, clearedSessionCookie(slug, httpRequest).toString())
                 .build();
