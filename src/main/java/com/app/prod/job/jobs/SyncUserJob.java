@@ -1,5 +1,6 @@
 package com.app.prod.job.jobs;
 
+import com.app.prod.job.JobRegistry;
 import com.app.prod.internal.dtos.UserDto;
 
 public record SyncUserJob(
@@ -7,7 +8,7 @@ public record SyncUserJob(
 ) implements Job {
 
     @Override
-    public void run() {
+    public void run(JobRegistry jobRegistry) {
         jobRegistry.syncUser(user);
     }
 }

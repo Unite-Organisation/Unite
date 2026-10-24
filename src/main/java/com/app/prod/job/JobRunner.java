@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class JobRunner {
     private final Clock clock;
     private final JobErrorRepository jobErrorRepository;
+    private final JobRegistry jobRegistry;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public JobStatus execute(JobContext jobContext) {
@@ -26,7 +27,7 @@ public class JobRunner {
 
         try {
             log.info("Executing job: {} at {}", job.getClass().getSimpleName(), now);
-            job.run();
+            job.run(jobRegistry);
             jobErrorRepository.updateRerun(jobContext.jobErrorId(), JobStatus.SUCCESS, now);
             log.info("Job finished successfully");
             return JobStatus.SUCCESS;

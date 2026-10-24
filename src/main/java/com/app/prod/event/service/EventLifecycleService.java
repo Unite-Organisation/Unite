@@ -5,20 +5,17 @@ import com.app.prod.event.dto.SlotTally;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.EventStatus;
 import com.app.prod.event.enums.SchedulingMode;
-import com.app.prod.event.events.EventConfirmedEvent;
-import com.app.prod.event.events.EventGroupBrokeUpEvent;
-import com.app.prod.event.events.EventGroupFormedEvent;
-import com.app.prod.event.events.EventReducedToOneSlotEvent;
 import com.app.prod.event.repository.EventMemberRepository;
 import com.app.prod.event.repository.EventRepository;
 import com.app.prod.event.repository.EventSlotRepository;
-import com.app.prod.eventbus.EventBus;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
 import com.app.prod.job.jobs.EventDeadlineJob;
+import com.app.prod.job.jobs.EventMailJob;
+import com.app.prod.mail.enums.EmailDeliveryType;
 import com.app.prod.job.scheduled.ScheduledJobService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +40,6 @@ public class EventLifecycleService {
     private final EventMemberRepository eventMemberRepository;
     private final EventSlotRepository eventSlotRepository;
     private final ScheduledJobService scheduledJobService;
-    private final EventBus eventBus;
 
     public void scheduleDeadlineCheck(UUID eventId, LocalDateTime votingDeadline) {
         scheduledJobService.schedule(new EventDeadlineJob(eventId), votingDeadline, votingDeadlineJobKey(eventId));
@@ -121,7 +117,7 @@ public class EventLifecycleService {
         eventRepository.update(event);
 
         scheduledJobService.schedule(new EventDeadlineJob(event.getId()), confirmBy, walkOutWindowJobKey(event.getId()));
-        eventBus.publish(new EventGroupFormedEvent(event.getId(), slotId, confirmBy));
+        mail(EmailDeliveryType.EVENT_GROUP_FORMED, event, slotId, confirmBy, now);
         log.info("Event {} reached its threshold on slot {}, members may walk out until {}", event.getId(), slotId, confirmBy);
     }
 
@@ -145,9 +141,9 @@ public class EventLifecycleService {
         log.info("Event {} dropped to {} of {} and went back to collecting", event.getId(), carrying, event.getMinAttendees());
 
         if (stillVoting) {
-            eventBus.publish(new EventGroupBrokeUpEvent(event.getId(), brokenUpSlotId, brokenUpConfirmBy));
+            mail(EmailDeliveryType.EVENT_GROUP_BROKE_UP, event, brokenUpSlotId, brokenUpConfirmBy, now);
         } else {
-            eventBus.publish(new EventReducedToOneSlotEvent(event.getId(), brokenUpSlotId, brokenUpConfirmBy));
+            mail(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT, event, brokenUpSlotId, brokenUpConfirmBy, now);
         }
 
         // several dates can fill at once and only one of them is picked; when that one loses its
@@ -173,7 +169,7 @@ public class EventLifecycleService {
         event.setSelectedSlotId(best.get().slotId());
         eventRepository.update(event);
 
-        eventBus.publish(new EventReducedToOneSlotEvent(event.getId(), best.get().slotId(), null));
+        mail(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT, event, best.get().slotId(), null, now);
         log.info("Event {} missed its threshold and reduced to one slot: {}", event.getId(), best.get().slotId());
     }
 
@@ -190,7 +186,7 @@ public class EventLifecycleService {
         event.setConfirmBy(null);
         eventRepository.update(event);
 
-        eventBus.publish(new EventConfirmedEvent(event.getId(), slotId, slot.getStartDateTime()));
+        mail(EmailDeliveryType.EVENT_CONFIRMED, event, slotId, null, now);
         log.info("Event {} confirmed on slot {} starting {}", event.getId(), slotId, slot.getStartDateTime());
     }
 
@@ -211,6 +207,10 @@ public class EventLifecycleService {
             eventMemberRepository.setStatus(overflow, status, now);
             log.info("Event {} seated {} members, {} over the limit", event.getId(), seats, overflow.size());
         }
+    }
+
+    private void mail(EmailDeliveryType type, EventRecord event, UUID slotId, LocalDateTime groupConfirmBy, LocalDateTime now) {
+        scheduledJobService.schedule(new EventMailJob(type, event.getId(), slotId, groupConfirmBy), now, null);
     }
 
     private List<SlotTally> slotsStillOpen(EventRecord event) {

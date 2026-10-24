@@ -7,16 +7,22 @@ import com.app.prod.job.enums.JobStatus;
 import com.app.prod.job.jobs.NoOpJob;
 import com.app.prod.job.scheduled.ScheduledJobDrainer;
 import com.app.prod.job.scheduled.ScheduledJobService;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.jooq.DSLContext;
 import org.jooq.JSONB;
 import org.jooq.sources.tables.records.ScheduledJobRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -30,8 +36,10 @@ import static org.jooq.sources.Tables.JOB_ERROR;
 import static org.jooq.sources.Tables.SCHEDULED_JOB;
 
 @SpringBootTest
+@Import(ScheduledJobDrainIT.FailingJobConfig.class)
 class ScheduledJobDrainIT extends IntegrationTest {
     private static final Duration LEASE = Duration.ofMinutes(5);
+    private static final Duration RETRY_DELAY = Duration.ofMinutes(5);
 
     @Autowired
     private ScheduledJobService scheduledJobService;
@@ -48,7 +56,7 @@ class ScheduledJobDrainIT extends IntegrationTest {
     void setUp() {
         dslContext.deleteFrom(SCHEDULED_JOB).execute();
         dslContext.deleteFrom(JOB_ERROR).execute();
-        now = LocalDateTime.now(clock);
+        now = LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS);
     }
 
     @Test
@@ -172,6 +180,47 @@ class ScheduledJobDrainIT extends IntegrationTest {
     }
 
     @Test
+    void shouldPutAFailedJobBackInTheQueueForLater() {
+        UUID id = scheduledJobService.schedule(new FailingJob("smtp"), now.minusMinutes(1), null);
+
+        assertThat(scheduledJobDrainer.drainDue(now)).isEqualTo(new DrainResponse(1, 0, 1));
+
+        ScheduledJobRecord retrying = recordOf(id);
+        assertThat(JobStatus.valueOf(retrying.getStatus())).isEqualTo(JobStatus.PENDING);
+        assertThat(retrying.getRunAt()).isEqualTo(now.plus(RETRY_DELAY));
+        assertThat(retrying.getAttempts()).isEqualTo(1);
+        assertThat(retrying.getLastError()).contains("downstream is down");
+        assertThat(retrying.getLockedUntil()).isNull();
+
+        assertThat(scheduledJobDrainer.drainDue(now.plus(RETRY_DELAY).minusSeconds(1)))
+                .as("not before its time")
+                .isEqualTo(DrainResponse.empty());
+
+        scheduledJobDrainer.drainDue(now.plus(RETRY_DELAY));
+        assertThat(recordOf(id).getRunAt())
+                .as("each attempt waits longer than the one before")
+                .isEqualTo(now.plus(RETRY_DELAY).plus(RETRY_DELAY.multipliedBy(2)));
+        assertThat(dslContext.fetchCount(JOB_ERROR)).as("not given up on yet").isZero();
+    }
+
+    @Test
+    void shouldGiveUpOnAJobThatKeepsFailing() {
+        UUID id = scheduledJobService.schedule(new FailingJob("smtp"), now.minusMinutes(1), null);
+
+        LocalDateTime attempt = now;
+        for (int i = 0; i < 3; i++) {
+            assertThat(scheduledJobDrainer.drainDue(attempt)).isEqualTo(new DrainResponse(1, 0, 1));
+            attempt = recordOf(id).getRunAt();
+        }
+
+        ScheduledJobRecord failed = recordOf(id);
+        assertThat(JobStatus.valueOf(failed.getStatus())).isEqualTo(JobStatus.FAILED);
+        assertThat(failed.getAttempts()).isEqualTo(3);
+        assertThat(dslContext.fetchCount(JOB_ERROR)).as("left for a person to look at").isEqualTo(1);
+        assertThat(scheduledJobDrainer.drainDue(now.plusDays(1))).isEqualTo(DrainResponse.empty());
+    }
+
+    @Test
     void shouldDrainEverythingDueInOneCall() {
         scheduledJobService.schedule(new NoOpJob("a"), now.minusMinutes(3), null);
         scheduledJobService.schedule(new NoOpJob("b"), now.minusMinutes(2), null);
@@ -205,5 +254,15 @@ class ScheduledJobDrainIT extends IntegrationTest {
         return dslContext.selectFrom(SCHEDULED_JOB)
                 .where(SCHEDULED_JOB.ID.eq(id))
                 .fetchOne();
+    }
+
+    /** Jackson reads the subtypes of {@code Job} once, so a test-only one has to be there before the first read. */
+    @TestConfiguration
+    static class FailingJobConfig {
+
+        @Bean
+        Jackson2ObjectMapperBuilderCustomizer failingJobType() {
+            return builder -> builder.postConfigurer(mapper -> mapper.registerSubtypes(new NamedType(FailingJob.class, "FailingJob")));
+        }
     }
 }

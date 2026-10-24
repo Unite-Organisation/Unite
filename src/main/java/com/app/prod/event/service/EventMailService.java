@@ -7,6 +7,9 @@ import com.app.prod.event.repository.EventSlotRepository;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
+import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
+import com.app.prod.exceptions.exceptions.InternalConnectionException;
+import com.app.prod.job.jobs.EventMailJob;
 import com.app.prod.mail.config.MailProperties;
 import com.app.prod.mail.dto.MailContent;
 import com.app.prod.mail.dto.MailRecipient;
@@ -31,8 +34,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Tells the people of an event what happened to its date. Runs after the transaction that changed
- * the event has committed, so what it reads is already the final state.
+ * Tells the people of an event what happened to its date. Runs from an {@link EventMailJob} drained
+ * after the change committed, so it reads the event as it is by then - and it may run more than
+ * once for the same change, which {@link MailDeliveryService#send} makes harmless.
  */
 @Slf4j
 @Service
@@ -48,7 +52,25 @@ public class EventMailService {
     private final MailTemplateProcessor mailTemplateProcessor;
     private final MailProperties mailProperties;
 
-    public void groupFormed(UUID eventId, UUID slotId, LocalDateTime confirmBy) {
+    /** @param groupConfirmBy see {@link EventMailJob} */
+    public void send(EmailDeliveryType type, UUID eventId, UUID slotId, LocalDateTime groupConfirmBy) {
+        // the job outlives what it was booked for, like the deadline job does
+        if (eventRepository.findById(eventId).isEmpty()) {
+            log.info("Event {} is gone, its {} mail with it", eventId, type);
+            return;
+        }
+
+        switch (type) {
+            case EVENT_GROUP_FORMED -> groupFormed(eventId, slotId, groupConfirmBy);
+            case EVENT_GROUP_BROKE_UP -> groupBrokeUp(eventId, slotId, groupConfirmBy);
+            case EVENT_CONFIRMED -> confirmed(eventId, slotId);
+            case EVENT_REDUCED_TO_ONE_SLOT -> reducedToOneSlot(eventId, slotId, groupConfirmBy);
+            default -> throw new IllegalApplicationStateException(AppError.of(Code.MAIL_SENDING_FAILED,
+                    String.format("%s is not a mail about an event", type)));
+        }
+    }
+
+    private void groupFormed(UUID eventId, UUID slotId, LocalDateTime confirmBy) {
         EventRecord event = event(eventId);
         List<MailRecipient> recipients = eventMemberRepository.findGoingVotersRecipients(eventId, slotId);
 
@@ -58,7 +80,7 @@ public class EventMailService {
         deliver(EmailDeliveryType.EVENT_GROUP_FORMED, MailTemplate.EVENT_GROUP_FORMED, formation(eventId, confirmBy), event, recipients, variables);
     }
 
-    public void groupBrokeUp(UUID eventId, UUID slotId, LocalDateTime confirmBy) {
+    private void groupBrokeUp(UUID eventId, UUID slotId, LocalDateTime confirmBy) {
         EventRecord event = event(eventId);
         List<MailRecipient> recipients = eventMemberRepository.findGoingVotersRecipients(eventId, slotId);
 
@@ -68,15 +90,14 @@ public class EventMailService {
         deliver(EmailDeliveryType.EVENT_GROUP_BROKE_UP, MailTemplate.EVENT_GROUP_BROKE_UP, formation(eventId, confirmBy), event, recipients, variables);
     }
 
-    public void confirmed(UUID eventId, UUID slotId) {
+    private void confirmed(UUID eventId, UUID slotId) {
         EventRecord event = event(eventId);
         List<MailRecipient> recipients = eventMemberRepository.findRecipientsWithStatus(eventId, EventMemberStatus.GOING);
 
         deliver(EmailDeliveryType.EVENT_CONFIRMED, MailTemplate.EVENT_CONFIRMED, eventId, event, recipients, variables(event, slot(slotId)));
     }
 
-    /** @param brokenUpGroupConfirmBy see {@link com.app.prod.event.events.EventReducedToOneSlotEvent} */
-    public void reducedToOneSlot(UUID eventId, UUID slotId, LocalDateTime brokenUpGroupConfirmBy) {
+    private void reducedToOneSlot(UUID eventId, UUID slotId, LocalDateTime brokenUpGroupConfirmBy) {
         EventRecord event = event(eventId);
         List<MailRecipient> recipients = eventMemberRepository.findRecipientsWithStatus(eventId, EventMemberStatus.GOING);
         boolean afterBreakUp = brokenUpGroupConfirmBy != null;
@@ -100,7 +121,13 @@ public class EventMailService {
         MailContent content = mailTemplateProcessor.render(template, new Object[]{event.getName()}, variables);
 
         log.info("Telling {} members of event {} about {}", recipients.size(), event.getId(), type);
-        mailDeliveryService.send(type, referenceId, recipients, content);
+        int notDelivered = mailDeliveryService.send(type, referenceId, recipients, content);
+
+        // failing the job is what brings it back; the next attempt only writes to whoever is left
+        if (notDelivered > 0) {
+            throw new InternalConnectionException(AppError.of(Code.MAIL_SENDING_FAILED,
+                    String.format("%s of %s mails about event %s did not go out", notDelivered, recipients.size(), event.getId())));
+        }
     }
 
     private Map<String, Object> variables(EventRecord event, EventSlotRecord slot) {

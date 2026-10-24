@@ -1,5 +1,6 @@
 package com.app.prod.job.async;
 
+import com.app.prod.job.JobRegistry;
 import com.app.prod.job.jobs.Job;
 import com.app.prod.job.service.JobErrorService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class AsyncJobRunner {
 
     private final JobErrorService jobErrorService;
     private final Clock clock;
+    private final JobRegistry jobRegistry;
 
     @Async("taskExecutor")
     @Transactional
@@ -34,7 +36,7 @@ public class AsyncJobRunner {
         String jobName = job.getClass().getSimpleName();
         log.info("Running job: {} at {}", jobName, now);
         try {
-            job.run();
+            job.run(jobRegistry);
             log.info("Job {} finished successfully", jobName);
         } catch (Exception e) {
             log.error("Job {} failed", jobName, e);

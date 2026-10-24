@@ -378,7 +378,7 @@ wybrany termin nie pasował, ani ci, którzy nie zmieścili się w limicie i tra
 - tryb akceptacji — host nie dostaje maila, gdy ktoś czeka na wpuszczenie, a czekający — gdy go
   wpuszczono albo wyrzucono
 
-Mail, którego nie udało się wysłać, nie jest ponawiany.
+Mail, którego nie udało się wysłać, jest ponawiany jeszcze dwa razy — po 5 i po kolejnych 10 minutach — i tylko do tych osób, do których nie doszedł. Maile wychodzą z niewielkim opóźnieniem, przy najbliższym przebiegu kolejki zadań.
 
 Poza zakresem na teraz: anulowanie wydarzenia przez hosta i możliwość nadpisania przez hosta terminu
 wybranego przez system.

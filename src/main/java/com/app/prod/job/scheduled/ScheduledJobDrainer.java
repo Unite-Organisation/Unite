@@ -1,5 +1,6 @@
 package com.app.prod.job.scheduled;
 
+import com.app.prod.job.JobRegistry;
 import com.app.prod.job.dtos.DrainResponse;
 import com.app.prod.job.jobs.Job;
 import com.app.prod.job.service.JobErrorService;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.ScheduledJobRecord;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,9 +19,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduledJobDrainer {
     static final int BATCH_SIZE = 50;
+    /** the n-th failed attempt waits n times this long - SMTP or a downstream that is down is usually down for minutes */
+    static final Duration RETRY_DELAY = Duration.ofMinutes(5);
 
     private final ScheduledJobService scheduledJobService;
-    private final ScheduledJobExecutor scheduledJobExecutor;
+    private final JobRegistry jobRegistry;
     private final JobErrorService jobErrorService;
     private final JsonbService jsonbService;
 
@@ -48,16 +52,30 @@ public class ScheduledJobDrainer {
             return false;
         }
 
+        // no transaction around the job: each one opens what it needs. A job that talks to SMTP
+        // must not hold a connection for it, and what it already did - a mail that went out - must
+        // survive the job failing on the next one, or the retry would do it twice
         try {
-            scheduledJobExecutor.run(job);
+            job.run(jobRegistry);
             scheduledJobService.markSuccess(record.getId(), now);
             return true;
         } catch (Exception e) {
-            log.error("Scheduled job {} ({}) failed", record.getJobName(), record.getId(), e);
-            scheduledJobService.markFailed(record.getId(), e.getMessage(), now);
-            jobErrorService.logError(job, record.getJobName(), e.getMessage(), now);
+            retryOrFail(record, job, e, now);
             return false;
         }
+    }
+
+    private void retryOrFail(ScheduledJobRecord record, Job job, Exception e, LocalDateTime now) {
+        if (record.getAttempts() < ScheduledJobRepository.MAX_ATTEMPTS) {
+            LocalDateTime retryAt = now.plus(RETRY_DELAY.multipliedBy(record.getAttempts()));
+            log.warn("Scheduled job {} ({}) failed on attempt {}, retrying at {}", record.getJobName(), record.getId(), record.getAttempts(), retryAt, e);
+            scheduledJobService.retryAt(record.getId(), retryAt, e.getMessage(), now);
+            return;
+        }
+
+        log.error("Scheduled job {} ({}) failed on its last attempt", record.getJobName(), record.getId(), e);
+        scheduledJobService.markFailed(record.getId(), e.getMessage(), now);
+        jobErrorService.logError(job, record.getJobName(), e.getMessage(), now);
     }
 
     private Job deserialize(ScheduledJobRecord record, LocalDateTime now) {

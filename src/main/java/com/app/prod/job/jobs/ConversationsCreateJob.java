@@ -1,5 +1,6 @@
 package com.app.prod.job.jobs;
 
+import com.app.prod.job.JobRegistry;
 import com.app.prod.internal.dtos.ConversationBulkActionDto;
 
 
@@ -8,7 +9,7 @@ public record ConversationsCreateJob(
 ) implements Job {
 
     @Override
-    public void run() {
+    public void run(JobRegistry jobRegistry) {
         jobRegistry.createConversations(dto);
     }
 

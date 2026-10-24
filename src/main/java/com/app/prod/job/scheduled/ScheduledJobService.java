@@ -78,6 +78,11 @@ public class ScheduledJobService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void retryAt(UUID id, LocalDateTime runAt, String error, LocalDateTime now) {
+        scheduledJobRepository.reschedule(id, runAt, error, now);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markFailed(UUID id, String error, LocalDateTime now) {
         scheduledJobRepository.finish(id, JobStatus.FAILED, error, now);
     }

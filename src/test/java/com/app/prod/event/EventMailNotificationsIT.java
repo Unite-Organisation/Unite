@@ -7,15 +7,19 @@ import com.app.prod.config.MutableClock;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.SlotPreference;
 import com.app.prod.event.service.EventLifecycleService;
-import com.app.prod.eventbus.EventExecutor;
+import com.app.prod.job.enums.JobStatus;
+import com.app.prod.job.jobs.EventMailJob;
+import com.app.prod.job.scheduled.ScheduledJobDrainer;
 import com.app.prod.mail.MailMessage;
 import com.app.prod.mail.MailSender;
+import com.app.prod.mail.enums.EmailDeliveryStatus;
 import com.app.prod.mail.enums.EmailDeliveryType;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.records.AppUserRecord;
 import org.jooq.sources.tables.records.EventMemberRecord;
 import org.jooq.sources.tables.records.EventRecord;
 import org.jooq.sources.tables.records.EventSlotRecord;
+import org.jooq.sources.tables.records.ScheduledJobRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +35,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +46,7 @@ import static org.jooq.sources.Tables.SCHEDULED_JOB;
 
 /**
  * What the people of an event are told as its date gets decided. Not {@code @Transactional}: the
- * mails go out after the commit, which a test wrapped in a transaction would never reach.
+ * mails are booked as jobs with the change and sent by a drain, which runs every job on its own.
  */
 @SpringBootTest
 @Import(EventMailNotificationsIT.SynchronousMailConfig.class)
@@ -55,6 +60,8 @@ class EventMailNotificationsIT extends IntegrationTest {
     private UserPersistanceFactory users;
     @Autowired
     private EventLifecycleService eventLifecycleService;
+    @Autowired
+    private ScheduledJobDrainer scheduledJobDrainer;
     @Autowired
     private RecordingMailSender mailSender;
     @Autowired
@@ -73,6 +80,7 @@ class EventMailNotificationsIT extends IntegrationTest {
         dslContext.deleteFrom(SCHEDULED_JOB).execute();
         dslContext.deleteFrom(EMAIL_DELIVERY).execute();
         mailSender.clear();
+        mailSender.failFor();
 
         clock.setInstant(Instant.now().truncatedTo(ChronoUnit.MICROS));
         now = LocalDateTime.now(clock);
@@ -87,7 +95,7 @@ class EventMailNotificationsIT extends IntegrationTest {
         voter(monday, "ben@test.local");
         voter(tuesday, "clara@test.local");
 
-        eventLifecycleService.recheckGroup(event.getId(), now);
+        recheck(now);
 
         assertThat(mailSender.sent()).extracting(MailMessage::to)
                 .containsExactlyInAnyOrder("anna@test.local", "ben@test.local");
@@ -102,13 +110,13 @@ class EventMailNotificationsIT extends IntegrationTest {
     void shouldTellThemAgainWhenTheGroupFormsASecondTime() {
         EventMemberRecord leaving = voter(monday, "anna@test.local");
         voter(monday, "ben@test.local");
-        eventLifecycleService.recheckGroup(event.getId(), now);
+        recheck(now);
         mailSender.clear();
 
         setStatus(leaving, EventMemberStatus.NOT_GOING);
-        eventLifecycleService.recheckGroup(event.getId(), now.plusMinutes(10));
+        recheck(now.plusMinutes(10));
         setStatus(leaving, EventMemberStatus.GOING);
-        eventLifecycleService.recheckGroup(event.getId(), now.plusMinutes(20));
+        recheck(now.plusMinutes(20));
 
         assertThat(mailSender.sent()).filteredOn(mail -> mail.subject().startsWith("Zebrała się grupa"))
                 .extracting(MailMessage::to)
@@ -127,7 +135,7 @@ class EventMailNotificationsIT extends IntegrationTest {
         vote(monday, member);
         voter(monday, "ben@test.local");
 
-        eventLifecycleService.recheckGroup(event.getId(), now);
+        recheck(now);
 
         assertThat(mailSender.sent()).extracting(MailMessage::to)
                 .containsExactlyInAnyOrder("account@test.local", "ben@test.local");
@@ -138,7 +146,7 @@ class EventMailNotificationsIT extends IntegrationTest {
         voter(monday, null);
         voter(monday, "ben@test.local");
 
-        eventLifecycleService.recheckGroup(event.getId(), now);
+        recheck(now);
 
         assertThat(mailSender.sent()).extracting(MailMessage::to).containsExactly("ben@test.local");
     }
@@ -148,11 +156,11 @@ class EventMailNotificationsIT extends IntegrationTest {
         voter(monday, "anna@test.local");
         voter(monday, "ben@test.local");
         EventMemberRecord leaving = voter(monday, "clara@test.local");
-        eventLifecycleService.recheckGroup(event.getId(), now);
+        recheck(now);
         setStatus(leaving, EventMemberStatus.NOT_GOING);
         mailSender.clear();
 
-        eventLifecycleService.applyPassedDeadlines(event.getId(), now.plus(WALK_OUT_WINDOW));
+        passDeadlines(now.plus(WALK_OUT_WINDOW));
 
         assertThat(mailSender.sent()).extracting(MailMessage::to)
                 .containsExactlyInAnyOrder("anna@test.local", "ben@test.local");
@@ -163,7 +171,7 @@ class EventMailNotificationsIT extends IntegrationTest {
     void shouldSayOneDateIsLeftWhenTheDeadlinePassesShortOfPeople() {
         voter(tuesday, "anna@test.local");
 
-        eventLifecycleService.applyPassedDeadlines(event.getId(), now.plusDays(2));
+        passDeadlines(now.plusDays(2));
 
         assertThat(mailSender.sent()).extracting(MailMessage::to).containsExactly("anna@test.local");
         assertThat(deliveriesOf(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT)).isEqualTo(1);
@@ -174,11 +182,11 @@ class EventMailNotificationsIT extends IntegrationTest {
         EventMemberRecord leaving = voter(monday, "anna@test.local");
         voter(monday, "ben@test.local");
         voter(tuesday, "clara@test.local");
-        eventLifecycleService.recheckGroup(event.getId(), now);
+        recheck(now);
         mailSender.clear();
 
         setStatus(leaving, EventMemberStatus.NOT_GOING);
-        eventLifecycleService.recheckGroup(event.getId(), now.plusMinutes(10));
+        recheck(now.plusMinutes(10));
 
         assertThat(mailSender.sent()).extracting(MailMessage::to)
                 .as("those who were told the group formed and are still in it")
@@ -194,11 +202,11 @@ class EventMailNotificationsIT extends IntegrationTest {
         EventMemberRecord leaving = voter(monday, "anna@test.local");
         voter(monday, "ben@test.local");
         voter(tuesday, "clara@test.local");
-        eventLifecycleService.recheckGroup(event.getId(), deadline.minusMinutes(30));
+        recheck(deadline.minusMinutes(30));
         mailSender.clear();
 
         setStatus(leaving, EventMemberStatus.NOT_GOING);
-        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(10));
+        recheck(deadline.plusMinutes(10));
 
         assertThat(mailSender.sent()).extracting(MailMessage::to)
                 .as("everyone still going, the same as when the deadline itself leaves one date")
@@ -217,18 +225,75 @@ class EventMailNotificationsIT extends IntegrationTest {
         vote(monday, member);
         EventMemberRecord leaving = voter(monday, "anna@test.local");
 
-        eventLifecycleService.recheckGroup(event.getId(), deadline.minusMinutes(30));
+        recheck(deadline.minusMinutes(30));
         setStatus(leaving, EventMemberStatus.NOT_GOING);
-        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(10));
+        recheck(deadline.plusMinutes(10));
         setStatus(leaving, EventMemberStatus.GOING);
-        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(20));
+        recheck(deadline.plusMinutes(20));
         setStatus(leaving, EventMemberStatus.NOT_GOING);
-        eventLifecycleService.recheckGroup(event.getId(), deadline.plusMinutes(30));
+        recheck(deadline.plusMinutes(30));
 
         // a Unite account is one row per delivery and reference, so the second time needs a reference of its own
         assertThat(dslContext.fetchCount(EMAIL_DELIVERY, EMAIL_DELIVERY.DELIVERY_TYPE.eq(EmailDeliveryType.EVENT_REDUCED_TO_ONE_SLOT.name())
                 .and(EMAIL_DELIVERY.USER_ID.eq(account.getId()))))
                 .isEqualTo(2);
+    }
+
+    @Test
+    void shouldOnlyBookTheMailUntilTheNextDrain() {
+        voter(monday, "anna@test.local");
+        voter(monday, "ben@test.local");
+
+        eventLifecycleService.recheckGroup(event.getId(), now);
+
+        assertThat(mailSender.sent()).as("nothing runs after the response on Cloud Run, so nothing is sent then").isEmpty();
+        assertThat(dslContext.fetchCount(SCHEDULED_JOB, SCHEDULED_JOB.JOB_NAME.eq(EventMailJob.class.getSimpleName())
+                .and(SCHEDULED_JOB.STATUS.eq(JobStatus.PENDING.name()))))
+                .isEqualTo(1);
+
+        scheduledJobDrainer.drainDue(now);
+
+        assertThat(mailSender.sent()).extracting(MailMessage::to)
+                .containsExactlyInAnyOrder("anna@test.local", "ben@test.local");
+    }
+
+    @Test
+    void shouldRetryOnlyTheMailsThatDidNotGoOut() {
+        voter(monday, "anna@test.local");
+        voter(monday, "ben@test.local");
+        mailSender.failFor("ben@test.local");
+
+        recheck(now);
+
+        assertThat(mailSender.sent()).extracting(MailMessage::to).containsExactly("anna@test.local");
+        ScheduledJobRecord job = dslContext.selectFrom(SCHEDULED_JOB)
+                .where(SCHEDULED_JOB.JOB_NAME.eq(EventMailJob.class.getSimpleName()))
+                .fetchOne();
+        assertThat(JobStatus.valueOf(job.getStatus())).as("back in the queue for another go").isEqualTo(JobStatus.PENDING);
+        assertThat(job.getRunAt()).isAfter(now);
+
+        mailSender.clear();
+        mailSender.failFor();
+        scheduledJobDrainer.drainDue(job.getRunAt());
+
+        assertThat(mailSender.sent()).extracting(MailMessage::to)
+                .as("Anna already has it")
+                .containsExactly("ben@test.local");
+        assertThat(dslContext.fetchCount(EMAIL_DELIVERY, EMAIL_DELIVERY.STATUS.eq(EmailDeliveryStatus.SENT.name())))
+                .as("one row per person, both delivered in the end")
+                .isEqualTo(2);
+        assertThat(deliveriesOf(EmailDeliveryType.EVENT_GROUP_FORMED)).isEqualTo(2);
+    }
+
+    /** What a request does to the event, followed by what the next drain does with the mail it booked. */
+    private void recheck(LocalDateTime at) {
+        eventLifecycleService.recheckGroup(event.getId(), at);
+        scheduledJobDrainer.drainDue(at);
+    }
+
+    private void passDeadlines(LocalDateTime at) {
+        eventLifecycleService.applyPassedDeadlines(event.getId(), at);
+        scheduledJobDrainer.drainDue(at);
     }
 
     private EventSlotRecord slot(LocalDateTime start) {
@@ -263,12 +328,6 @@ class EventMailNotificationsIT extends IntegrationTest {
 
         @Bean
         @Primary
-        EventExecutor sameThreadEventExecutor() {
-            return Runnable::run;
-        }
-
-        @Bean
-        @Primary
         RecordingMailSender recordingMailSender() {
             return new RecordingMailSender();
         }
@@ -277,10 +336,19 @@ class EventMailNotificationsIT extends IntegrationTest {
     static class RecordingMailSender implements MailSender {
 
         private final Queue<MailMessage> sent = new ConcurrentLinkedQueue<>();
+        private volatile Set<String> unreachable = Set.of();
 
         @Override
         public void send(MailMessage message) {
+            if (unreachable.contains(message.to())) {
+                throw new IllegalStateException("SMTP refused " + message.to());
+            }
             sent.add(message);
+        }
+
+        /** These addresses fail until called again with others - no arguments makes every one work. */
+        void failFor(String... addresses) {
+            unreachable = Set.of(addresses);
         }
 
         List<MailMessage> sent() {

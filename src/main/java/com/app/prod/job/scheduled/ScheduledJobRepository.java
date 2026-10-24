@@ -68,6 +68,18 @@ public class ScheduledJobRepository extends BaseJooqRepository<ScheduledJob, Sch
                 .execute();
     }
 
+    /** Back in the queue after a failed attempt; {@code attempts} keeps counting, so it does not come back forever. */
+    public void reschedule(UUID id, LocalDateTime runAt, String error, LocalDateTime now) {
+        dslContext.update(SCHEDULED_JOB)
+                .set(SCHEDULED_JOB.STATUS, JobStatus.PENDING.name())
+                .set(SCHEDULED_JOB.RUN_AT, runAt)
+                .set(SCHEDULED_JOB.LAST_ERROR, error)
+                .set(SCHEDULED_JOB.LOCKED_UNTIL, (LocalDateTime) null)
+                .set(SCHEDULED_JOB.UPDATED_AT, now)
+                .where(SCHEDULED_JOB.ID.eq(id))
+                .execute();
+    }
+
     public int cancelOpen(String dedupeKey, LocalDateTime now) {
         return dslContext.update(SCHEDULED_JOB)
                 .set(SCHEDULED_JOB.STATUS, JobStatus.CANCELLED.name())

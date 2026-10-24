@@ -1,9 +1,11 @@
 package com.app.prod.job;
 
 import com.app.prod.event.service.EventLifecycleService;
+import com.app.prod.event.service.EventMailService;
 import com.app.prod.internal.InternalSyncService;
 import com.app.prod.internal.dtos.ConversationBulkActionDto;
 import com.app.prod.internal.dtos.UserDto;
+import com.app.prod.job.jobs.EventMailJob;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 public class JobRegistry {
     private final InternalSyncService internalSyncService;
     private final EventLifecycleService eventLifecycleService;
+    private final EventMailService eventMailService;
     private final Clock clock;
 
     public void syncUser(UserDto user) {
@@ -27,5 +30,9 @@ public class JobRegistry {
     }
 
     public void applyEventDeadlines(UUID eventId) { eventLifecycleService.applyPassedDeadlines(eventId, LocalDateTime.now(clock)); }
+
+    public void sendEventMail(EventMailJob job) {
+        eventMailService.send(job.type(), job.eventId(), job.slotId(), job.groupConfirmBy());
+    }
 
 }

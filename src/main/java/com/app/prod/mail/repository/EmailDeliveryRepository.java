@@ -23,9 +23,18 @@ public class EmailDeliveryRepository extends BaseJooqRepository<EmailDelivery, E
         super(dsl, EMAIL_DELIVERY, EMAIL_DELIVERY.ID);
     }
 
-    public void markSent(UUID deliveryId, LocalDateTime sentAt) {
+    public List<EmailDeliveryRecord> findByReference(EmailDeliveryType type, UUID referenceId) {
+        return dslContext.selectFrom(EMAIL_DELIVERY)
+                .where(EMAIL_DELIVERY.DELIVERY_TYPE.eq(type.name()))
+                .and(EMAIL_DELIVERY.REFERENCE_ID.eq(referenceId))
+                .fetch();
+    }
+
+    public void markSent(UUID deliveryId, String email, LocalDateTime sentAt) {
         dslContext.update(EMAIL_DELIVERY)
                 .set(EMAIL_DELIVERY.STATUS, EmailDeliveryStatus.SENT.name())
+                .set(EMAIL_DELIVERY.EMAIL, email)
+                .set(EMAIL_DELIVERY.ERROR_MESSAGE, (String) null)
                 .set(EMAIL_DELIVERY.SENT_AT, sentAt)
                 .where(EMAIL_DELIVERY.ID.eq(deliveryId))
                 .execute();
