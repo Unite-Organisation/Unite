@@ -1,5 +1,6 @@
 package com.app.prod.event.dto;
 
+import com.app.prod.event.enums.EventIdentityOrigin;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.utils.filters.FilterRequest;
@@ -19,6 +20,7 @@ public class EventMembersRequest extends FilterRequest {
     private boolean awaitingApproval;
     private EventMemberStatus status;
     private EventMemberRole role;
+    private EventIdentityOrigin origin;
     @Valid
     private DeviceFingerprint device;
 }

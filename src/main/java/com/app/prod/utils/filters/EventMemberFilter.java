@@ -1,5 +1,6 @@
 package com.app.prod.utils.filters;
 
+import com.app.prod.event.enums.EventIdentityOrigin;
 import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class EventMemberFilter extends PredicateFilter {
     Filter<UUID> eventId;
     Filter<EventMemberStatus> status;
     Filter<EventMemberRole> role;
+    Filter<EventIdentityOrigin> origin;
     Filter<Boolean> includeSlotsInfo;
 
     @Override
@@ -25,6 +27,9 @@ public class EventMemberFilter extends PredicateFilter {
                 Criteria.required(EVENT_MEMBER.EVENT_ID, eventId),
                 Criteria.matchEnum(EVENT_MEMBER.STATUS, status),
                 Criteria.matchEnum(EVENT_MEMBER.ROLE, role),
+                Criteria.when(origin, value -> value == EventIdentityOrigin.UNITE
+                        ? EVENT_MEMBER.USER_ID.isNotNull()
+                        : EVENT_MEMBER.USER_ID.isNull()),
                 Criteria.search(search(), EVENT_MEMBER.DISPLAY_NAME)
         );
     }

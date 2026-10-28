@@ -354,6 +354,28 @@ class PublicEventJourneyIT extends IntegrationTest {
     }
 
     @Test
+    void theLoginScreenPutsTheGuestWhoUsedThisPhoneFirstAndLeavesAccountHoldersOut() throws Exception {
+        AppUserRecord user = uniteUser();
+        String token = jwt.generateTokenForUser(user, UserRole.RESIDENT);
+
+        Event event = api.createDatedEvent("Kuba", LocalDateTime.now(clock).plusDays(3), null, false);
+        api.signUpOn(event, "Anna", "annas-phone");
+        api.signUpOn(event, "Bartek", "barteks-phone");
+        api.signUpOn(event, "Celina", "celinas-phone");
+        api.joinAsUniteUser(event, token);
+
+        List<String> seenFromBarteksPhone = api.pickerSeenFrom(event, "barteks-phone");
+
+        assertThat(seenFromBarteksPhone.getFirst())
+                .as("the phone Bartek signed up on recognises him")
+                .isEqualTo("Bartek");
+        assertThat(seenFromBarteksPhone)
+                .as("an account holder signs in with their account, so there is no code to pick them for")
+                .containsExactlyInAnyOrder("Kuba", "Anna", "Bartek", "Celina");
+        assertThat(api.pickerSeenFrom(event, "celinas-phone").getFirst()).isEqualTo("Celina");
+    }
+
+    @Test
     void aGuestLosesTheirPhoneAndComesBackWithTheirCode() throws Exception {
         Event event = api.createEventChoosingItsDate("Kuba", 4, deadline, fourDates);
         Dates dates = dates(event);
