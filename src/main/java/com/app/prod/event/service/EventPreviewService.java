@@ -24,14 +24,18 @@ import java.util.stream.Stream;
 /**
  * Decides what a shared event link reveals to a chat app - and so to everyone in that chat, link
  * clicked or not. Only what the event page shows to a guest holding the link goes in: never the
- * online meeting url, never who is coming, only how many.
+ * online meeting url, never who is coming.
+ * <p>
+ * Nothing that changes while the link is passed around goes in either, how many people are going
+ * above all: a chat app keeps the preview from the moment the link was sent, so a count would stay
+ * "1 osoba" in that chat long after the group filled up.
  */
 @Service
 @RequiredArgsConstructor
 public class EventPreviewService {
 
     /** Bump when the image changes its look, so chat apps fetch it again instead of keeping the old one. */
-    private static final String IMAGE_REVISION = "1";
+    private static final String IMAGE_REVISION = "3";
     private static final int DESCRIPTION_LIMIT = 200;
     private static final String SEPARATOR = " · ";
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
@@ -50,9 +54,8 @@ public class EventPreviewService {
     private EventPreview of(EventRow row) {
         String when = when(row);
         String where = where(row);
-        String going = going(row.goingCount());
 
-        String facts = Stream.of(when, where, going)
+        String facts = Stream.of(when, where)
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(SEPARATOR));
         String description = row.description() == null || row.description().isBlank()
@@ -65,10 +68,9 @@ public class EventPreviewService {
                 row.name(),
                 when,
                 where,
-                going,
                 shorten(description),
                 pageUrl(row.slug()),
-                imageUrl(row.slug(), version(row.name(), when, where, going)),
+                imageUrl(row.slug(), version(row.name(), when, where)),
                 properties.getLocale().toString()
         );
     }
@@ -79,7 +81,6 @@ public class EventPreviewService {
                 false,
                 properties.getSiteName(),
                 properties.getSiteName(),
-                null,
                 null,
                 null,
                 message("share.event.missing"),
@@ -119,23 +120,6 @@ public class EventPreviewService {
         return row.onlineUrl() != null && !row.onlineUrl().isBlank()
                 ? message("share.event.online")
                 : null;
-    }
-
-    private String going(int count) {
-        if (count <= 0) {
-            return null;
-        }
-        return message("share.event.going." + pluralForm(count), count);
-    }
-
-    /** Polish has three forms - 1 osoba, 2-4 osoby, 5+ osób; other languages simply repeat one of them. */
-    static String pluralForm(int count) {
-        if (count == 1) {
-            return "one";
-        }
-        int lastDigit = count % 10;
-        int lastTwoDigits = count % 100;
-        return lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14) ? "few" : "many";
     }
 
     /** The year only when it is not this one - "sobota, 15 listopada" reads better than a full date. */

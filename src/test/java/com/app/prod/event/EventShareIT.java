@@ -123,7 +123,6 @@ class EventShareIT extends IntegrationTest {
                 .contains("<script src=\"main-aaaa.js\"></script>");
         assertThat(description(html))
                 .contains("Klub Pod Wiatrakiem")
-                .contains("Idzie 1 osoba")
                 .contains("Gramy w Wsiąść do pociągu.");
         assertThat(html.indexOf("og:title"))
                 .as("ahead of the frontend's own title, so it is the one taken")

@@ -23,42 +23,36 @@ class EventPreviewImageTest {
     @Test
     void ordinaryEvent() throws IOException {
         assertRenders("ordinary", preview("Planszówki u Kasi", "sobota, 15 listopada · 19:00–23:00",
-                "Klub Pod Wiatrakiem, ul. Żółkiewskiego 12", "Idzie 12 osób"));
+                "Klub Pod Wiatrakiem, ul. Żółkiewskiego 12"));
     }
 
     @Test
     void titleTooLongForThreeLinesIsCut() throws IOException {
         assertRenders("long-title", preview(
                 "Wielki turniej siatkówki plażowej dla wszystkich mieszkańców osiedla, ich rodzin, znajomych i sąsiadów z bloku obok, z grillem i nagrodami",
-                "Termin w głosowaniu do 31 października, 22:00", null, "Idzie 1 osoba"));
+                "Termin w głosowaniu do 31 października, 22:00", null));
+    }
+
+    @Test
+    void choosingDateWithEverything() throws IOException {
+        assertRenders("voting", preview("Siatkówka", "Termin w głosowaniu do 1 listopada, 20:00",
+                "Hala sportowa przy ul. Długiej 5"));
     }
 
     @Test
     void wordWiderThanTheImageIsBroken() throws IOException {
-        assertRenders("one-long-word", preview("Zażółćgęśląjaźń".repeat(6), null, null, null));
+        assertRenders("one-long-word", preview("Zażółćgęśląjaźń".repeat(6), null, null));
     }
 
     @Test
     void emojiAreLeftOutInsteadOfDrawnAsBoxes() throws IOException {
-        assertRenders("emoji", preview("🎉 Urodziny Ani 🎂", "piątek, 1 listopada · 20:00", "Online", null));
+        assertRenders("emoji", preview("🎉 Urodziny Ani 🎂", "piątek, 1 listopada · 20:00", "Online"));
     }
 
     @Test
     void linkThatLeadsNowhere() throws IOException {
-        assertRenders("missing", new EventPreview(false, "Unitly", "Unitly", null, null, null,
+        assertRenders("missing", new EventPreview(false, "Unitly", "Unitly", null, null,
                 "Umawiaj się ze znajomymi i wybierzcie termin, który pasuje wszystkim.", "", "", "pl_PL"));
-    }
-
-    @Test
-    void polishHasThreeFormsOfPeople() {
-        assertThat(EventPreviewService.pluralForm(1)).isEqualTo("one");
-        assertThat(EventPreviewService.pluralForm(2)).isEqualTo("few");
-        assertThat(EventPreviewService.pluralForm(4)).isEqualTo("few");
-        assertThat(EventPreviewService.pluralForm(5)).isEqualTo("many");
-        assertThat(EventPreviewService.pluralForm(12)).isEqualTo("many");
-        assertThat(EventPreviewService.pluralForm(14)).isEqualTo("many");
-        assertThat(EventPreviewService.pluralForm(22)).isEqualTo("few");
-        assertThat(EventPreviewService.pluralForm(112)).isEqualTo("many");
     }
 
     private void assertRenders(String name, EventPreview preview) throws IOException {
@@ -76,7 +70,7 @@ class EventPreviewImageTest {
         }
     }
 
-    private static EventPreview preview(String title, String when, String where, String going) {
-        return new EventPreview(true, "Unitly", title, when, where, going, "", "", "", "pl_PL");
+    private static EventPreview preview(String title, String when, String where) {
+        return new EventPreview(true, "Unitly", title, when, where, "", "", "", "pl_PL");
     }
 }
