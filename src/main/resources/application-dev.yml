@@ -44,6 +44,11 @@ mail:
   from-name: Unitly
   locale: pl
 
+event:
+  share:
+    link-base-url: http://localhost:4204/e
+    frontend-index-url: http://localhost:4204/index.html
+
 activation:
   link-base-url: http://localhost:3000/activate
   token-ttl: 7d

@@ -80,6 +80,7 @@ public enum Code {
     JSON_SERIALIZATION_ERROR("json_serialization_error", "Could not read or write json data"),
     INTERNAL_CONNECTION_ERROR("internal_connection", "Internal connection error"),
     MAIL_SENDING_FAILED("mail_sending_failed", "Mail could not be sent"),
+    EVENT_PREVIEW_RENDERING_FAILED("event_preview_rendering_failed", "Event preview image could not be rendered"),
     APP_PROFILE_NOT_FOUND("app_profile_not_found", "App profile not found"),
     REFRESH_TOKEN_ERROR("refresh_token_error", "Refresh token error");
 
