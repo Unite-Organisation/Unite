@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class MailTemplateRendererIT extends IntegrationTest {
 
-    private static final String EVENT_LINK = "http://localhost:4204/e/abc123";
+    private static final String EVENT_LINK = "http://localhost:4204/event/abc123";
     private static final String LINK = "http://localhost:3000/activate?token=Ab-9_x";
 
     @Autowired
