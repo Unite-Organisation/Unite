@@ -84,6 +84,24 @@ class MailTemplateRendererIT extends IntegrationTest {
     }
 
     @Test
+    void theJoinMailShowsTheCodeInOnePieceInBothLanguages() {
+        Map<String, Object> variables = new HashMap<>(eventVariables());
+        variables.remove("when");
+        variables.put("returnCode", "0427");
+        variables.put("displayName", "Anna");
+
+        for (Locale locale : List.of(Locale.of("pl"), Locale.ENGLISH)) {
+            MailContent content = mailTemplateRenderer.render(MailTemplate.EVENT_MEMBER_JOINED, locale, variables);
+
+            assertThat(content.subject()).as("subject in %s", locale).isNotBlank().doesNotContain("??");
+            assertThat(content.body()).as("body in %s", locale)
+                    .startsWith("<!DOCTYPE html>")
+                    .contains(">0427<", "Anna", "Volleyball", EVENT_LINK)
+                    .doesNotContain("??");
+        }
+    }
+
+    @Test
     void anEventMailLeavesOutThePlaceItDoesNotHave() {
         Map<String, Object> variables = new HashMap<>(eventVariables());
         variables.put("location", null);

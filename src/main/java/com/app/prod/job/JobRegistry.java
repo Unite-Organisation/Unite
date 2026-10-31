@@ -6,6 +6,7 @@ import com.app.prod.internal.InternalSyncService;
 import com.app.prod.internal.dtos.ConversationBulkActionDto;
 import com.app.prod.internal.dtos.UserDto;
 import com.app.prod.job.jobs.EventMailJob;
+import com.app.prod.job.jobs.EventReturnCodeMailJob;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,11 @@ public class JobRegistry {
     public void applyEventDeadlines(UUID eventId) { eventLifecycleService.applyPassedDeadlines(eventId, LocalDateTime.now(clock)); }
 
     public void sendEventMail(EventMailJob job) {
-        eventMailService.send(job.type(), job.eventId(), job.slotId(), job.groupConfirmBy());
+        eventMailService.sendLifecycleMail(job.type(), job.eventId(), job.slotId(), job.groupConfirmBy());
+    }
+
+    public void sendEventReturnCodeMail(EventReturnCodeMailJob job) {
+        eventMailService.sendReturnCode(job.memberId(), job.returnCode());
     }
 
 }

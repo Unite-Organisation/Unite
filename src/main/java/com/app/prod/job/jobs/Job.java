@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = NoOpJob.class, name = "NoOpJob"),
         @JsonSubTypes.Type(value = EventDeadlineJob.class, name = "EventDeadlineJob"),
         @JsonSubTypes.Type(value = EventMailJob.class, name = "EventMailJob"),
+        @JsonSubTypes.Type(value = EventReturnCodeMailJob.class, name = "EventReturnCodeMailJob"),
         // add here more jobs in future
 })
 public interface Job {

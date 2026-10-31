@@ -19,6 +19,7 @@ import com.app.prod.mail.template.MailTemplate;
 import com.app.prod.mail.template.MailTemplateProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.sources.tables.records.EventMemberRecord;
 import org.jooq.sources.tables.records.EventRecord;
 import org.jooq.sources.tables.records.EventSlotRecord;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -53,7 +55,7 @@ public class EventMailService {
     private final MailProperties mailProperties;
 
     /** @param groupConfirmBy see {@link EventMailJob} */
-    public void send(EmailDeliveryType type, UUID eventId, UUID slotId, LocalDateTime groupConfirmBy) {
+    public void sendLifecycleMail(EmailDeliveryType type, UUID eventId, UUID slotId, LocalDateTime groupConfirmBy) {
         // the job outlives what it was booked for, like the deadline job does
         if (eventRepository.findById(eventId).isEmpty()) {
             log.info("Event {} is gone, its {} mail with it", eventId, type);
@@ -65,9 +67,25 @@ public class EventMailService {
             case EVENT_GROUP_BROKE_UP -> groupBrokeUp(eventId, slotId, groupConfirmBy);
             case EVENT_CONFIRMED -> confirmed(eventId, slotId);
             case EVENT_REDUCED_TO_ONE_SLOT -> reducedToOneSlot(eventId, slotId, groupConfirmBy);
-            default -> throw new IllegalApplicationStateException(AppError.of(Code.MAIL_SENDING_FAILED,
-                    String.format("%s is not a mail about an event", type)));
+            default -> throw new IllegalApplicationStateException(AppError.of(Code.MAIL_SENDING_FAILED, String.format("%s is not a mail about an event", type)));
         }
+    }
+
+    public void sendReturnCode(UUID memberId, String returnCode) {
+        Optional<EventMemberRecord> found = eventMemberRepository.findById(memberId);
+        if (found.isEmpty()) {
+            log.info("Event member {} is gone, their return code mail with them", memberId);
+            return;
+        }
+
+        EventMemberRecord member = found.get();
+        EventRecord event = event(member.getEventId());
+
+        Map<String, Object> variables = variables(event, null);
+        variables.put("returnCode", returnCode);
+        variables.put("displayName", member.getDisplayName());
+
+        deliver(EmailDeliveryType.EVENT_MEMBER_CREATED, MailTemplate.EVENT_MEMBER_JOINED, memberId, event, eventMemberRepository.findMemberRecipient(memberId), variables);
     }
 
     private void groupFormed(UUID eventId, UUID slotId, LocalDateTime confirmBy) {
@@ -137,7 +155,7 @@ public class EventMailService {
         variables.put("appName", mailProperties.getFromName());
         variables.put("eventName", event.getName());
         variables.put("eventLink", eventLink(event.getPublicSlug()));
-        variables.put("when", when(slot, locale));
+        if (slot != null) variables.put("when", when(slot, locale));
         variables.put("location", event.getLocationName());
         variables.put("onlineUrl", event.getOnlineUrl());
         return variables;
