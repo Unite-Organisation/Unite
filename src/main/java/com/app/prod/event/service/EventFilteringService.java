@@ -28,6 +28,7 @@ public class EventFilteringService {
                 .search(request.search())
                 .eventId(Filter.of(eventId))
                 .role(Filter.of(request.getRole()))
+                .origin(Filter.of(request.getOrigin()))
                 .status(Filter.of(request.isAwaitingApproval() ? EventMemberStatus.PENDING_APPROVAL : request.getStatus()))
                 .includeSlotsInfo(Filter.of(request.isIncludeSlotsInfo()))
                 .build();

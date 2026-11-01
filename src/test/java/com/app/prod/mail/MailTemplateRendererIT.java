@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class MailTemplateRendererIT extends IntegrationTest {
 
-    private static final String EVENT_LINK = "http://localhost:4204/e/abc123";
+    private static final String EVENT_LINK = "http://localhost:4204/event/abc123";
     private static final String LINK = "http://localhost:3000/activate?token=Ab-9_x";
 
     @Autowired
@@ -81,6 +81,24 @@ class MailTemplateRendererIT extends IntegrationTest {
 
         assertThat(byDeadline).contains("żaden termin nie zebrał").doesNotContain("stracił komplet");
         assertThat(afterBreakUp).contains("stracił komplet").doesNotContain("żaden termin nie zebrał").doesNotContain("??");
+    }
+
+    @Test
+    void theJoinMailShowsTheCodeInOnePieceInBothLanguages() {
+        Map<String, Object> variables = new HashMap<>(eventVariables());
+        variables.remove("when");
+        variables.put("returnCode", "0427");
+        variables.put("displayName", "Anna");
+
+        for (Locale locale : List.of(Locale.of("pl"), Locale.ENGLISH)) {
+            MailContent content = mailTemplateRenderer.render(MailTemplate.EVENT_MEMBER_JOINED, locale, variables);
+
+            assertThat(content.subject()).as("subject in %s", locale).isNotBlank().doesNotContain("??");
+            assertThat(content.body()).as("body in %s", locale)
+                    .startsWith("<!DOCTYPE html>")
+                    .contains(">0427<", "Anna", "Volleyball", EVENT_LINK)
+                    .doesNotContain("??");
+        }
     }
 
     @Test

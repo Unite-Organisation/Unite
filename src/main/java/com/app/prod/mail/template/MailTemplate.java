@@ -11,7 +11,8 @@ public enum MailTemplate {
     EVENT_GROUP_FORMED("mail/event-group-formed", "mail.event.group-formed.subject"),
     EVENT_GROUP_BROKE_UP("mail/event-group-broke-up", "mail.event.group-broke-up.subject"),
     EVENT_CONFIRMED("mail/event-confirmed", "mail.event.confirmed.subject"),
-    EVENT_REDUCED_TO_ONE_SLOT("mail/event-reduced-to-one-slot", "mail.event.reduced-to-one-slot.subject");
+    EVENT_REDUCED_TO_ONE_SLOT("mail/event-reduced-to-one-slot", "mail.event.reduced-to-one-slot.subject"),
+    EVENT_MEMBER_JOINED("mail/event-member-joined", "mail.event.member-joined.subject");
 
     private final String view;
     private final String subjectKey;

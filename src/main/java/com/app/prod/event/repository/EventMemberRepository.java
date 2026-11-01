@@ -130,6 +130,10 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                         .and(EVENT_SLOT_VOTE.SLOT_ID.eq(slotId)))));
     }
 
+    public List<MailRecipient> findMemberRecipient(UUID memberId) {
+        return recipients(EVENT_MEMBER.ID.eq(memberId));
+    }
+
     /** A Unite account is written to at its current address, a guest at the one they typed in. */
     private List<MailRecipient> recipients(Condition condition) {
         Field<String> email = DSL.coalesce(APP_USER.EMAIL, EVENT_MEMBER.EMAIL);

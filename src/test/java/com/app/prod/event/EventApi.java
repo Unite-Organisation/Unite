@@ -2,12 +2,14 @@ package com.app.prod.event;
 
 import com.app.prod.event.dto.AttendanceRequest;
 import com.app.prod.event.dto.CreateEventRequest;
+import com.app.prod.event.dto.DeviceFingerprint;
 import com.app.prod.event.dto.EventMemberIdsRequest;
 import com.app.prod.event.dto.OpenSessionRequest;
 import com.app.prod.event.dto.SlotRequest;
 import com.app.prod.event.dto.SlotVoteRequest;
 import com.app.prod.event.dto.UpdateEventRequest;
 import com.app.prod.event.dto.VotesRequest;
+import com.app.prod.event.enums.EventIdentityOrigin;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.event.enums.SchedulingMode;
 import com.app.prod.event.enums.SlotPreference;
@@ -124,6 +126,14 @@ class EventApi {
     /** Opening the event without saying anything yet - all a newcomer can do while waiting for approval. */
     Person askToJoin(Event event, String name) {
         MvcResult result = unchecked(() -> perform(path(event, "/session"), new OpenSessionRequest(name, emailOf(name), null, null, null))
+                .andExpect(status().isCreated())
+                .andReturn());
+        return new Person(name, cookieOf(result), text(read(result), "returnCode"));
+    }
+
+    /** Signing up from a particular phone - the device id is what the browser keeps in localStorage. */
+    Person signUpOn(Event event, String name, String deviceId) {
+        MvcResult result = unchecked(() -> perform(path(event, "/session"), new OpenSessionRequest(name, emailOf(name), null, device(deviceId), null))
                 .andExpect(status().isCreated())
                 .andReturn());
         return new Person(name, cookieOf(result), text(read(result), "returnCode"));
@@ -296,6 +306,26 @@ class EventApi {
             ids.add(UUID.fromString(found.get("id").asText()));
         }
         return ids;
+    }
+
+    /** The "who are you?" list on the login screen, as the given phone sees it - most likely first. */
+    List<String> pickerSeenFrom(Event event, String deviceId) {
+        JsonNode members = unchecked(() -> read(mvc.perform(get("/public/event/" + event.slug() + "/members")
+                        .param("origin", EventIdentityOrigin.GUEST.name())
+                        .param("sortedByCallerMembershipProbability", "true")
+                        .param("device.deviceId", deviceId))
+                .andExpect(status().isOk())
+                .andReturn()));
+
+        List<String> names = new ArrayList<>();
+        members.forEach(member -> names.add(member.get("displayName").asText()));
+        return names;
+    }
+
+    private static DeviceFingerprint device(String deviceId) {
+        DeviceFingerprint device = new DeviceFingerprint();
+        device.setDeviceId(deviceId);
+        return device;
     }
 
     private JsonNode members(Event event, String param, String value) {

@@ -16,6 +16,7 @@ public class MailProperties {
     private String from = "no-reply@unite.app";
     private String fromName = "Unite";
     private Locale locale = Locale.of("pl");
-    /** Where an event lives in the frontend; the slug is appended. */
-    private String eventLinkBaseUrl = "http://localhost:4204/e";
+    private String eventLinkBaseUrl = "http://localhost:4204/event";
+    /** Mails about public events, the return code included. Invitations do not depend on it. */
+    private boolean eventNotificationsEnabled = true;
 }

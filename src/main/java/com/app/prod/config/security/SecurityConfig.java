@@ -2,6 +2,7 @@ package com.app.prod.config.security;
 
 import com.app.prod.config.integration.ApiOrigins;
 import com.app.prod.config.security.jwt.JwtAuthFilter;
+import com.app.prod.config.security.ratelimit.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,6 +19,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,6 +36,7 @@ import static com.app.prod.config.Constants.BCRYPT_PASSWORD_ENCODER_STRENGTH;
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final JobTokenAuthFilter jobTokenAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
@@ -60,6 +63,7 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterAfter(rateLimitFilter, CorsFilter.class)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
@@ -90,6 +94,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterAfter(rateLimitFilter, CorsFilter.class)
                 .addFilterBefore(jobTokenAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

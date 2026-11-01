@@ -22,6 +22,8 @@ import com.app.prod.exceptions.exceptions.DataAlreadyExistsException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
 import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
+import com.app.prod.job.jobs.EventReturnCodeMailJob;
+import com.app.prod.job.scheduled.ScheduledJobService;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.EventMemberFilter;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +57,7 @@ public class EventMembershipService {
     private final ReturnCodes returnCodes;
     private final Clock clock;
     private final EventSlotVoteRepository eventSlotVoteRepository;
+    private final ScheduledJobService scheduledJobService;
 
     @Transactional(noRollbackFor = AuthenticationFailedException.class)
     public OpenedSession openSession(String slug, EventCaller caller, OpenSessionRequest request, DeviceSignals device) {
@@ -71,6 +74,10 @@ public class EventMembershipService {
                 .orElseGet(() -> openGuestSession(event.getId(), request, newcomer, now, device));
 
         applyVotesIfChoosingDate(event, opened, request, now);
+
+        if (opened.returnCode() != null) {
+            scheduledJobService.schedule(new EventReturnCodeMailJob(opened.memberId(), opened.returnCode()), now, null);
+        }
 
         log.info("{} event session for member of event {} ({})", opened.joined() ? "Joined with" : "Reopened", event.getId(), opened.member().origin());
         return opened;
