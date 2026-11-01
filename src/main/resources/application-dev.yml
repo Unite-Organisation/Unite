@@ -43,6 +43,7 @@ mail:
   from: notification@unitly.pl
   from-name: Unitly
   locale: pl
+  event-notifications-enabled: false
 
 event:
   share:

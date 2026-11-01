@@ -136,6 +136,11 @@ public class EventMailService {
 
     private void deliver(EmailDeliveryType type, MailTemplate template, UUID referenceId, EventRecord event,
                          List<MailRecipient> recipients, Map<String, Object> variables) {
+        if (!mailProperties.isEventNotificationsEnabled()) {
+            log.info("Event mails are turned off, skipping {} for {} members of event {}", type, recipients.size(), event.getId());
+            return;
+        }
+
         MailContent content = mailTemplateProcessor.render(template, new Object[]{event.getName()}, variables);
 
         log.info("Telling {} members of event {} about {}", recipients.size(), event.getId(), type);

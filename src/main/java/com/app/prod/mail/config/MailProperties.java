@@ -17,4 +17,6 @@ public class MailProperties {
     private String fromName = "Unite";
     private Locale locale = Locale.of("pl");
     private String eventLinkBaseUrl = "http://localhost:4204/event";
+    /** Mails about public events, the return code included. Invitations do not depend on it. */
+    private boolean eventNotificationsEnabled = true;
 }
