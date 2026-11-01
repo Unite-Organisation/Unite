@@ -6,6 +6,7 @@ import com.app.prod.config.MutableClock;
 import com.app.prod.event.EventApi.Event;
 import com.app.prod.event.EventApi.Person;
 import com.app.prod.event.EventMailNotificationsIT.RecordingMailSender;
+import com.app.prod.event.dto.CreateEventRequest;
 import com.app.prod.event.dto.OpenSessionRequest;
 import com.app.prod.job.scheduled.ScheduledJobDrainer;
 import com.app.prod.mail.MailMessage;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -77,6 +79,43 @@ class EventReturnCodeMailIT extends IntegrationTest {
         now = LocalDateTime.now(clock);
         api = new EventApi(mvc, objectMapper);
         event = api.createDatedEvent("Host", now.plusDays(7), null, false);
+
+        // the host's own code is a mail of its own, out of the way of what each test counts
+        scheduledJobDrainer.drainDue(now);
+        mailSender.clear();
+        dslContext.deleteFrom(EMAIL_DELIVERY).execute();
+    }
+
+    @Test
+    void aGuestWhoCreatesAnEventIsMailedTheirCodeByTheNextDrain() {
+        Event created = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
+
+        assertThat(mailSender.sent()).as("nothing runs after the response on Cloud Run").isEmpty();
+
+        scheduledJobDrainer.drainDue(now);
+
+        assertThat(mailSender.sent()).singleElement().satisfies(mail -> {
+            assertThat(mail.to()).isEqualTo(EventApi.emailOf("Kuba"));
+            assertThat(mail.subject()).startsWith("Twój PIN").contains("Barbecue");
+            assertThat(mail.body()).contains(">" + created.host().returnCode() + "<").contains("Kuba");
+        });
+        assertThat(deliveriesOf(EmailDeliveryStatus.SENT)).isEqualTo(1);
+    }
+
+    @Test
+    void aUniteAccountCreatingAnEventHasNoCodeToSend() throws Exception {
+        AppUserRecord user = users.getNewUser().withRandomValues().buildAndSave();
+        CreateEventRequest request = new CreateEventRequest("Barbecue", null, now.plusDays(7), null, null, null,
+                null, false, null, null, null, null, null, null, null, false);
+
+        mvc.perform(post("/public/event")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.generateTokenForUser(user, UserRole.RESIDENT))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+        scheduledJobDrainer.drainDue(now);
+
+        assertThat(mailSender.sent()).isEmpty();
     }
 
     @Test

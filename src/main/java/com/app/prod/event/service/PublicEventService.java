@@ -27,6 +27,8 @@ import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.EntityNotPresentException;
 import com.app.prod.exceptions.exceptions.UnauthorizedDataAccessException;
+import com.app.prod.job.jobs.EventReturnCodeMailJob;
+import com.app.prod.job.scheduled.ScheduledJobService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.sources.tables.records.EventMemberRecord;
@@ -62,6 +64,7 @@ public class PublicEventService {
     private final EventLifecycleService eventLifecycleService;
     private final EventSessionService eventSessionService;
     private final ReturnCodes returnCodes;
+    private final ScheduledJobService scheduledJobService;
     private final Clock clock;
 
     public EventResponse getEvent(String slug, Optional<EventScope> scope) {
@@ -142,6 +145,10 @@ public class PublicEventService {
         }
 
         String sessionToken = eventSessionService.open(host.getId(), now);
+
+        if (code != null) {
+            scheduledJobService.schedule(new EventReturnCodeMailJob(host.getId(), code.code()), now, null);
+        }
 
         log.info("Created {} event {} hosted by {}", request.mode(), eventId, caller.isGuest() ? "a guest" : "user " + host.getUserId());
         return new CreatedEvent(slug, code != null ? code.code() : null, sessionToken);

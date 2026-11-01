@@ -101,6 +101,7 @@ class PublicEventPollIT extends IntegrationTest {
         createPollEvent(3);
 
         LocalDateTime runAt = dslContext.select(SCHEDULED_JOB.RUN_AT).from(SCHEDULED_JOB)
+                .where(SCHEDULED_JOB.DEDUPE_KEY.like("event_voting_deadline:%"))
                 .fetchOne(SCHEDULED_JOB.RUN_AT);
 
         assertThat(runAt).isEqualTo(deadline);
