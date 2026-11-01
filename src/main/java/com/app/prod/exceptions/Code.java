@@ -70,6 +70,8 @@ public enum Code {
     INTERACTION_NOT_SUPPORTED("interaction_not_supported", "Interaction is not supported for this entity"),
     EVENT_MAX_ATTENDEES("event_max_attendees", "Reached limit of event attendees"),
 
+    RATE_LIMIT_EXCEEDED("rate_limit_exceeded", "Too many requests, slow down"),
+
     ACTIVATION_TOKEN_INVALID("activation_token_invalid", "Activation link is not valid"),
     ACTIVATION_TOKEN_EXPIRED("activation_token_expired", "Activation link has expired"),
     ACTIVATION_TOKEN_USED("activation_token_used", "Activation link has already been used"),

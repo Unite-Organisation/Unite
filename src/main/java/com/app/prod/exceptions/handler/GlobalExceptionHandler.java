@@ -7,6 +7,7 @@ import com.app.prod.exceptions.exceptions.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -57,6 +58,15 @@ public class GlobalExceptionHandler {
         log.info("Authentication failed. Exception content: {}", e.getMessage());
         ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.UNAUTHORIZED, e.getAppErrors(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiErrorResponse> handleException(TooManyRequestsException e, HttpServletRequest request){
+        log.info("Rate limit exceeded. {} {}", request.getMethod(), request.getRequestURI());
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.TOO_MANY_REQUESTS, e.getAppErrors(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()))
+                .body(errorResponse);
     }
 
     @ExceptionHandler(EmptyFileException.class)

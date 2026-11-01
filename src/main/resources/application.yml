@@ -20,6 +20,19 @@ server:
 security:
   enabled: true
 
+rate-limit:
+  enabled: true
+  trusted-proxies: 0
+  max-buckets: 50000
+  idle-ttl: 10m
+  policies:
+    event-session: { capacity: 10, refill: 10, period: 1m }
+    event-create:  { capacity: 5,  refill: 5,  period: 1m }
+    share:         { capacity: 20, refill: 20, period: 1m }
+    public-read:   { capacity: 60, refill: 60, period: 1m }
+    auth:          { capacity: 10, refill: 10, period: 1m }
+    default:       { capacity: 120, refill: 120, period: 1m }
+
 storage:
   upload-url-ttl: 15m
   download-url-ttl: 15m

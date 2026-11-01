@@ -26,6 +26,7 @@ BUILDING_NOT_FOUND("building_not_found", "Building not found"),
 | `UnauthorizedDataAccessException`  | 403    |
 | `EntityNotPresentException`        | 404    |
 | `DataAlreadyExistsException`       | 409    |
+| `TooManyRequestsException`         | 429    |
 | `FileNotFoundException`            | 500    |
 | `IllegalApplicationStateException` | 500    |
 | `InternalConnectionException`      | 500    |

@@ -1,3 +1,6 @@
+rate-limit:
+  trusted-proxies: 1
+
 spring:
   datasource:
     url: ${DB_URL}
