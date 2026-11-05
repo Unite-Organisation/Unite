@@ -116,6 +116,23 @@ class PublicEventPollIT extends IntegrationTest {
     }
 
     @Test
+    void shouldRejectAnEventWithMoreSpotsThanAGroupCanHave() throws Exception {
+        CreateEventRequest request = new CreateEventRequest("Barbecue", null, now.plusDays(7), null, null, null,
+                CreateEventRequest.MAX_ATTENDEES + 1, false, "Kuba", "kuba@test.local", null, null, null, null, null, false);
+
+        mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectAThresholdNoGroupCouldReach() throws Exception {
+        CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
+                null, false, "Kuba", "kuba@test.local", null, SchedulingMode.POLL,
+                CreateEventRequest.MAX_ATTENDEES + 1, deadline, fourDates, false);
+
+        mvc.perform(json(post("/public/event"), request)).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldRequireAnEmailFromAGuestCreatingAnEvent() throws Exception {
         CreateEventRequest request = new CreateEventRequest("Volleyball", null, null, null, null, null,
                 null, false, "Kuba", null, null, SchedulingMode.POLL, 3, deadline, fourDates, false);
