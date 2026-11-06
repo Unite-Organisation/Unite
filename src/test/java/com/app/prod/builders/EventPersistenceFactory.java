@@ -91,6 +91,16 @@ public class EventPersistenceFactory {
             return this;
         }
 
+        public EventBuilder endDateTime(LocalDateTime endDateTime) {
+            instance.setEndDateTime(endDateTime);
+            return this;
+        }
+
+        public EventBuilder createdAt(LocalDateTime createdAt) {
+            instance.setCreatedAt(createdAt);
+            return this;
+        }
+
         /** A dated event - what every event was before slots existed. */
         public EventBuilder fixed() {
             withDefaults();
