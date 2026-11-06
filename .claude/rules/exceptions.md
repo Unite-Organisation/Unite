@@ -60,6 +60,15 @@ throw new EntityNotPresentException(AppError.of(Code.BUILDING_NOT_FOUND));
 throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, String.format("%s is after %s", startTime, endTime)));
 ```
 
+When the error is about a specific request input, use `AppError.ofField(code, field, message)`. `field` is the
+JSON key the client sent, or a path like `slots[1].startDate`. The frontend uses it to highlight that input.
+When a rule involves several inputs, throw one `AppError` per input.
+```java
+throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "minAttendees", "Threshold is above the limit"));
+```
+Bean validation errors (`@Size`, `@Max`, ...) get `field`, `constraint` and `params` (e.g. `{"max": 256}`)
+automatically in `GlobalExceptionHandler`.
+
 Throw from the service layer. Controllers do not catch `AppException` and do not build
 error responses on their own - that is the job of `GlobalExceptionHandler`.
 

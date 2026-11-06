@@ -1,5 +1,6 @@
 package com.app.prod.event.repository;
 
+import com.app.prod.event.dto.CreateEventRequest;
 import com.app.prod.event.dto.EventMemberRow;
 import com.app.prod.event.dto.SlotVoterResponse;
 import com.app.prod.event.enums.SlotPreference;
@@ -33,7 +34,7 @@ import static org.jooq.sources.Tables.EVENT_SLOT_VOTE;
 @Repository
 public class EventMemberRepository extends BaseJooqRepository<EventMember, EventMemberRecord, UUID> {
 
-    private static final int MAX_MEMBERS = 1000;
+    private static final int MAX_MEMBERS = CreateEventRequest.MAX_ATTENDEES;
 
     protected EventMemberRepository(DSLContext dsl) {
         super(dsl, EVENT_MEMBER, EVENT_MEMBER.ID);

@@ -121,7 +121,7 @@ public class EventMembershipService {
                 .map(OpenSessionRequest::displayName)
                 .map(String::trim)
                 .filter(name -> !name.isEmpty())
-                .orElseThrow(() -> new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "displayName is required without an account")));
+                .orElseThrow(() -> new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "displayName", "displayName is required without an account")));
 
         Optional<EventMemberRecord> existing = eventMemberRepository.findGuestByNameForUpdate(eventId, displayName);
         if (existing.isPresent()) {
@@ -136,7 +136,7 @@ public class EventMembershipService {
         String email = Optional.ofNullable(request.email())
                 .map(String::trim)
                 .filter(address -> !address.isEmpty())
-                .orElseThrow(() -> new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "email is required the first time a guest joins")));
+                .orElseThrow(() -> new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "email", "email is required the first time a guest joins")));
 
         ReturnCodes.IssuedCode code = returnCodes.issue();
         EventMemberRecord member = EventMapper.guestMember(eventId, displayName, email, code.hash(), EventMemberRole.MEMBER, newcomer, now);
@@ -190,7 +190,7 @@ public class EventMembershipService {
     @Transactional
     public EventMemberStatus changeAttendance(EventScope scope, EventMemberStatus requested) {
         if (requested != EventMemberStatus.GOING && requested != EventMemberStatus.NOT_GOING) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, String.format("Attendance can be %s or %s", EventMemberStatus.GOING, EventMemberStatus.NOT_GOING)));
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "status", String.format("Attendance can be %s or %s", EventMemberStatus.GOING, EventMemberStatus.NOT_GOING)));
         }
 
         EventRecord event = eventRepository.findForUpdate(scope.eventId())

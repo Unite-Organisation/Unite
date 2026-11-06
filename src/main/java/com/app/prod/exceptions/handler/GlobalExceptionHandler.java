@@ -4,19 +4,26 @@ import com.app.prod.exceptions.ApiErrorResponse;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
 import com.app.prod.exceptions.exceptions.*;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 @RestControllerAdvice
 @Slf4j
@@ -123,11 +130,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleException(MethodArgumentNotValidException e, HttpServletRequest request){
         List<AppError> errors = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> AppError.of(Code.VALIDATION_ERROR, error.getField()))
+                .map(GlobalExceptionHandler::toAppError)
                 .toList();
 
         log.info("Request body failed validation: {}", errors);
         ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.BAD_REQUEST, errors, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleException(HttpMessageNotReadableException e, HttpServletRequest request){
+        AppError error = e.getCause() instanceof JsonMappingException mapping && !mapping.getPath().isEmpty()
+                ? AppError.ofField(Code.VALIDATION_ERROR, jsonPath(mapping.getPath()), INVALID_VALUE)
+                : AppError.of(Code.VALIDATION_ERROR, "Request body is not readable");
+
+        log.info("Request body could not be read: {}. Exception content: {}", error, e.getMessage());
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.BAD_REQUEST, error, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -136,6 +154,52 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception, returning status code 500. Exception content: {}", e.getMessage());
         ApiErrorResponse errorResponse = ApiErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, AppError.of(Code.UNKNOWN_ERROR), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    // -------------------------------------------------------
+    // Validation details
+
+    private static final String INVALID_VALUE = "Invalid value";
+    private static final Set<String> CONSTRAINT_INTERNALS = Set.of("message", "groups", "payload");
+
+    private static AppError toAppError(FieldError error) {
+        if (error.isBindingFailure()) {
+            return AppError.ofConstraint(Code.VALIDATION_ERROR, error.getField(), INVALID_VALUE, "typeMismatch", null);
+        }
+
+        return AppError.ofConstraint(Code.VALIDATION_ERROR, error.getField(), error.getDefaultMessage(),
+                error.getCode(), constraintParams(error));
+    }
+
+    private static Map<String, Object> constraintParams(FieldError error) {
+        if (!error.contains(ConstraintViolation.class)) {
+            return null;
+        }
+
+        ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
+        Map<String, Object> params = new TreeMap<>();
+        violation.getConstraintDescriptor().getAttributes()
+                .forEach((name, value) -> {
+                    if (!CONSTRAINT_INTERNALS.contains(name)) {
+                        params.put(name, value);
+                    }
+                });
+        return params;
+    }
+
+    private static String jsonPath(List<JsonMappingException.Reference> path) {
+        StringBuilder field = new StringBuilder();
+        for (JsonMappingException.Reference reference : path) {
+            if (reference.getFieldName() != null) {
+                if (!field.isEmpty()) {
+                    field.append('.');
+                }
+                field.append(reference.getFieldName());
+            } else if (reference.getIndex() >= 0) {
+                field.append('[').append(reference.getIndex()).append(']');
+            }
+        }
+        return field.toString();
     }
 
 }
