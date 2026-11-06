@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +169,7 @@ public class PublicEventService {
 
         if (request.name() != null) {
             if (request.name().isBlank()) {
-                throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "An event cannot be left without a name"));
+                throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "name", "An event cannot be left without a name"));
             }
             event.setName(request.name());
         }
@@ -227,15 +228,17 @@ public class PublicEventService {
 
     private static void validate(CreateEventRequest request, EventCaller caller, LocalDateTime now) {
         if (caller.isGuest() && (request.displayName() == null || request.displayName().isBlank())) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "displayName is required when creating an event without an account"));
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "displayName",
+                    "displayName is required when creating an event without an account"));
         }
 
         if (caller.isGuest() && (request.email() == null || request.email().isBlank())) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "email is required when creating an event without an account"));
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "email",
+                    "email is required when creating an event without an account"));
         }
 
         if (request.waitlistEnabled() && request.maxAttendees() == null) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "waitlist requires maxAttendees"));
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "maxAttendees", "waitlist requires maxAttendees"));
         }
 
         if (request.mode() == SchedulingMode.POLL) {
@@ -246,34 +249,58 @@ public class PublicEventService {
     }
 
     private static void validateDated(CreateEventRequest request) {
-        if (!request.slotsOrEmpty().isEmpty() || request.votingDeadline() != null || request.minAttendees() != null) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR,
-                    "An event with a date does not propose dates, a deadline or a threshold"));
+        List<String> pollOnly = new ArrayList<>();
+        if (!request.slotsOrEmpty().isEmpty()) {
+            pollOnly.add("slots");
+        }
+        if (request.votingDeadline() != null) {
+            pollOnly.add("votingDeadline");
+        }
+        if (request.minAttendees() != null) {
+            pollOnly.add("minAttendees");
+        }
+        if (!pollOnly.isEmpty()) {
+            throw new BadRequestException(errorsFor(Code.VALIDATION_ERROR,
+                    "An event with a date does not propose dates, a deadline or a threshold", pollOnly));
         }
 
         if (request.startDate() != null && request.endDate() != null && request.startDate().isAfter(request.endDate())) {
-            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD,
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, "endDate",
                     String.format("%s is after %s", request.startDate(), request.endDate())));
         }
     }
 
     private static void validateChoosingDate(CreateEventRequest request, LocalDateTime now) {
-        if (request.startDate() != null || request.endDate() != null) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR,
-                    "The date is what the group decides, so it cannot be given up front"));
+        List<String> dated = new ArrayList<>();
+        if (request.startDate() != null) {
+            dated.add("startDate");
+        }
+        if (request.endDate() != null) {
+            dated.add("endDate");
+        }
+        if (!dated.isEmpty()) {
+            throw new BadRequestException(errorsFor(Code.VALIDATION_ERROR,
+                    "The date is what the group decides, so it cannot be given up front", dated));
         }
 
-        if (request.minAttendees() == null || request.votingDeadline() == null) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR,
-                    "An event without a date needs a threshold and a deadline"));
+        List<String> missing = new ArrayList<>();
+        if (request.minAttendees() == null) {
+            missing.add("minAttendees");
+        }
+        if (request.votingDeadline() == null) {
+            missing.add("votingDeadline");
+        }
+        if (!missing.isEmpty()) {
+            throw new BadRequestException(errorsFor(Code.VALIDATION_ERROR,
+                    "An event without a date needs a threshold and a deadline", missing));
         }
 
         if (!request.votingDeadline().isAfter(now)) {
-            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, "The deadline has already passed"));
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, "votingDeadline", "The deadline has already passed"));
         }
 
         if (request.maxAttendees() != null && request.minAttendees() > request.maxAttendees()) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR,
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "minAttendees",
                     "A group that cannot reach its own threshold would collect answers for nothing"));
         }
 
@@ -283,25 +310,35 @@ public class PublicEventService {
     private static void validateSlots(CreateEventRequest request) {
         List<SlotRequest> slots = request.slotsOrEmpty();
         if (slots.size() < MIN_SLOTS || slots.size() > MAX_SLOTS) {
-            throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR,
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "slots",
                     String.format("Propose between %s and %s dates", MIN_SLOTS, MAX_SLOTS)));
         }
 
         Set<LocalDateTime> starts = new HashSet<>();
-        for (SlotRequest slot : slots) {
+        for (int i = 0; i < slots.size(); i++) {
+            SlotRequest slot = slots.get(i);
+            String path = String.format("slots[%d].", i);
+
             if (!starts.add(slot.startDate())) {
-                throw new BadRequestException(AppError.of(Code.VALIDATION_ERROR, "The same date was proposed twice"));
+                throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, path + "startDate", "The same date was proposed twice"));
             }
 
             if (slot.endDate() != null && slot.startDate().isAfter(slot.endDate())) {
-                throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD,
+                throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, path + "endDate",
                         String.format("%s is after %s", slot.startDate(), slot.endDate())));
             }
 
             if (!slot.startDate().isAfter(request.votingDeadline())) {
-                throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD,
+                throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, path + "startDate",
                         "A proposed date cannot fall before the deadline for choosing it"));
             }
         }
+    }
+
+    /** one error per input, so every input that has to change gets highlighted, not only the first */
+    private static AppError[] errorsFor(Code code, String message, List<String> fields) {
+        return fields.stream()
+                .map(field -> AppError.ofField(code, field, message))
+                .toArray(AppError[]::new);
     }
 }

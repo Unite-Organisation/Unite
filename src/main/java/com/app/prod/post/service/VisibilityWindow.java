@@ -19,7 +19,7 @@ final class VisibilityWindow {
 
         if (visibleFrom.isAfter(visibleTo)) {
             log.warn("Visible from: {} is after visible to: {}", visibleFrom, visibleTo);
-            throw new BadRequestException(AppError.of(Code.INVALID_TIME_PERIOD, String.format("%s is after %s", visibleFrom, visibleTo)));
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, "visibleTo", String.format("%s is after %s", visibleFrom, visibleTo)));
         }
     }
 
