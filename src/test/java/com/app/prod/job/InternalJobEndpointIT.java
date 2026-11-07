@@ -47,4 +47,18 @@ class InternalJobEndpointIT extends IntegrationTest {
                 .andExpect(jsonPath("$.succeeded").exists())
                 .andExpect(jsonPath("$.failed").exists());
     }
+
+    @Test
+    void shouldRejectCleaningWithoutAToken() throws Exception {
+        mvc.perform(post("/internal/jobs/clean-expired-entities").param("dryRun", "true"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldAcceptADryRunCleaningWithTheConfiguredToken() throws Exception {
+        mvc.perform(post("/internal/jobs/clean-expired-entities").param("dryRun", "true").header(HEADER, TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dryRun").value(true))
+                .andExpect(jsonPath("$.entityCleaningResults[?(@.entityName == 'event')]").exists());
+    }
 }

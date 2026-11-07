@@ -82,6 +82,11 @@ public class PostPersistenceFactory {
             return attachments(JSONB.valueOf(serialize(List.of(files))));
         }
 
+        public Builder eventId(UUID eventId) {
+            instance.setEventId(eventId);
+            return this;
+        }
+
         public Builder relatedDate(LocalDateTime relatedDate) {
             instance.setRelatedDate(relatedDate);
             return this;
