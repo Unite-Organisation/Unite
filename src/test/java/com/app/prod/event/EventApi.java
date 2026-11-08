@@ -188,7 +188,7 @@ class EventApi {
     // ---------------------------------------------------------------- hosting
 
     void requireApproval(Event event) {
-        unchecked(() -> tryUpdate(event, event.host(), new UpdateEventRequest(null, null, null, null, true))
+        unchecked(() -> tryUpdate(event, event.host(), new UpdateEventRequest(null, null, null, null, true, null, null))
                 .andExpect(status().isOk()));
     }
 

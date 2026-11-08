@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 public class PublicEventService {
 
     private static final int MIN_SLOTS = 2;
-    private static final int MAX_SLOTS = 6;
+    private static final int MAX_SLOTS = 8;
 
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
@@ -124,7 +124,7 @@ public class PublicEventService {
         List<EventSlotRecord> slots = request.slotsOrEmpty().stream()
                 .map(slot -> EventMapper.slot(eventId, slot, now))
                 .toList();
-        slots.forEach(eventSlotRepository::insertOne);
+        eventSlotRepository.insertMany(slots);
 
         ReturnCodes.IssuedCode code = caller.isGuest() ? returnCodes.issue() : null;
         EventMemberRecord host = caller.uniteUser()
@@ -188,9 +188,55 @@ public class PublicEventService {
             }
             event.setRequiresApproval(request.requiresApproval());
         }
+        LocalDateTime now = LocalDateTime.now(clock);
+        if (request.votingDeadline() != null) {
+            eventLifecycleService.moveVotingDeadline(event, request.votingDeadline(), now);
+        }
+        boolean slotsAdded = addSlots(event, scope.memberId(), request.addSlotsOrEmpty(), now);
 
         eventRepository.update(event);
         log.info("Host of event {} updated it, newcomers need approval: {}", event.getId(), event.getRequiresApproval());
+
+        if (slotsAdded) {
+            eventLifecycleService.recheckGroup(event.getId(), now);
+        }
+    }
+
+    private boolean addSlots(EventRecord event, UUID hostMemberId, List<SlotRequest> added, LocalDateTime now) {
+        if (added.isEmpty()) {
+            return false;
+        }
+        eventLifecycleService.requireVotingOpenForChanges(event, now, "addSlots");
+
+        List<EventSlotRecord> existing = eventSlotRepository.findByEvent(event.getId());
+        if (existing.size() + added.size() > MAX_SLOTS) {
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "addSlots",
+                    String.format("An event proposes at most %s dates, %s are already there", MAX_SLOTS, existing.size())));
+        }
+
+        Set<LocalDateTime> starts = existing.stream()
+                .map(EventSlotRecord::getStartDateTime)
+                .collect(Collectors.toCollection(HashSet::new));
+        for (int i = 0; i < added.size(); i++) {
+            validateSlot(added.get(i), String.format("addSlots[%d].", i), event.getVotingDeadline(), starts);
+        }
+
+        List<EventSlotRecord> slots = added.stream()
+                .map(slot -> EventMapper.slot(event.getId(), slot, now))
+                .toList();
+        eventSlotRepository.insertMany(slots);
+
+        // added, not replaced: the host's votes on the dates already there keep their place in the queue for seats
+        eventSlotVoteRepository.addForMember(
+                hostMemberId,
+                slots.stream()
+                        .map(slot -> new SlotVote(slot.getId(), SlotPreference.PREFERRED))
+                        .toList(),
+                now
+        );
+
+        log.info("Host of event {} added {} date(s) to the vote", event.getId(), slots.size());
+        return true;
     }
 
     private static String blankToNull(String value) {
@@ -316,22 +362,23 @@ public class PublicEventService {
 
         Set<LocalDateTime> starts = new HashSet<>();
         for (int i = 0; i < slots.size(); i++) {
-            SlotRequest slot = slots.get(i);
-            String path = String.format("slots[%d].", i);
+            validateSlot(slots.get(i), String.format("slots[%d].", i), request.votingDeadline(), starts);
+        }
+    }
 
-            if (!starts.add(slot.startDate())) {
-                throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, path + "startDate", "The same date was proposed twice"));
-            }
+    private static void validateSlot(SlotRequest slot, String path, LocalDateTime votingDeadline, Set<LocalDateTime> starts) {
+        if (!starts.add(slot.startDate())) {
+            throw new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, path + "startDate", "The same date was proposed twice"));
+        }
 
-            if (slot.endDate() != null && slot.startDate().isAfter(slot.endDate())) {
-                throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, path + "endDate",
-                        String.format("%s is after %s", slot.startDate(), slot.endDate())));
-            }
+        if (slot.endDate() != null && slot.startDate().isAfter(slot.endDate())) {
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, path + "endDate",
+                    String.format("%s is after %s", slot.startDate(), slot.endDate())));
+        }
 
-            if (!slot.startDate().isAfter(request.votingDeadline())) {
-                throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, path + "startDate",
-                        "A proposed date cannot fall before the deadline for choosing it"));
-            }
+        if (!slot.startDate().isAfter(votingDeadline)) {
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, path + "startDate",
+                    "A proposed date cannot fall before the deadline for choosing it"));
         }
     }
 

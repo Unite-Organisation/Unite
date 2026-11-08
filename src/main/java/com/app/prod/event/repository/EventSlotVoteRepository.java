@@ -37,6 +37,11 @@ public class EventSlotVoteRepository extends BaseJooqRepository<EventSlotVote, E
                 .where(EVENT_SLOT_VOTE.MEMBER_ID.eq(memberId))
                 .execute();
 
+        addForMember(memberId, votes, now);
+    }
+
+
+    public void addForMember(UUID memberId, Collection<SlotVote> votes, LocalDateTime now) {
         if (votes.isEmpty()) {
             return;
         }

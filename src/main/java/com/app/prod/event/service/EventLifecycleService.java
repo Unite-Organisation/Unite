@@ -35,6 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EventLifecycleService {
     static final Duration WALK_OUT_WINDOW = Duration.ofHours(1);
+    static final Duration DEADLINE_CHANGE_MARGIN = Duration.ofMinutes(5);
 
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
@@ -43,6 +44,41 @@ public class EventLifecycleService {
 
     public void scheduleDeadlineCheck(UUID eventId, LocalDateTime votingDeadline) {
         scheduledJobService.schedule(new EventDeadlineJob(eventId), votingDeadline, votingDeadlineJobKey(eventId));
+    }
+
+    public void moveVotingDeadline(EventRecord event, LocalDateTime votingDeadline, LocalDateTime now) {
+        if (votingDeadline.equals(event.getVotingDeadline())) {
+            return;
+        }
+        requireVotingOpenForChanges(event, now, "votingDeadline");
+        if (votingDeadline.isBefore(now.plus(DEADLINE_CHANGE_MARGIN))) {
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, "votingDeadline",
+                    String.format("The new deadline has to be at least %d minutes from now", DEADLINE_CHANGE_MARGIN.toMinutes())));
+        }
+        boolean beforeEveryDate = eventSlotRepository.findByEvent(event.getId()).stream()
+                .allMatch(slot -> slot.getStartDateTime().isAfter(votingDeadline));
+        if (!beforeEveryDate) {
+            throw new BadRequestException(AppError.ofField(Code.INVALID_TIME_PERIOD, "votingDeadline",
+                    "A proposed date cannot fall before the deadline for choosing it"));
+        }
+
+        LocalDateTime previous = event.getVotingDeadline();
+        event.setVotingDeadline(votingDeadline);
+        scheduleDeadlineCheck(event.getId(), votingDeadline);
+        log.info("Host of event {} moved the voting deadline from {} to {}", event.getId(), previous, votingDeadline);
+    }
+
+    public void requireVotingOpenForChanges(EventRecord event, LocalDateTime now, String field) {
+        if (hasFixedDate(event)) {
+            throw new BadRequestException(AppError.ofField(Code.EVENT_MODE_MISMATCH, field, "An event with a date has no vote to change"));
+        }
+        if (EventStatus.valueOf(event.getStatus()) != EventStatus.COLLECTING_VOTES) {
+            throw new BadRequestException(AppError.ofField(Code.EVENT_DEADLINE_LOCKED, field, "The group is no longer voting"));
+        }
+        if (event.getVotingDeadline().isBefore(now.plus(DEADLINE_CHANGE_MARGIN))) {
+            throw new BadRequestException(AppError.ofField(Code.EVENT_DEADLINE_LOCKED, field,
+                    String.format("The vote cannot be changed later than %d minutes before the deadline", DEADLINE_CHANGE_MARGIN.toMinutes())));
+        }
     }
 
     @Transactional

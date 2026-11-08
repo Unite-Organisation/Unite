@@ -116,7 +116,8 @@ public class PublicEventRestApi {
     @PatchMapping("/{slug}")
     @CookieSession(
             value = CookieSession.Mode.REQUIRED,
-            note =  "Host only: fields left out stay as they are, requiresApproval can only be switched on"
+            note =  "Host only: fields left out stay as they are, requiresApproval can only be switched on, " +
+                    "votingDeadline and addSlots only while voting and not within 5 minutes of the deadline"
     )
     public EventResponse updateEvent(@PathVariable String slug, EventScope scope, @Valid @RequestBody UpdateEventRequest request) {
         publicEventService.updateEvent(scope, request);

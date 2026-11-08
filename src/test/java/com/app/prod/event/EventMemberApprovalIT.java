@@ -189,7 +189,7 @@ class EventMemberApprovalIT extends IntegrationTest {
 
         api.tryRemove(event, anna, host).andExpect(status().isForbidden());
         api.tryApprove(event, anna, api.idsOf(event, "Anna")).andExpect(status().isForbidden());
-        api.tryUpdate(event, anna, new UpdateEventRequest("Mine now", null, null, null, null)).andExpect(status().isForbidden());
+        api.tryUpdate(event, anna, new UpdateEventRequest("Mine now", null, null, null, null, null, null)).andExpect(status().isForbidden());
 
         api.tryRemove(event, event.host(), host)
                 .andExpect(status().isBadRequest())
@@ -202,7 +202,7 @@ class EventMemberApprovalIT extends IntegrationTest {
         Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
         api.requireApproval(event);
 
-        api.tryUpdate(event, event.host(), new UpdateEventRequest(null, null, null, null, false))
+        api.tryUpdate(event, event.host(), new UpdateEventRequest(null, null, null, null, false, null, null))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].code").value("EVENT_APPROVAL_CANNOT_BE_DISABLED"));
         assertThat(api.event(event).get("requiresApproval").asBoolean()).isTrue();
@@ -212,11 +212,11 @@ class EventMemberApprovalIT extends IntegrationTest {
     void theHostEditsWhatTheEventSays() throws Exception {
         Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
 
-        api.tryUpdate(event, event.host(), new UpdateEventRequest("Grill nad Wisłą", "Bring sausages", "Bulwary", null, null))
+        api.tryUpdate(event, event.host(), new UpdateEventRequest("Grill nad Wisłą", "Bring sausages", "Bulwary", null, null, null, null))
                 .andExpect(status().isOk());
-        api.tryUpdate(event, event.host(), new UpdateEventRequest(null, "", null, null, null))
+        api.tryUpdate(event, event.host(), new UpdateEventRequest(null, "", null, null, null, null, null))
                 .andExpect(status().isOk());
-        api.tryUpdate(event, event.host(), new UpdateEventRequest(" ", null, null, null, null))
+        api.tryUpdate(event, event.host(), new UpdateEventRequest(" ", null, null, null, null, null, null))
                 .andExpect(status().isBadRequest());
 
         JsonNode seen = api.event(event);

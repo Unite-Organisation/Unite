@@ -25,6 +25,7 @@ public enum Code {
     EVENT_APPROVAL_OUT_OF_ORDER("event_approval_out_of_order", "Members are approved in the order they asked to join"),
     EVENT_APPROVAL_CANNOT_BE_DISABLED("event_approval_cannot_be_disabled", "Once newcomers need approval, they always do"),
     EVENT_HOST_CANNOT_BE_REMOVED("event_host_cannot_be_removed", "The host cannot be removed from their own event"),
+    EVENT_DEADLINE_LOCKED("event_deadline_locked", "The voting deadline can no longer be changed"),
     AREA_NOT_FOUND("area_not_found", "Area not found"),
     FACILITY_NOT_FOUND("facility_not_found", "Facility not found"),
     NOTIFICATION_NOT_FOUND("notification_not_found", "Notification not found"),
