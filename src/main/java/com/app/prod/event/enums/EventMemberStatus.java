@@ -6,5 +6,6 @@ public enum EventMemberStatus {
     GOING,
     WAITLIST,
     NOT_GOING,
-    NOT_AVAILABLE
+    NOT_AVAILABLE,
+    BANNED
 }

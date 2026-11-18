@@ -13,6 +13,7 @@ import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.user.mappers.UserMapper;
 import com.app.prod.user.repository.UserRepository;
+import com.app.prod.utils.Emails;
 import com.app.prod.utils.filters.BuildingUserFilter;
 import com.app.prod.utils.validators.Validate;
 import lombok.RequiredArgsConstructor;
@@ -48,20 +49,21 @@ public class UserService {
     }
 
     public void register(UserRegisterRequest request) {
+        String email = Emails.normalize(request.email());
         validate.thatUsernameIsFree(request.username());
-        validate.thatEmailIsFree(request.email());
+        validate.thatEmailIsFree(email);
         LocalDateTime now = LocalDateTime.now(clock);
         UUID id = UUID.randomUUID();
-        UUID selectedRoleId = userRoleService.getUserRoleId(request.role());
+        UUID selectedRoleId = userRoleService.getUserRoleId(UserRole.RESIDENT);
 
         String encodedPassword = encoder.encode(request.password());
-        userRepository.insertOne(UserMapper.fromRequestToRecord(request, id, now, selectedRoleId, encodedPassword));
+        userRepository.insertOne(UserMapper.fromRequestToRecord(request, email, id, now, selectedRoleId, encodedPassword));
 
         SyncUserJob job = new SyncUserJob(new UserDto(
                 id,
                 request.firstName(),
                 request.lastName(),
-                request.email(),
+                email,
                 request.username(),
                 encodedPassword,
                 selectedRoleId,

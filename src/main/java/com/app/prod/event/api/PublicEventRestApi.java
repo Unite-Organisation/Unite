@@ -137,7 +137,7 @@ public class PublicEventRestApi {
     @PostMapping("/{slug}/members/remove")
     @CookieSession(
             value = CookieSession.Mode.REQUIRED,
-            note =  "Host only: removes members, pending ones included. The link still works for them - see requiresApproval"
+            note =  "Host only: bans members, pending ones included. Their sessions end and the same name+code, account or email gets 403 event_member_banned"
     )
     public ResponseEntity<Void> removeMembers(EventScope scope, @Valid @RequestBody EventMemberIdsRequest request) {
         eventMembershipService.removeMembers(scope, request.memberIds());

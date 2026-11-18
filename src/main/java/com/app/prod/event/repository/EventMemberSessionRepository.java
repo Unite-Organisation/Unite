@@ -2,6 +2,7 @@ package com.app.prod.event.repository;
 
 import com.app.prod.event.dto.SessionMember;
 import com.app.prod.event.enums.EventMemberRole;
+import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.utils.BaseJooqRepository;
 import org.jooq.DSLContext;
 import org.jooq.sources.tables.EventMemberSession;
@@ -9,6 +10,7 @@ import org.jooq.sources.tables.records.EventMemberSessionRecord;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,6 +32,16 @@ public class EventMemberSessionRepository extends BaseJooqRepository<EventMember
                 .execute();
     }
 
+    /** Ends every session of these members, on every device. */
+    public int deleteByMemberIds(Collection<UUID> memberIds) {
+        if (memberIds.isEmpty()) {
+            return 0;
+        }
+        return dslContext.deleteFrom(EVENT_MEMBER_SESSION)
+                .where(EVENT_MEMBER_SESSION.MEMBER_ID.in(memberIds))
+                .execute();
+    }
+
     public Optional<SessionMember> findActiveMember(String tokenHash, String slug, LocalDateTime now) {
         return dslContext.select(
                         EVENT_MEMBER.EVENT_ID,
@@ -43,6 +55,7 @@ public class EventMemberSessionRepository extends BaseJooqRepository<EventMember
                 .where(EVENT_MEMBER_SESSION.TOKEN_HASH.eq(tokenHash))
                 .and(EVENT_MEMBER_SESSION.EXPIRES_AT.gt(now))
                 .and(EVENT.PUBLIC_SLUG.eq(slug))
+                .and(EVENT_MEMBER.STATUS.ne(EventMemberStatus.BANNED.name()))
                 .fetchOptional(record -> new SessionMember(
                         record.get(EVENT_MEMBER.EVENT_ID),
                         record.get(EVENT_MEMBER.ID),

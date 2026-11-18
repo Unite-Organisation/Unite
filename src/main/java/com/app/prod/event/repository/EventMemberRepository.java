@@ -8,6 +8,7 @@ import com.app.prod.event.enums.EventMemberRole;
 import com.app.prod.event.enums.EventMemberStatus;
 import com.app.prod.mail.dto.MailRecipient;
 import com.app.prod.utils.BaseJooqRepository;
+import com.app.prod.utils.Emails;
 import com.app.prod.utils.filters.EventMemberFilter;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -51,9 +52,20 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
         return dslContext.selectFrom(EVENT_MEMBER)
                 .where(EVENT_MEMBER.EVENT_ID.eq(eventId))
                 .and(EVENT_MEMBER.USER_ID.isNull())
+                .and(EVENT_MEMBER.STATUS.ne(EventMemberStatus.BANNED.name()))
                 .and(lower(EVENT_MEMBER.DISPLAY_NAME).eq(lower(displayName)))
                 .forUpdate()
                 .fetchOptional();
+    }
+
+    public List<String> findBannedGuestCodeHashes(UUID eventId, String displayName) {
+        return dslContext.select(EVENT_MEMBER.PIN_HASH)
+                .from(EVENT_MEMBER)
+                .where(EVENT_MEMBER.EVENT_ID.eq(eventId))
+                .and(EVENT_MEMBER.USER_ID.isNull())
+                .and(EVENT_MEMBER.STATUS.eq(EventMemberStatus.BANNED.name()))
+                .and(lower(EVENT_MEMBER.DISPLAY_NAME).eq(lower(displayName)))
+                .fetch(EVENT_MEMBER.PIN_HASH);
     }
 
     public Optional<EventMemberRecord> findFirstWaitlisted(UUID eventId) {
@@ -82,13 +94,11 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                 .fetch();
     }
 
-    public int deleteByIds(Collection<UUID> memberIds) {
-        if (memberIds.isEmpty()) {
-            return 0;
-        }
-        return dslContext.deleteFrom(EVENT_MEMBER)
-                .where(EVENT_MEMBER.ID.in(memberIds))
-                .execute();
+    public boolean existsBannedWithEmail(UUID eventId, String email) {
+        return dslContext.fetchExists(EVENT_MEMBER,
+                EVENT_MEMBER.EVENT_ID.eq(eventId)
+                        .and(EVENT_MEMBER.STATUS.eq(EventMemberStatus.BANNED.name()))
+                        .and(lower(EVENT_MEMBER.EMAIL).eq(Emails.normalize(email))));
     }
 
     public int countWithStatus(UUID eventId, EventMemberStatus status) {
@@ -143,6 +153,7 @@ public class EventMemberRepository extends BaseJooqRepository<EventMember, Event
                 .from(EVENT_MEMBER)
                 .leftJoin(APP_USER).on(APP_USER.ID.eq(EVENT_MEMBER.USER_ID))
                 .where(condition)
+                .and(EVENT_MEMBER.STATUS.ne(EventMemberStatus.BANNED.name()))
                 .and(email.isNotNull())
                 .orderBy(EVENT_MEMBER.ID)
                 .fetch(record -> new MailRecipient(record.get(EVENT_MEMBER.USER_ID), record.get(email)));

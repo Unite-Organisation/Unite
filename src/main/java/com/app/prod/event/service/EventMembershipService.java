@@ -105,6 +105,12 @@ public class EventMembershipService {
 
     private OpenedSession openUniteSession(UUID eventId, AppUserRecord user, EventMemberStatus newcomer, LocalDateTime now, DeviceSignals device) {
         Optional<EventMemberRecord> existing = eventMemberRepository.findUniteMember(eventId, user.getId());
+
+        existing.ifPresent(EventMembershipService::rejectIfBanned);
+        if (existing.isEmpty() && user.getEmail() != null && eventMemberRepository.existsBannedWithEmail(eventId, user.getEmail())) {
+            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_MEMBER_BANNED));
+        }
+
         EventMemberRecord member = existing.orElseGet(() -> {
             EventMemberRecord created = EventMapper.uniteMember(eventId, user, EventMemberRole.MEMBER, newcomer, now);
             eventMemberRepository.insertOne(created);
@@ -133,10 +139,20 @@ public class EventMembershipService {
             return new OpenedSession(false, member.getId(), EventMapper.toResponse(member), null, sessionToken);
         }
 
+        // a code means "I have been here before" - with no one under that name, the name is what is wrong, not a missing email
+        if (request.returnCode() != null) {
+            rejectIfBannedUnderName(eventId, displayName, request.returnCode());
+            throw new EntityNotPresentException(AppError.ofField(Code.EVENT_MEMBER_NOT_FOUND, "displayName", "Nobody joined this event under this name"));
+        }
+
         String email = Optional.ofNullable(request.email())
                 .map(String::trim)
                 .filter(address -> !address.isEmpty())
                 .orElseThrow(() -> new BadRequestException(AppError.ofField(Code.VALIDATION_ERROR, "email", "email is required the first time a guest joins")));
+
+        if (eventMemberRepository.existsBannedWithEmail(eventId, email)) {
+            throw new UnauthorizedDataAccessException(AppError.ofField(Code.EVENT_MEMBER_BANNED, "email", "The host removed this person from the event"));
+        }
 
         ReturnCodes.IssuedCode code = returnCodes.issue();
         EventMemberRecord member = EventMapper.guestMember(eventId, displayName, email, code.hash(), EventMemberRole.MEMBER, newcomer, now);
@@ -145,6 +161,20 @@ public class EventMembershipService {
 
         String sessionToken = eventSessionService.open(member.getId(), now);
         return new OpenedSession(true, member.getId(), EventMapper.toResponse(member), code.code(), sessionToken);
+    }
+
+    private static void rejectIfBanned(EventMemberRecord member) {
+        if (EventMemberStatus.valueOf(member.getStatus()) == EventMemberStatus.BANNED) {
+            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_MEMBER_BANNED));
+        }
+    }
+
+    private void rejectIfBannedUnderName(UUID eventId, String displayName, String returnCode) {
+        boolean banned = eventMemberRepository.findBannedGuestCodeHashes(eventId, displayName).stream()
+                .anyMatch(hash -> returnCodes.matches(returnCode, hash));
+        if (banned) {
+            throw new UnauthorizedDataAccessException(AppError.of(Code.EVENT_MEMBER_BANNED));
+        }
     }
 
     /** Members who joined before there was an email to give get to add it the next time they come back. */
@@ -167,6 +197,7 @@ public class EventMembershipService {
         }
 
         if (!returnCodes.matches(returnCode, member.getPinHash())) {
+            rejectIfBannedUnderName(member.getEventId(), member.getDisplayName(), returnCode);
             int failedAttempts = member.getFailedAttempts() + 1;
             if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
                 member.setFailedAttempts(0);
@@ -296,7 +327,10 @@ public class EventMembershipService {
         long freedSeats = members.stream()
                 .filter(member -> EventMemberStatus.valueOf(member.getStatus()) == EventMemberStatus.GOING)
                 .count();
-        eventMemberRepository.deleteByIds(requested);
+
+        eventMemberRepository.setStatus(requested, EventMemberStatus.BANNED, now);
+        eventSessionService.closeAll(requested);
+        requested.forEach(memberId -> eventSlotVoteRepository.replaceForMember(memberId, Collections.emptyList(), now));
 
         if (isChoosingDate(event)) {
             eventLifecycleService.recheckGroup(event.getId(), now);

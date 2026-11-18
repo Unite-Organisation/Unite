@@ -35,12 +35,12 @@ public class UserMapper {
         return response;
     }
 
-    public static AppUserRecord fromRequestToRecord(UserRegisterRequest request, UUID id, LocalDateTime now, UUID selectedRole, String encodedPassword){
+    public static AppUserRecord fromRequestToRecord(UserRegisterRequest request, String email, UUID id, LocalDateTime now, UUID selectedRole, String encodedPassword){
         return new AppUserRecord(
                 id,
                 request.firstName(),
                 request.lastName(),
-                request.email(),
+                email,
                 request.username(),
                 encodedPassword,
                 selectedRole,
