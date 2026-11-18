@@ -139,6 +139,22 @@ class EventApi {
         return new Person(name, cookieOf(result), text(read(result), "returnCode"));
     }
 
+    /** Joining for the first time under a name and an address of one's own choosing. */
+    ResultActions tryJoinWithEmail(Event event, String name, String email) {
+        return perform(post(path(event, "/session")), new OpenSessionRequest(name, email, null, null, null), null, null);
+    }
+
+    Person joinWithEmail(Event event, String name, String email) {
+        MvcResult result = unchecked(() -> tryJoinWithEmail(event, name, email)
+                .andExpect(status().isCreated())
+                .andReturn());
+        return new Person(name, cookieOf(result), text(read(result), "returnCode"));
+    }
+
+    ResultActions tryJoinAsUniteUser(Event event, String jwt) {
+        return perform(post(path(event, "/session")), new OpenSessionRequest(null, null, null, null, null), null, jwt);
+    }
+
     Person joinAsUniteUser(Event event, String jwt, SlotVoteRequest... choice) {
         MvcResult result = unchecked(() -> perform(post(path(event, "/session")),
                 new OpenSessionRequest(null, null, null, null, List.of(choice)), null, jwt)

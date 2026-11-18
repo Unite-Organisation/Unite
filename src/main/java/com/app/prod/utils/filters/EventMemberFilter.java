@@ -25,6 +25,7 @@ public class EventMemberFilter extends PredicateFilter {
     public List<Condition> combineConditions() {
         return Criteria.of(
                 Criteria.required(EVENT_MEMBER.EVENT_ID, eventId),
+                Criteria.always(EVENT_MEMBER.STATUS.ne(EventMemberStatus.BANNED.name())),
                 Criteria.matchEnum(EVENT_MEMBER.STATUS, status),
                 Criteria.matchEnum(EVENT_MEMBER.ROLE, role),
                 Criteria.when(origin, value -> value == EventIdentityOrigin.UNITE

@@ -27,7 +27,9 @@ import java.util.UUID;
 
 import static com.app.prod.event.EventApi.suits;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.jooq.sources.Tables.EVENT;
+import static org.jooq.sources.Tables.EVENT_MEMBER;
 import static org.jooq.sources.Tables.SCHEDULED_JOB;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,23 +86,119 @@ class EventMemberApprovalIT extends IntegrationTest {
         api.requireApproval(event);
         assertThat(api.event(event).get("requiresApproval").asBoolean()).isTrue();
 
-        Person trollAgain = askToJoin(event, "Troll");
+        // the troll's address is banned now, so they have to come back as someone else
+        Person trollAgain = askToJoin(event, "Troll Again");
         assertThat(api.eventSeenBy(event, trollAgain).get("me").get("status").asText())
                 .isEqualTo(EventMemberStatus.PENDING_APPROVAL.name());
         api.trySay(event, trollAgain, EventMemberStatus.GOING).andExpect(status().isForbidden());
         assertThat(api.namesWithStatus(event, EventMemberStatus.GOING)).containsExactlyInAnyOrder("Kuba", "Anna");
 
         Person bartek = askToJoin(event, "Bartek");
-        assertThat(api.awaitingApproval(event)).containsExactly("Troll", "Bartek");
+        assertThat(api.awaitingApproval(event)).containsExactly("Troll Again", "Bartek");
 
         // the troll is first in line, so the host has to deal with them before getting to Bartek
         api.tryApprove(event, event.host(), api.idsOf(event, "Bartek")).andExpect(status().isBadRequest());
-        api.remove(event, "Troll");
+        api.remove(event, "Troll Again");
         api.approve(event, "Bartek");
 
         assertThat(api.namesWithStatus(event, EventMemberStatus.GOING)).containsExactlyInAnyOrder("Kuba", "Anna", "Bartek");
         assertThat(api.awaitingApproval(event)).isEmpty();
         assertThat(api.eventSeenBy(event, bartek).get("me").get("status").asText()).isEqualTo(EventMemberStatus.GOING.name());
+    }
+
+    @Test
+    void someoneThrownOutIsToldSoWhenComingBackWithTheirCode() throws Exception {
+        Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
+        Person anna = api.signUp(event, "Anna");
+
+        api.remove(event, "Anna");
+
+        assertThat(api.namesWithStatus(event, EventMemberStatus.GOING)).containsExactly("Kuba");
+        assertThat(api.namesWithStatus(event, EventMemberStatus.BANNED))
+                .as("the members list is public, so it never shows who was thrown out")
+                .isEmpty();
+        assertThat(dslContext.fetchCount(EVENT_MEMBER, EVENT_MEMBER.DISPLAY_NAME.eq("Anna")
+                .and(EVENT_MEMBER.STATUS.eq(EventMemberStatus.BANNED.name()))))
+                .as("the row stays - it is what recognises Anna coming back")
+                .isEqualTo(1);
+
+        api.tryResumeWithCode(event, "Anna", anna.returnCode())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_BANNED"));
+
+        // without the right code the ban is not revealed - her name went free, so it reads like any name nobody uses
+        api.tryResumeWithCode(event, "Anna", wrongCode(anna.returnCode()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_NOT_FOUND"));
+    }
+
+    @Test
+    void someoneThrownOutCannotJoinAgainUnderANewName() throws Exception {
+        Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
+        api.signUp(event, "Anna");
+        api.remove(event, "Anna");
+
+        api.tryJoinWithEmail(event, "Ania", "ANNA@test.local")
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_BANNED"))
+                .andExpect(jsonPath("$.errors[0].field").value("email"));
+
+        api.tryJoinWithEmail(event, "Ania", "ania@test.local").andExpect(status().isCreated());
+    }
+
+    @Test
+    void someoneElseMayTakeTheNameOfAPersonThrownOut() throws Exception {
+        Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
+        Person anna = api.signUp(event, "Anna");
+        api.remove(event, "Anna");
+
+        Person newAnna = api.joinWithEmail(event, "anna", "another.anna@test.local");
+        assumeThat(newAnna.returnCode()).as("a shared code would make the two indistinguishable").isNotEqualTo(anna.returnCode());
+
+        // the old Anna's own code still tells her she was thrown out, and never counts against the new one
+        // more tries than the 5 wrong guesses that lock a member out
+        for (int attempt = 0; attempt < 6; attempt++) {
+            api.tryResumeWithCode(event, "Anna", anna.returnCode())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_BANNED"));
+        }
+
+        api.resumeWithCode(event, "Anna", newAnna.returnCode());
+        api.tryResumeWithCode(event, "Anna", wrongCode(newAnna.returnCode(), anna.returnCode()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_RETURN_CODE_INVALID"));
+    }
+
+    @Test
+    void aCodeForANameNobodyJoinedUnderPointsAtTheName() throws Exception {
+        Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false);
+
+        api.tryResumeWithCode(event, "Anna", "1234")
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_NOT_FOUND"))
+                .andExpect(jsonPath("$.errors[0].field").value("displayName"));
+    }
+
+    @Test
+    void throwingOutAWaitingPersonBansThemToo() throws Exception {
+        Event event = api.createDatedEvent("Kuba", now.plusDays(7), null, false, true);
+        Person troll = askToJoin(event, "Troll");
+
+        api.remove(event, "Troll");
+
+        assertThat(api.awaitingApproval(event)).isEmpty();
+        api.tryResumeWithCode(event, "Troll", troll.returnCode())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_BANNED"));
+    }
+
+    /** A code matching none of the given ones. */
+    private static String wrongCode(String... codes) {
+        List<String> taken = List.of(codes);
+        return java.util.stream.Stream.of("0000", "1111", "2222")
+                .filter(candidate -> !taken.contains(candidate))
+                .findFirst()
+                .orElseThrow();
     }
 
     @Test

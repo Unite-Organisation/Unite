@@ -15,6 +15,7 @@ import com.app.prod.user.dto.UserMetaInfo;
 import com.app.prod.user.enums.UserRole;
 import com.app.prod.user.enums.UserStatus;
 import com.app.prod.utils.BaseJooqRepository;
+import com.app.prod.utils.Emails;
 import com.app.prod.utils.Pagination;
 import com.app.prod.utils.filters.BuildingUserFilter;
 import org.jooq.DSLContext;
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,7 +47,7 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
 
     public Optional<AppUserRecord> findByEmail(String email){
         return dslContext.selectFrom(table)
-                .where(table.EMAIL.eq(email))
+                .where(DSL.lower(table.EMAIL).eq(Emails.normalize(email)))
                 .fetchOptional();
     }
 
@@ -64,10 +64,10 @@ public class UserRepository extends BaseJooqRepository<AppUser, AppUserRecord, U
 
         return dslContext.select(APP_USER.ID, APP_USER.EMAIL, APP_USER.STATUS, lastInvitation)
                 .from(APP_USER)
-                .where(DSL.lower(APP_USER.EMAIL).in(emails))
+                .where(DSL.lower(APP_USER.EMAIL).in(emails.stream().map(Emails::normalize).toList()))
                 .fetch(record -> new ExistingAccount(
                         record.get(APP_USER.ID),
-                        record.get(APP_USER.EMAIL).toLowerCase(Locale.ROOT),
+                        Emails.normalize(record.get(APP_USER.EMAIL)),
                         UserStatus.valueOf(record.get(APP_USER.STATUS)),
                         record.get(lastInvitation) == null ? null : EmailDeliveryStatus.valueOf(record.get(lastInvitation))
                 ));

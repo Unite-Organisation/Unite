@@ -1,5 +1,6 @@
 package com.app.prod.user.service;
 
+import com.app.prod.utils.Emails;
 import com.app.prod.access.BuildingScope;
 import com.app.prod.authorization.dto.IssuedActivationToken;
 import com.app.prod.authorization.service.ActivationTokenService;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -125,7 +125,7 @@ public class PendingAccountService {
         Set<String> unique = new LinkedHashSet<>();
 
         for (String email : emails) {
-            String normalized = email.trim().toLowerCase(Locale.ROOT);
+            String normalized = Emails.normalize(email);
             if (!unique.add(normalized)) {
                 skipped.add(new SkippedEmail(normalized, SkipReason.DUPLICATED_IN_REQUEST));
             }

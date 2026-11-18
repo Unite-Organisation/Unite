@@ -36,6 +36,7 @@ import static com.app.prod.event.EventApi.suits;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jooq.sources.Tables.EVENT;
 import static org.jooq.sources.Tables.SCHEDULED_JOB;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -474,6 +475,33 @@ class PublicEventJourneyIT extends IntegrationTest {
 
     private UUID topDate(Event event) {
         return UUID.fromString(api.event(event).get("slots").get(0).get("id").asText());
+    }
+
+    @Test
+    void aUniteUserThrownOutCannotComeBackUnderTheirAccountOrTheirAddress() throws Exception {
+        AppUserRecord user = uniteUser();
+        String token = jwt.generateTokenForUser(user, UserRole.RESIDENT);
+        Event event = api.createDatedEvent("Kuba", deadline.plusDays(7), null, false);
+        api.joinAsUniteUser(event, token);
+
+        String uniteName = (user.getFirstName() + " " + user.getLastName()).trim();
+        api.remove(event, uniteName);
+
+        api.tryJoinAsUniteUser(event, token)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_BANNED"));
+    }
+
+    @Test
+    void aUniteUserWhoseAddressWasBannedAsAGuestCannotJoin() throws Exception {
+        AppUserRecord user = uniteUser();
+        Event event = api.createDatedEvent("Kuba", deadline.plusDays(7), null, false);
+        api.tryJoinWithEmail(event, "Guest", user.getEmail()).andExpect(status().isCreated());
+        api.remove(event, "Guest");
+
+        api.tryJoinAsUniteUser(event, jwt.generateTokenForUser(user, UserRole.RESIDENT))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors[0].code").value("EVENT_MEMBER_BANNED"));
     }
 
     private AppUserRecord uniteUser() {

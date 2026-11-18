@@ -16,6 +16,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +50,11 @@ public class EventSessionService {
      */
     public void close(String rawToken) {
         sessionRepository.deleteByTokenHash(hash(rawToken));
+    }
+
+    /** Signs these members out everywhere - used when the host throws them out of the event. */
+    public void closeAll(Collection<UUID> memberIds) {
+        sessionRepository.deleteByMemberIds(memberIds);
     }
 
     public Optional<SessionMember> findActive(String slug, String rawToken, LocalDateTime now) {
