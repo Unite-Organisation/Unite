@@ -3,6 +3,9 @@ package com.app.prod.authorization.service;
 import com.app.prod.authorization.dto.AuthTokensDto;
 import com.app.prod.config.security.RefreshTokenService;
 import com.app.prod.config.security.jwt.JwtService;
+import com.app.prod.exceptions.AppError;
+import com.app.prod.exceptions.Code;
+import com.app.prod.exceptions.exceptions.AuthenticationFailedException;
 import com.app.prod.user.dto.UserLoginRequest;
 import com.app.prod.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +19,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthenticationService {
 
     private final JwtService jwtService;
@@ -24,6 +26,9 @@ public class AuthenticationService {
     private final UserService userService;
 
     public AuthTokensDto getTokensRefreshRotate(String oldToken, String ipAddress, String userAgent) {
+        if (oldToken == null || oldToken.isBlank()) {
+            throw new AuthenticationFailedException(AppError.of(Code.REFRESH_TOKEN_MISSING));
+        }
         RefreshTokenRecord refreshToken = getRefreshTokenAndRotate(oldToken, ipAddress, userAgent);
         AppUserRecord user = userService.findById(refreshToken.getUserId());
         String accessToken = getAccessToken(user.getUsername());
@@ -38,6 +43,9 @@ public class AuthenticationService {
     }
 
     public void deactivateRefreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return;
+        }
         refreshTokenService.deactivateRefreshToken(refreshToken);
     }
 

@@ -86,7 +86,8 @@ public enum Code {
     MAIL_SENDING_FAILED("mail_sending_failed", "Mail could not be sent"),
     EVENT_PREVIEW_RENDERING_FAILED("event_preview_rendering_failed", "Event preview image could not be rendered"),
     APP_PROFILE_NOT_FOUND("app_profile_not_found", "App profile not found"),
-    REFRESH_TOKEN_ERROR("refresh_token_error", "Refresh token error");
+    REFRESH_TOKEN_ERROR("refresh_token_error", "Refresh token error"),
+    REFRESH_TOKEN_MISSING("refresh_token_missing", "No active session to refresh");
 
     @Getter
     private final String value;
