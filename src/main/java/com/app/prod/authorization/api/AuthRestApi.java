@@ -61,7 +61,7 @@ public class AuthRestApi {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken, HttpServletRequest httpRequest) {
+    public ResponseEntity<TokenResponse> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletRequest httpRequest) {
         String ipAddress = HttpUtils.getClientIp(httpRequest);
         String userAgent = HttpUtils.getUserAgent(httpRequest);
 

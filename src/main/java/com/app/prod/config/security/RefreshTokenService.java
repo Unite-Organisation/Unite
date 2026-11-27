@@ -3,6 +3,7 @@ package com.app.prod.config.security;
 import com.app.prod.authorization.repository.RefreshTokenRepository;
 import com.app.prod.exceptions.AppError;
 import com.app.prod.exceptions.Code;
+import com.app.prod.exceptions.exceptions.AuthenticationFailedException;
 import com.app.prod.exceptions.exceptions.BadRequestException;
 import com.app.prod.exceptions.exceptions.IllegalApplicationStateException;
 import lombok.Getter;
@@ -55,11 +56,11 @@ public class RefreshTokenService {
             log.warn("Token reuse detected for user {}! Revoking all sessions.", oldToken.getUserId());
             LocalDateTime now = LocalDateTime.now(clock);
             refreshTokenRepository.revokeAllUserTokens(oldToken.getUserId(), now);
-            throw new RuntimeException("Security violation. Token reuse detected. Please log in again.");
+            throw new AuthenticationFailedException(AppError.of(Code.REFRESH_TOKEN_ERROR, "Refresh token was already used, please log in again"));
         }
 
         if (oldToken.getExpiryDate().isBefore(LocalDateTime.now(clock))) {
-            throw new RuntimeException("Refresh token was expired. Please make a new login request");
+            throw new AuthenticationFailedException(AppError.of(Code.REFRESH_TOKEN_ERROR, "Refresh token expired, please log in again"));
         }
 
         if (compareIPs(oldToken.getIpAddress(), ipAddress)) {
